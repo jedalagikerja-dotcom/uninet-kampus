@@ -121,10 +121,10 @@ button.go:active { transform: translate(4px, 4px); box-shadow: 2px 2px 0 #000; }
     <div>
       <div class="eyebrow">Biro Administrasi Akademik</div>
       <h1>Ambil <span class="tag">KTM</span> kamu di sini</h1>
-      <p class="lead">Kartu Tanda Mahasiswa resmi-tidak-resmi UNINET. Terbuka untuk semua netizen. Isinya NIM, angkatan, dan jurusan pilihanmu. Ukurannya pas untuk story.</p>
+      <p class="lead">Kartu Tanda Mahasiswa resmi-tidak-resmi UNINET. Terbuka untuk semua netizen. Isinya NIM, nomor kursi, angkatan, dan jurusan pilihanmu. Ukurannya pas untuk story.</p>
       <div class="seats">
-        <div class="seats-row"><span>Kursi Angkatan Pertama terisi</span><span id="seatText">10.000 / 10.000 · PENUH</span></div>
-        <div class="bar"><i id="seatBar" style="width:100%"></i></div>
+        <div class="seats-row"><span>Kursi Angkatan Kedua terisi</span><span id="seatText">… / 100.000</span></div>
+        <div class="bar"><i id="seatBar" style="width:0%"></i></div>
       </div>
     </div>
     <div class="preview">
@@ -172,7 +172,7 @@ button.go:active { transform: translate(4px, 4px); box-shadow: 2px 2px 0 #000; }
   <section class="how">
     <div><b>Siapa saja boleh</b><p>Isi nama dan username, kartumu langsung jadi. Jangan lupa follow @uninet.id biar resmi.</p></div>
     <div><b>Senior Angkatan Pertama</b><p>10.000 follower pertama otomatis dapat kartu Senior lengkap dengan nomor kursinya.</p></div>
-    <div><b>Angkatan Kedua</b><p>Kursi Angkatan Pertama sudah penuh. Netizen lain langsung dapat KTM Angkatan Kedua.</p></div>
+    <div><b>Angkatan Kedua</b><p>Kursi Angkatan Pertama sudah penuh. Angkatan Kedua dibuka untuk 100.000 kursi, nomor kursimu tercetak di kartu.</p></div>
   </section>
 
   <p class="fine"><strong>UNINET adalah kampus parodi dan edukasi di media sosial, bukan institusi pendidikan resmi.</strong> KTM ini kartu hiburan, bukan dokumen resmi, dan tidak berlaku untuk keperluan apa pun. Username hanya dicocokkan dengan daftar di halaman ini, foto diproses di perangkatmu sendiri.</p>
@@ -187,8 +187,9 @@ const COUNT = MEMBERS.size;
 const fmt = n => n.toLocaleString('id-ID');
 const MAXR = Math.max(...MEMBERS.values());
 const FILLED = Math.min(TOTAL, MAXR);
-document.getElementById('seatText').textContent = FILLED >= TOTAL ? `${fmt(TOTAL)} / ${fmt(TOTAL)} · PENUH` : `${fmt(FILLED)} / ${fmt(TOTAL)}`;
-document.getElementById('seatBar').style.width = (FILLED / TOTAL * 100).toFixed(1) + '%';
+const KUOTA2 = 100000;
+function showSeats(n) { document.getElementById('seatText').textContent = `${fmt(n)} / ${fmt(KUOTA2)}`; document.getElementById('seatBar').style.width = Math.max(.4, Math.min(100, n / KUOTA2 * 100)).toFixed(2) + '%'; }
+fetch('/api/pagar').then(r => r.json()).then(d => showSeats(d.count || 0)).catch(() => showSeats(0));
 
 function fnv(s) {
   const bytes = new TextEncoder().encode('uninet-ktm-v1:' + s);
@@ -206,7 +207,7 @@ function fitText(ctx, text, maxW, size, weight, family) {
   do { ctx.font = `${weight} ${s}px ${family}`; s -= 2; } while (ctx.measureText(text).width > maxW && s > 18);
 }
 
-async function drawCard({ nama, user, jur, rank, photo, sample }) {
+async function drawCard({ nama, user, jur, rank, seat, photo, sample }) {
   await Promise.all([document.fonts.load('800 60px Poppins'), document.fonts.load('600 30px Poppins'), document.fonts.load('700 40px "JetBrains Mono"')]).catch(() => {});
   const W = 1080, H = 1920, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
   const x = cv.getContext('2d');
@@ -257,14 +258,14 @@ async function drawCard({ nama, user, jur, rank, photo, sample }) {
   field('USERNAME', '@' + user, py + 140);
   field('JURUSAN', jur, py + 240);
   // NIM
-  const nim = rank ? `26.01.${String(rank).padStart(5, '0')}` : `26.02.${String(parseInt(fnv(user).slice(0, 6), 16) % 100000).padStart(5, '0')}`;
+  const nim = rank ? `26.01.${String(rank).padStart(5, '0')}` : seat ? `26.02.${String(seat).padStart(6, '0')}` : `26.02.${String(parseInt(fnv(user).slice(0, 6), 16) % 100000).padStart(6, '0')}`;
   x.fillStyle = C.grey; x.font = '700 22px Poppins'; x.fillText('NIM', px, py + ps * 1.2 + 70);
   x.fillStyle = C.ink; x.font = '700 58px "JetBrains Mono", monospace'; x.fillText(nim, px, py + ps * 1.2 + 134);
   // seat badge
   const by = py + ps * 1.2 + 180;
   x.fillStyle = C.yellow; rr(x, px, by, cw - 100, 150, 22); x.fill(); x.lineWidth = 6; x.strokeStyle = '#000'; x.stroke();
   x.fillStyle = C.ink; x.font = '800 40px Poppins'; x.fillText(rank && rank <= TOTAL ? 'SENIOR · ANGKATAN 1' : 'MAHASISWA · ANGKATAN 2', px + 34, by + 64);
-  x.font = '600 28px Poppins'; x.fillText(rank && rank <= TOTAL ? `Kursi ke-${fmt(rank)} dari ${fmt(TOTAL)}` : 'Kampusnya para netizen', px + 34, by + 112);
+  x.font = '600 28px Poppins'; x.fillText(rank && rank <= TOTAL ? `Kursi ke-${fmt(rank)} dari ${fmt(TOTAL)}` : seat ? `Kursi ke-${fmt(seat)} dari ${fmt(100000)}` : 'Kampusnya para netizen', px + 34, by + 112);
   // barcode
   const bcY = by + 200; let seed = parseInt(fnv(user), 16) || 1;
   let bx = px;
@@ -305,12 +306,13 @@ document.getElementById('f').addEventListener('submit', async e => {
     status.innerHTML = `Username <b>@${user.replace(/[<>&"]/g, '')}</b> belum ada di daftar mahasiswa. Pastikan ejaannya benar, lalu <a href="https://www.instagram.com/uninet.id/" target="_blank" rel="noopener">follow @uninet.id</a>. Kursi Angkatan Pertama masih tersedia ${fmt(TOTAL - COUNT)}.`;
     return;
   }
-  if (!rank) { try { fetch('/api/pagar', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ username: user }) }).catch(() => {}); } catch (e) {} }
+  let seat = null;
+  if (!rank || rank > TOTAL) { status.className = 'status idle'; status.textContent = 'Mengambil nomor kursi...'; try { const r = await fetch('/api/pagar', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ username: user }) }); const d = await r.json(); if (d.ok) { seat = d.seat; fetch('/api/pagar').then(r => r.json()).then(d => showSeats(d.count || 0)).catch(() => {}); } else if (d.reason === 'kata') { status.className = 'status no'; status.textContent = 'Username ini tidak bisa dipakai.'; return; } } catch (e) {} }
   status.className = 'status idle'; status.textContent = 'Mencetak kartu...';
-  lastData = await drawCard({ nama, user, jur, rank, photo: photoImg });
+  lastData = await drawCard({ nama, user, jur, rank: rank && rank <= TOTAL ? rank : null, seat, photo: photoImg });
   try { const bl = await (await fetch(lastData)).blob(); if (lastBlobUrl) URL.revokeObjectURL(lastBlobUrl); lastBlobUrl = URL.createObjectURL(bl); out.src = lastBlobUrl; } catch (e) { out.src = lastData; }
   out.hidden = false; hint.hidden = false; document.getElementById('saveBtn').hidden = false; lastName = user; status.className = 'status ok';
-  status.innerHTML = `Selamat, <b>${nama.replace(/[<>&"]/g, '')}</b>! ${rank ? `Kamu mahasiswa ke-${fmt(rank)} UNINET ${rank <= TOTAL ? 'dan resmi senior Angkatan Pertama.' : 'dari Angkatan Kedua.'}` : 'KTM Angkatan Kedua kamu sudah jadi, dan namamu ikut terukir di <a href="/kampus/">Pagar Kampus Mini</a>. Belum follow? <a href="https://www.instagram.com/uninet.id/" target="_blank" rel="noopener">Follow @uninet.id</a> biar resmi jadi mahasiswa.'}`;
+  status.innerHTML = `Selamat, <b>${nama.replace(/[<>&"]/g, '')}</b>! ${rank && rank <= TOTAL ? `Kamu mahasiswa ke-${fmt(rank)} UNINET dan resmi senior Angkatan Pertama.` : seat ? `Kamu dapat kursi ke-${fmt(seat)} dari 100.000 di Angkatan Kedua, dan namamu ikut terukir di <a href="/kampus/">Pagar Kampus Mini</a>.` : 'KTM Angkatan Kedua kamu sudah jadi.'} ${rank ? '' : 'Belum follow? <a href="https://www.instagram.com/uninet.id/" target="_blank" rel="noopener">Follow @uninet.id</a> biar resmi jadi mahasiswa.'}`;
 });
 
 document.getElementById('saveBtn').addEventListener('click', async () => {
