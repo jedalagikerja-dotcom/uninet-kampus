@@ -10,3 +10,5 @@ export function onChildAdded(r,cb){L.push({path:r.path,kind:'added',cb});for(con
 export function onChildChanged(r,cb){L.push({path:r.path,kind:'changed',cb})}export function onChildRemoved(r,cb){L.push({path:r.path,kind:'removed',cb})}
 export const goOffline=()=>{};export const goOnline=()=>{};
 setTimeout(()=>{set({path:'online/BOT1'},{n:'razakeysaa',x:1,z:22,y:0,yaw:Math.PI,c:3,t:Date.now()});set({path:'online/BOT2'},{n:'Tamu AB12',x:2.5,z:23.5,y:0,yaw:Math.PI,c:5,t:Date.now()})},300);
+setTimeout(()=>{store.chat.c1={u:'BOT1',n:'razakeysaa',m:'halo semua, ada yang ke kantin?',t:Date.now()};fire('chat','c1',store.chat.c1,'added')},1500);
+setTimeout(()=>{store.chat.c2={u:'BOT1',n:'razakeysaa',m:'@jedalagi.kerja sini ke kantin!',t:Date.now()};fire('chat','c2',store.chat.c2,'added')},7000);

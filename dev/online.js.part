@@ -25,21 +25,44 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 #chatLog p{margin:0 0 6px;word-wrap:break-word}#chatLog b{color:var(--ink)}#chatLog .me b{color:#3a6ea5}#chatLog .sys{color:#8a7560;font-style:italic}
 #chatForm{display:flex;gap:6px;padding:8px;border-top:2px solid #e2d6bf}#chatIn{flex:1;min-width:0;border:2px solid var(--ink);border-radius:12px;padding:8px 10px;font:700 15px var(--body);background:#fff}
 #chatForm .btn{padding:6px 12px}
+#chatLog p.msg{cursor:pointer;border-radius:10px;padding:3px 6px;margin:0 -6px 4px}#chatLog p.msg:active{background:#f1e4c8}
+#chatLog p.ment{background:#fff1b8;box-shadow:inset 3px 0 0 #f2b630}#chatLog .q{display:block;font-size:12px;color:#8a7560;border-left:3px solid #d8c7a5;padding-left:6px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#chatLog .at{color:#3a6ea5;font-weight:900}#chatLog .at.mine{background:#ffd23f;color:#2b1a0e;border-radius:6px;padding:0 3px}
+#replyBar{display:none;align-items:center;gap:8px;padding:6px 10px;background:#f6ecd6;border-top:2px solid #e2d6bf;font:700 13px var(--body);color:#5a4330}#replyBar.on{display:flex}#replyBar span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#replyBar button{border:2px solid var(--ink);background:#fff;border-radius:8px;width:26px;height:26px;font:900 12px var(--body);cursor:pointer}
+#mentList{display:none;flex-wrap:wrap;gap:6px;padding:6px 8px 0}#mentList.on{display:flex}#mentList button{font:800 13px var(--body);border:2px solid var(--ink);border-radius:999px;background:#fff;padding:4px 10px;cursor:pointer}
+#toast{position:fixed;z-index:8;left:50%;top:calc(env(safe-area-inset-top,0px) + 70px);transform:translate(-50%,-20px);opacity:0;transition:all .3s;background:var(--ink);color:#fff;font:800 15px var(--body);padding:10px 16px;border-radius:999px;pointer-events:none;max-width:86vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#toast.on{opacity:1;transform:translate(-50%,0)}
 #mode button.warn{background:var(--yellow)}
 body:not(.walk) #chatBtn{display:none}
 @media (max-width:620px){#chat{top:calc(env(safe-area-inset-top,0px) + 112px)}}
 </style>`);
 document.getElementById('mode').insertAdjacentHTML('afterbegin','<div id="onl" title="Mahasiswa online"><i></i><span>offline</span></div>');
 document.getElementById('mode').insertAdjacentHTML('beforeend','<button id="mName">Nama</button>');
-document.body.insertAdjacentHTML('beforeend',`<button id="chatBtn" aria-label="Buka chat kampus">CHAT</button>
+document.body.insertAdjacentHTML('beforeend',`<div id="toast" role="status"></div><button id="chatBtn" aria-label="Buka chat kampus">CHAT</button>
 <div id="chat" role="dialog" aria-label="Chat kampus"><header>Chat Kampus<button id="chatX" aria-label="Tutup chat">✕</button></header><div id="chatLog" aria-live="polite"></div>
-<form id="chatForm" autocomplete="off"><input id="chatIn" maxlength="120" placeholder="Tulis pesan…" enterkeyhint="send"><button class="btn" type="submit">Kirim</button></form></div>`);
+<div id="replyBar"><span></span><button type="button" id="replyX" aria-label="Batal membalas">✕</button></div><div id="mentList"></div><form id="chatForm" autocomplete="off"><input id="chatIn" maxlength="120" placeholder="Tulis pesan…" enterkeyhint="send"><button class="btn" type="submit">Kirim</button></form></div>`);
 const chatEl=document.getElementById('chat'),chatLog=document.getElementById('chatLog'),chatIn=document.getElementById('chatIn'),chatBtn=document.getElementById('chatBtn');let unread=0;
 function setUnread(n){unread=n;chatBtn.innerHTML='CHAT'+(n?`<b>${n>9?'9+':n}</b>`:'')}
 function openChat(on){chatEl.classList.toggle('open',on);if(on){setUnread(0);chatLog.scrollTop=chatLog.scrollHeight;setTimeout(()=>chatIn.focus(),50)}}
 chatBtn.onclick=()=>openChat(!chatEl.classList.contains('open'));document.getElementById('chatX').onclick=()=>openChat(false);
 function logLine(name,msg,cls){const p=document.createElement('p');if(cls)p.className=cls;if(name){const b=document.createElement('b');b.textContent=name+': ';p.appendChild(b)}p.appendChild(document.createTextNode(msg));chatLog.appendChild(p);while(chatLog.children.length>60)chatLog.firstChild.remove();
  if(chatEl.classList.contains('open'))chatLog.scrollTop=chatLog.scrollHeight}
+const MSG=new Map();let REPLY=null;
+function esc(t){return t.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function fmtMsg(m){return esc(m).replace(/@([a-z0-9._]{1,30})/gi,(a,u)=>`<span class="at${NET.ig&&u.toLowerCase()===NET.ig?' mine':''}">@${u}</span>`)}
+function msgLine(key,v){const p=document.createElement('p');p.className='msg'+(v.u===NET.uid?' me':'')+(v.ment?' ment':'');p.dataset.k=key;
+ let q='';if(v.r){const o=MSG.get(v.r);q=`<span class="q">↪ ${o?esc(shown(o.n))+': '+esc(o.m.slice(0,60)):'membalas pesan sebelumnya'}</span>`}
+ p.innerHTML=q+`<b>${esc(shown(v.n))}:</b> `+fmtMsg(v.m);p.onclick=()=>setReply(key);chatLog.appendChild(p);while(chatLog.children.length>60)chatLog.firstChild.remove();
+ if(chatEl.classList.contains('open'))chatLog.scrollTop=chatLog.scrollHeight}
+function setReply(key){const o=key&&MSG.get(key);REPLY=o?key:null;const bar=document.getElementById('replyBar');bar.classList.toggle('on',!!o);
+ if(o){bar.firstChild.textContent='Membalas '+shown(o.n)+': '+o.m.slice(0,50);if(!/^Tamu /.test(o.n)&&o.u!==NET.uid&&!chatIn.value.includes('@'+o.n))chatIn.value='@'+o.n+' '+chatIn.value;chatIn.focus()}}
+let toastT=0;function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('on'),3500)}
+function mentionCands(pre){const set=new Set();for(const o of NET.others.values())if(!/^Tamu /.test(o.n))set.add(o.n);for(const o of MSG.values())if(!/^Tamu /.test(o.n))set.add(o.n);if(NET.ig)set.delete(NET.ig);
+ return [...set].filter(n=>n.startsWith(pre.toLowerCase())).slice(0,6)}
+function updMent(){const L=document.getElementById('mentList'),mm=chatIn.value.slice(0,chatIn.selectionEnd||chatIn.value.length).match(/(^|\s)@([a-z0-9._]{0,30})$/i);
+ if(!mm){L.classList.remove('on');return}const c=mentionCands(mm[2]);if(!c.length){L.classList.remove('on');return}
+ L.innerHTML='';for(const n of c){const b=document.createElement('button');b.type='button';b.textContent='@'+n;b.onmousedown=b.ontouchstart=e=>e.preventDefault();
+  b.onclick=()=>{const end=chatIn.selectionEnd||chatIn.value.length,before=chatIn.value.slice(0,end).replace(/@([a-z0-9._]{0,30})$/i,'@'+n+' ');chatIn.value=before+chatIn.value.slice(end);L.classList.remove('on');chatIn.focus()};L.appendChild(b)}L.classList.add('on')}
 function setOnl(n,live){const e=document.getElementById('onl');e.classList.toggle('live',!!live);e.lastChild.textContent=live?(n+' online'):'offline'}
 // ---- identitas: username IG yang dikunci ----
 async function claimIG(v){const F=NET.F,db=NET.db,k=igKey(v);
@@ -106,17 +129,21 @@ async function netStart(){try{
    if(!o){o={x:v.x,z:v.z,yaw:v.yaw||0};NET.others.set(s.key,o)}Object.assign(o,{tx:v.x,tz:v.z,tyaw:v.yaw||0,y:v.y||0,n:cleanText(v.n||'Tamu').slice(0,30)||'Tamu',c:v.c||0,seen:Date.now()});countOnline()};
   D.onChildAdded(R,up);D.onChildChanged(R,up);D.onChildRemoved(R,s=>{NET.others.delete(s.key);dropTex('nt_'+s.key);countOnline()});
   const Q=D.query(D.ref(db,'chat'),D.orderByChild('t'),D.limitToLast(30));let first=true;setTimeout(()=>first=false,2500);
-  D.onChildAdded(Q,s=>{const v=s.val()||{};const m=cleanText(v.m).slice(0,120),n=cleanText(v.n).slice(0,30)||'Tamu';if(!m)return;logLine(shown(n),m,v.u===NET.uid?'me':'');
+  D.onChildAdded(Q,s=>{const v=s.val()||{};const m=cleanText(v.m).slice(0,120),n=cleanText(v.n).slice(0,30)||'Tamu';if(!m)return;
+   const r=typeof v.r==='string'?v.r.slice(0,30):null,ro=r&&MSG.get(r);const ment=v.u!==NET.uid&&!!NET.ig&&(new RegExp('@'+NET.ig.replace(/\./g,'\\.')+'(?![a-z0-9._])','i').test(m)||(ro&&ro.u===NET.uid));
+   MSG.set(s.key,{n,m,u:v.u});if(MSG.size>80)MSG.delete(MSG.keys().next().value);msgLine(s.key,{n,m,u:v.u,r,ment});
+   if(ment&&!first&&Date.now()-(v.t||0)<20000){toast(shown(n)+(ro&&ro.u===NET.uid?' membalas pesanmu':' menyebut namamu')+': '+m.slice(0,40));try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}}
    if(Date.now()-(v.t||0)<15000)NET.bubbles.set(v.u,{key:s.key,m,until:Date.now()+6000});if(!first&&!chatEl.classList.contains('open'))setUnread(unread+1)});
-  logLine('',NET.ig?'Kamu masuk sebagai @'+NET.ig+'.':'Kamu masih Tamu. Ketuk "Isi nama" untuk memakai username IG.','sys');countOnline();
+  logLine('',NET.ig?'Kamu masuk sebagai @'+NET.ig+'.':'Kamu masih Tamu. Ketuk "Isi nama" untuk memakai username IG.','sys');logLine('','Ketuk pesan untuk membalas. Ketik @ untuk menyebut nama.','sys');countOnline();
   document.addEventListener('visibilitychange',()=>{if(document.hidden){D.goOffline(db)}else{D.goOnline(db);setTimeout(()=>sendPos(true),400)}});
   setInterval(()=>{if(NET.on&&!NET.idleOff&&Date.now()-lastInput>240000){NET.idleOff=true;D.goOffline(db);setOnl(0,false)}else if(!NET.idleOff)countOnline()},15000);
  }catch(e){console.warn('online gagal',e);setOnl(0,false);logLine('','Mode online sedang tidak tersedia. Kamu tetap bisa jalan-jalan sendiri.','sys')}}
 document.getElementById('chatForm').addEventListener('submit',async e=>{e.preventDefault();const m=cleanText(chatIn.value).slice(0,120);if(!m)return;if(NET.on&&!NET.ig){openIdentity('Isi username Instagram kamu dulu supaya bisa chat.');return}
  if(!NET.on){logLine('','Chat belum tersambung.','sys');return}const F=NET.F,key=F.push(F.ref(NET.db,'chat')).key;
- try{await F.update(F.ref(NET.db),{['chat/'+key]:{u:NET.uid,n:myName(),m,t:F.serverTimestamp()},['rate/'+NET.uid]:F.serverTimestamp()});chatIn.value=''}
+ const msg={u:NET.uid,n:myName(),m,t:F.serverTimestamp()};if(REPLY)msg.r=REPLY;
+ try{await F.update(F.ref(NET.db),{['chat/'+key]:msg,['rate/'+NET.uid]:F.serverTimestamp()});chatIn.value='';setReply(null);document.getElementById('mentList').classList.remove('on')}
  catch(err){logLine('','Pesan gagal terkirim. Tunggu 3 detik lalu coba lagi.','sys')}});
-chatIn.addEventListener('keydown',e=>e.stopPropagation());
+chatIn.addEventListener('keydown',e=>e.stopPropagation());chatIn.addEventListener('input',updMent);document.getElementById('replyX').onclick=()=>setReply(null);
 document.getElementById('mName').onclick=()=>openIdentity();
 netStart();
 // iPad/iPhone: setelah keyboard tertutup, kembalikan halaman ke posisi semula supaya UI tidak hilang
