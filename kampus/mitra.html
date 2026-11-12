@@ -40,7 +40,7 @@ const SL=[['warung1','Warung 1 (kantin, paling kiri)'],['warung2','Warung 2 (kan
 const DEFC={warung1:'#ffd23f',warung2:'#6cc3f5',warung3:'#8bd17c',warung4:'#ff9fb8',warung5:'#f7a440',baliho1:'#3a6ea5',baliho2:'#e3342f'};
 const $=s=>document.querySelector(s);let mt=0;
 const PORTAL=/mitra\.html$/.test(location.pathname);
-if(PORTAL){document.title='Portal Mitra · UNINET';$('header h1').innerHTML='UNINET <b>Portal Mitra</b>';document.documentElement.style.setProperty('--yellow','#7fe0a8');
+if(PORTAL){document.title='Portal Mitra · UNINET';$('header h1').innerHTML='UNINET <b>Portal Mitra</b>';document.documentElement.style.setProperty('--yellow','#7fe0a8');document.documentElement.style.setProperty('--bg','#dff3e6');document.documentElement.style.setProperty('--cream','#f4fff8');document.querySelector('header').style.background='#0f4c36';
  $('#intro').innerHTML='<h2 style="margin:0 0 6px">Selamat datang, mitra UNINET</h2><p style="margin:0">Masuk dengan akun Google yang kamu daftarkan ke @uninet.id. Di sini kamu bisa mengganti banner, produk, foto, harga, kode promo, dan link toko untuk warung atau baliho milikmu, lalu melihat berapa mahasiswa yang mampir.</p><p class="muted" style="margin:8px 0 0">Kalau login tidak muncul, buka halaman ini di Safari atau Chrome (bukan dari browser Instagram).</p>'}
 else{$('#intro').insertAdjacentHTML('afterbegin','<h2 style="margin:0 0 6px">Panel Admin UNINET</h2>')}
 const msg=(t,bad)=>{const m=$('#msg');m.textContent=t;m.style.display=t?'block':'none';m.style.borderColor=bad?'#e3342f':'#2b1a0e';clearTimeout(mt);if(t&&!bad)mt=setTimeout(()=>m.style.display='none',4000)};
@@ -53,10 +53,10 @@ function pick(){return new Promise(res=>{const i=document.createElement('input')
 let ME=null,ADMIN=false,MINE=[];
 async function load(){const box=$('#slots');box.innerHTML='<p class="muted">Memuat…</p>';
  // cek peran: admin bisa membaca daftar pemilik
- let owners={};ADMIN=false;try{const o=await D.get(D.ref(db,'owners'));owners=o.val()||{};ADMIN=true}catch(e){}
+ let owners={};ADMIN=false;if(!PORTAL){try{const o=await D.get(D.ref(db,'owners'));owners=o.val()||{};ADMIN=true}catch(e){}}
  MINE=[];if(ADMIN)MINE=SL.map(s=>s[0]);else for(const [id] of SL){try{const o=await D.get(D.ref(db,'owners/'+id));if(o.val()===ME.email){MINE.push(id);owners[id]=o.val()}}catch(e){}}
  if(ADMIN)box.insertAdjacentHTML('beforebegin','');
- if(!MINE.length){box.innerHTML=`<div class="card"><h2>Belum ada slot untuk akun ini</h2><p>Akun <b>${esc(ME.email)}</b> belum terdaftar sebagai mitra. Hubungi @uninet.id di Instagram dan kirim email ini supaya didaftarkan ke warung atau baliho.</p></div>`;return}
+ if(!MINE.length){box.innerHTML=`<div class="card"><h2>Belum ada slot untuk akun ini</h2><p>Akun <b>${esc(ME.email)}</b> belum terdaftar sebagai mitra. Hubungi @uninet.id di Instagram dan kirim email ini supaya didaftarkan ke warung atau baliho.</p>${PORTAL?'<p class="muted">Kalau kamu admin UNINET, kelola semua slot lewat halaman <a href="admin.html">admin.html</a>. Halaman ini selalu menampilkan sudut pandang mitra.</p>':''}</div>`;return}
  const [b,lg]=await Promise.all([D.get(D.ref(db,'brands')),D.get(D.ref(db,'blogo'))]);const BR=b.val()||{},LG=lg.val()||{};
  box.innerHTML=ADMIN?`<div class="card" style="background:#2b1a0e;color:#fff"><b style="color:#ffd23f">Mode admin</b> · kamu melihat semua slot. Untuk memberi akses ke brand, isi email Google mereka di kotak pemilik slot, lalu kirim link <b>…/kampus/mitra.html</b> ke mereka.</div>`:`<div class="card" style="background:#e3f7ea"><b>Slot milikmu:</b> ${MINE.length} · Perubahan langsung tampil di Kampus Mini UNINET.</div>`;for(const [id,label] of SL)if(MINE.includes(id))box.appendChild(await slotCard(id,label,BR[id]||{},LG[id]||'',owners[id]||''))}
 async function slotCard(id,label,b,logo,owner){const isW=id.startsWith('warung'),c=document.createElement('div');c.className='card';
