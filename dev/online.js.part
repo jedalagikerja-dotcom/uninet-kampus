@@ -1,12 +1,17 @@
 // ================= ONLINE: mahasiswa lain + chat (Firebase) =================
 const FB_CFG={apiKey:"AIzaSyBq2b8RFiq0j47Hek0OghBABHv982ikuCw",authDomain:"uninet-kampus.firebaseapp.com",databaseURL:"https://uninet-kampus-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"uninet-kampus",storageBucket:"uninet-kampus.firebasestorage.app",messagingSenderId:"918457767424",appId:"1:918457767424:web:e42e5e58eed798ce296ae5"};
 const FBV='10.14.1',FBU=n=>`https://www.gstatic.com/firebasejs/${FBV}/firebase-${n}.js`;
-const NET={on:false,uid:null,db:null,F:null,me:null,others:new Map(),last:{x:0,z:0,yaw:0,t:0},bubbles:new Map(),idleOff:false};
+const NET={ig:null,auth:null,AU:null,on:false,uid:null,db:null,F:null,me:null,others:new Map(),last:{x:0,z:0,yaw:0,t:0},bubbles:new Map(),idleOff:false};
 const BADW=["anjing","anjg","babi","kontol","kntl","memek","mmk","ngentot","ngewe","bangsat","bajingan","goblok","tolol","kampret","jancok","jancuk","pepek","lonte","pelacur","fuck","shit","bitch","porn","bokep","judi","slot","gacor","togel","casino","maxwin"];
 function cleanText(s){let o=String(s||'').replace(/[\u0000-\u001f<>]/g,'').trim();for(const w of BADW){o=o.replace(new RegExp(w,'gi'),m=>m[0]+'*'.repeat(m.length-1))}return o}
 function badName(s){const f=s.toLowerCase().replace(/[^a-z]/g,'');return BADW.some(w=>f.includes(w))}
 function hashN(s){let h=0;for(const ch of s)h=(h*31+ch.charCodeAt(0))|0;return Math.abs(h)}
-function myName(){let n='';try{n=localStorage.getItem('uninet_nama')||''}catch(e){}return n||('Tamu '+(NET.uid||'xxxx').slice(0,4).toUpperCase())}
+function myName(){return NET.ig||('Tamu '+(NET.uid||'xxxx').slice(0,4).toUpperCase())}
+function shown(n){return /^Tamu /.test(n)?n:'@'+n}
+function igOk(v){return /^[a-z0-9._]{1,30}$/.test(v)&&!/^\.|\.$/.test(v)}
+function igKey(v){return v.toLowerCase().replace(/\./g,',')}
+const LS={get:k=>{try{return localStorage.getItem(k)||''}catch(e){return ''}},set:(k,v)=>{try{v?localStorage.setItem(k,v):localStorage.removeItem(k)}catch(e){}}};
+const INAPP=/Instagram|FBAN|FBAV|Line\/|TikTok/i.test(navigator.userAgent);
 // ---- UI ----
 document.head.insertAdjacentHTML('beforeend',`<style>
 #onl{font-family:var(--display);font-size:14px;border:3px solid var(--ink);border-radius:999px;padding:5px 11px;background:var(--cream);color:var(--ink);box-shadow:0 3px 0 var(--ink);display:flex;align-items:center;gap:6px;white-space:nowrap}
@@ -20,6 +25,7 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 #chatLog p{margin:0 0 6px;word-wrap:break-word}#chatLog b{color:var(--ink)}#chatLog .me b{color:#3a6ea5}#chatLog .sys{color:#8a7560;font-style:italic}
 #chatForm{display:flex;gap:6px;padding:8px;border-top:2px solid #e2d6bf}#chatIn{flex:1;min-width:0;border:2px solid var(--ink);border-radius:12px;padding:8px 10px;font:700 15px var(--body);background:#fff}
 #chatForm .btn{padding:6px 12px}
+#mode button.warn{background:var(--yellow)}
 body:not(.walk) #chatBtn{display:none}
 @media (max-width:620px){#chat{top:calc(env(safe-area-inset-top,0px) + 112px)}}
 </style>`);
@@ -35,11 +41,38 @@ chatBtn.onclick=()=>openChat(!chatEl.classList.contains('open'));document.getEle
 function logLine(name,msg,cls){const p=document.createElement('p');if(cls)p.className=cls;if(name){const b=document.createElement('b');b.textContent=name+': ';p.appendChild(b)}p.appendChild(document.createTextNode(msg));chatLog.appendChild(p);while(chatLog.children.length>60)chatLog.firstChild.remove();
  if(chatEl.classList.contains('open'))chatLog.scrollTop=chatLog.scrollHeight}
 function setOnl(n,live){const e=document.getElementById('onl');e.classList.toggle('live',!!live);e.lastChild.textContent=live?(n+' online'):'offline'}
-// nama
-document.getElementById('mName').onclick=()=>{showCard(`<h2>Namamu di kampus</h2><p>Nama ini muncul di atas kepala karaktermu dan di chat. Boleh username Instagram.</p><form id="nmF" class="row" autocomplete="off"><input id="nmI" maxlength="20" style="flex:1;min-width:0;border:3px solid var(--ink);border-radius:12px;padding:8px 10px;font:800 16px var(--body)" value=""><button class="btn" type="submit">Simpan</button></form><p id="nmE" style="color:#b0302b;margin-top:8px"></p>`);
- const i=document.getElementById('nmI');i.value=myName().startsWith('Tamu ')?'':myName();i.focus();
- document.getElementById('nmF').onsubmit=e=>{e.preventDefault();const v=i.value.trim().replace(/^@+/,'');if(!/^[A-Za-z0-9 ._]{2,20}$/.test(v)){document.getElementById('nmE').textContent='Pakai 2–20 huruf, angka, spasi, titik, atau garis bawah.';return}
-  if(badName(v)){document.getElementById('nmE').textContent='Nama ini tidak bisa dipakai.';return}try{localStorage.setItem('uninet_nama',v)}catch(e){}closeCard();sendPos(true);logLine('', 'Namamu sekarang '+v,'sys')}};
+// ---- identitas: username IG yang dikunci ----
+async function claimIG(v){const F=NET.F,db=NET.db,k=igKey(v);
+ const cur=await F.get(F.ref(db,'names/'+k));if(cur.exists()&&cur.val()!==NET.uid)return 'taken';
+ await F.set(F.ref(db,'names/'+k),NET.uid);await F.set(F.ref(db,'profiles/'+NET.uid),{ig:v});
+ const old=NET.ig;NET.ig=v;LS.set('uninet_ig_claimed',v);if(old&&igKey(old)!==k)F.set(F.ref(db,'names/'+igKey(old)),null).catch(()=>{});
+ sendPos(true);updName();return 'ok'}
+async function loadProfile(){const F=NET.F,db=NET.db;try{const p=await F.get(F.ref(db,'profiles/'+NET.uid));const ig=p.exists()&&p.val().ig;
+  if(ig){const o=await F.get(F.ref(db,'names/'+igKey(ig)));if(o.val()===NET.uid){NET.ig=ig;LS.set('uninet_ig_claimed',ig);updName();return true}}}catch(e){console.warn('profil',e&&e.code)}
+ return false}
+function updName(){const b=document.getElementById('mName');b.textContent=NET.ig?shown(NET.ig):'Isi nama';b.classList.toggle('warn',!NET.ig);chatIn.placeholder=NET.ig?'Tulis pesan…':'Isi username IG dulu untuk chat'}
+function openIdentity(reason){const u=NET.auth&&NET.auth.currentUser,linked=u&&!u.isAnonymous,em=linked&&u.email?u.email:'';
+ const pre=NET.ig||[LS.get('uninet_ig'),LS.get('uninet_nama').toLowerCase()].find(x=>x&&igOk(x))||'';
+ showCard(`<h2>${NET.ig?'Namamu di kampus':'Masuk ke Kampus UNINET'}</h2><p>${reason||'Tulis username Instagram kamu. Nama ini muncul di atas kepala karaktermu dan di chat, dan tidak bisa dipakai orang lain.'}</p>
+ <form id="nmF" class="row" autocomplete="off"><span style="flex:1;min-width:0;display:flex;align-items:center;border:3px solid var(--ink);border-radius:12px;background:#fff;padding:0 10px"><b style="font:900 17px var(--body)">@</b><input id="nmI" maxlength="30" autocapitalize="none" autocorrect="off" spellcheck="false" style="flex:1;min-width:0;border:0;padding:9px 4px;font:800 16px var(--body);background:transparent" placeholder="username"></span><button class="btn" type="submit">${NET.ig?'Ganti':'Masuk'}</button></form>
+ <p id="nmE" style="color:#b0302b;margin:8px 0 6px;min-height:1em"></p>
+ <div style="border-top:2px dashed #e2d6bf;padding-top:10px"><p style="margin-bottom:8px">${linked?'Tersimpan di akun Google'+(em?' <b>'+em.replace(/[<>&]/g,'')+'</b>':'')+'. Namamu ikut ke HP lain kalau kamu masuk dengan Google yang sama.':(INAPP?'Supaya namamu tetap sama di HP lain, buka halaman ini di <b>Safari atau Chrome</b>, lalu simpan dengan Google. Login Google tidak bisa di browser Instagram.':'Supaya namamu tetap sama di HP lain atau setelah data browser dihapus, simpan dengan akun Google.')}</p>
+ <div class="row">${linked||INAPP?'':'<button class="btn dark" id="gBtn" type="button">Simpan dengan Google</button>'}${NET.ig?'':'<button class="btn" id="skipBtn" type="button" style="background:#fff">Nanti saja</button>'}</div></div>`);
+ const i=document.getElementById('nmI'),E=document.getElementById('nmE');i.value=pre;
+ document.getElementById('nmF').onsubmit=async e=>{e.preventDefault();const v=i.value.trim().replace(/^@+/,'').toLowerCase();
+  if(!igOk(v)){E.textContent='Username Instagram hanya huruf kecil, angka, titik, dan garis bawah.';return}if(badName(v)){E.textContent='Username ini tidak bisa dipakai.';return}
+  if(v===NET.ig){closeCard();return}if(!NET.on){E.textContent='Belum tersambung ke kampus. Coba lagi sebentar.';return}
+  E.style.color='#4a3524';E.textContent='Mengecek…';let r;try{r=await claimIG(v)}catch(err){r='error';console.warn(err)}
+  if(r==='ok'){closeCard();logLine('','Selamat datang, @'+v+'!','sys')}else{E.style.color='#b0302b';E.textContent=r==='taken'?'@'+v+' sudah dipakai mahasiswa lain. Kalau itu akunmu, hubungi @uninet.id.':'Gagal menyimpan. Coba lagi sebentar.'}};
+ const g=document.getElementById('gBtn');if(g)g.onclick=googleSave;const sk=document.getElementById('skipBtn');if(sk)sk.onclick=()=>closeCard()}
+async function googleSave(){const AU=NET.AU,auth=NET.auth,E=document.getElementById('nmE'),prov=new AU.GoogleAuthProvider();prov.setCustomParameters({prompt:'select_account'});
+ try{await AU.linkWithPopup(auth.currentUser,prov);if(NET.ig)await NET.F.set(NET.F.ref(NET.db,'profiles/'+NET.uid),{ig:NET.ig});openIdentity('Tersimpan! Namamu sekarang terikat ke akun Google ini.')}
+ catch(e){if(e.code==='auth/credential-already-in-use'||e.code==='auth/email-already-in-use'){const cred=AU.GoogleAuthProvider.credentialFromError(e);
+   // akun Google ini sudah punya nama dari perangkat lain: pindah ke akun itu
+   try{const F=NET.F;await F.set(NET.me,null).catch(()=>{});if(NET.ig){await F.set(F.ref(NET.db,'names/'+igKey(NET.ig)),null).catch(()=>{})}NET.ig=null;
+    const r=await AU.signInWithCredential(auth,cred);await useUser(r.user);openIdentity(NET.ig?'Selamat datang kembali, @'+NET.ig+'!':'Masuk berhasil. Tulis username Instagram kamu.')}catch(e2){if(E)E.textContent='Gagal masuk dengan Google.'}}
+  else if(e.code!=='auth/popup-closed-by-user'&&e.code!=='auth/cancelled-popup-request'){if(E){E.style.color='#b0302b';E.textContent='Login Google gagal'+(e.code==='auth/popup-blocked'?': jendela login diblokir browser.':'. Coba buka di Safari atau Chrome.')}}}}
+async function useUser(u){const F=NET.F;NET.uid=u.uid;NET.me=F.ref(NET.db,'online/'+NET.uid);F.onDisconnect(NET.me).remove();NET.ig=null;await loadProfile();updName();sendPos(true)}
 // ---- tekstur nama & gelembung ----
 function nameTagTex(n){return ctex('nt_'+n,320,72,(x,w,h)=>{x.font=FD(38);const tw=Math.min(w-12,x.measureText(n).width+36);x.fillStyle='rgba(255,248,230,.95)';x.strokeStyle='#2b1a0e';x.lineWidth=5;x.beginPath();x.roundRect((w-tw)/2,6,tw,h-12,28);x.fill();x.stroke();x.fillStyle='#2b1a0e';x.textAlign='center';x.textBaseline='middle';let s=n;while(x.measureText(s).width>w-50&&s.length>3)s=s.slice(0,-1);x.fillText(s===n?n:s+'…',w/2,h/2+2)})}
 function bubbleTex(key,msg){return ctex('bb_'+key,512,170,(x,w,h)=>{x.font='800 30px Nunito, sans-serif';const words=msg.split(' ');const lines=[];let cur='';for(const wd of words){const t=cur?cur+' '+wd:wd;if(x.measureText(t).width>w-60&&cur){lines.push(cur);cur=wd}else cur=t}if(cur)lines.push(cur);const L=lines.slice(0,3);if(lines.length>3)L[2]=L[2].slice(0,-1)+'…';
@@ -51,7 +84,7 @@ const SHIRT=['#ff8a5c','#6cc3f5','#ffd166','#8bd17c','#c79bf2','#ff9fb8','#5fd0c
 function drawOthers(dt){const now=Date.now();let k=Math.min(1,dt*6);for(const [id,o] of NET.others){if(now-o.seen>90000)continue;
   const dx=o.tx-o.x,dz=o.tz-o.z,d=Math.hypot(dx,dz);o.x+=dx*k;o.z+=dz*k;let dy=o.tyaw-o.yaw;while(dy>Math.PI)dy-=2*Math.PI;while(dy<-Math.PI)dy+=2*Math.PI;o.yaw+=dy*k;o.mv=d>.05;if(o.mv)o.ph=(o.ph||0)+dt*10;
   const h=o.mv?Math.abs(Math.sin(o.ph))*.1:0;person(o.x,o.z,o.c,o.yaw,(o.y||0)+h,{col:SHIRT[o.c%SHIRT.length],swing:o.mv?Math.sin(o.ph)*.9:0});
-  const far=(o.x-EYE[0])**2+(o.z-EYE[2])**2;if(far<1600)textPlane(nameTagTex(o.n),o.x,(o.y||0)+2.1,o.z,1.7,.38,cam.yaw,{emis:1,recv:0});
+  const far=(o.x-EYE[0])**2+(o.z-EYE[2])**2;if(far<1600)textPlane(nameTagTex(shown(o.n)),o.x,(o.y||0)+2.1,o.z,1.7,.38,cam.yaw,{emis:1,recv:0});
   const b=NET.bubbles.get(id);if(b&&now<b.until&&far<2500)textPlane(bubbleTex(b.key,b.m),o.x,(o.y||0)+2.95,o.z,2.5,.83,cam.yaw,{emis:1,recv:0})}
  const mb=NET.bubbles.get(NET.uid);if(WALK&&mb&&now<mb.until)textPlane(bubbleTex(mb.key,mb.m),PL1.x,PL1.y+2.95,PL1.z,2.5,.83,cam.yaw,{emis:1,recv:0});
  for(const [id,b] of NET.bubbles)if(now>b.until+500){dropTex('bb_'+b.key);NET.bubbles.delete(id)}}
@@ -65,23 +98,26 @@ function countOnline(){const now=Date.now();let n=1;for(const o of NET.others.va
 async function netStart(){try{
   const [A,AU,D]=await Promise.all([import(FBU('app')),import(FBU('auth')),import(FBU('database'))]);
   const app=A.initializeApp(FB_CFG),auth=AU.getAuth(app),db=D.getDatabase(app);NET.db=db;NET.F=D;
-  const cred=await AU.signInAnonymously(auth);NET.uid=cred.user.uid;NET.me=D.ref(db,'online/'+NET.uid);NET.on=true;
-  D.onDisconnect(NET.me).remove();sendPos(true);
+  NET.auth=auth;NET.AU=AU;let user=await new Promise(r=>{const un=AU.onAuthStateChanged(auth,u=>{un();r(u)})});if(!user)user=(await AU.signInAnonymously(auth)).user;
+  NET.on=true;await useUser(user);
+  if(!NET.ig){const c=[LS.get('uninet_ig_claimed'),LS.get('uninet_ig')].find(x=>x&&igOk(x));let ok=false;if(c){try{ok=(await claimIG(c))==='ok'}catch(e){}}
+   if(!ok)setTimeout(()=>{if(card.hidden)openIdentity()},1200)}
   const R=D.ref(db,'online');const up=s=>{if(s.key===NET.uid)return;const v=s.val()||{};if(typeof v.x!=='number')return;let o=NET.others.get(s.key);
-   if(!o){o={x:v.x,z:v.z,yaw:v.yaw||0};NET.others.set(s.key,o)}Object.assign(o,{tx:v.x,tz:v.z,tyaw:v.yaw||0,y:v.y||0,n:cleanText(v.n||'Tamu').slice(0,20)||'Tamu',c:v.c||0,seen:Date.now()});countOnline()};
+   if(!o){o={x:v.x,z:v.z,yaw:v.yaw||0};NET.others.set(s.key,o)}Object.assign(o,{tx:v.x,tz:v.z,tyaw:v.yaw||0,y:v.y||0,n:cleanText(v.n||'Tamu').slice(0,30)||'Tamu',c:v.c||0,seen:Date.now()});countOnline()};
   D.onChildAdded(R,up);D.onChildChanged(R,up);D.onChildRemoved(R,s=>{NET.others.delete(s.key);dropTex('nt_'+s.key);countOnline()});
   const Q=D.query(D.ref(db,'chat'),D.orderByChild('t'),D.limitToLast(30));let first=true;setTimeout(()=>first=false,2500);
-  D.onChildAdded(Q,s=>{const v=s.val()||{};const m=cleanText(v.m).slice(0,120),n=cleanText(v.n).slice(0,20)||'Tamu';if(!m)return;logLine(n,m,v.u===NET.uid?'me':'');
+  D.onChildAdded(Q,s=>{const v=s.val()||{};const m=cleanText(v.m).slice(0,120),n=cleanText(v.n).slice(0,30)||'Tamu';if(!m)return;logLine(shown(n),m,v.u===NET.uid?'me':'');
    if(Date.now()-(v.t||0)<15000)NET.bubbles.set(v.u,{key:s.key,m,until:Date.now()+6000});if(!first&&!chatEl.classList.contains('open'))setUnread(unread+1)});
-  logLine('','Kamu masuk sebagai '+myName()+'. Ketuk Nama untuk mengganti.','sys');countOnline();
+  logLine('',NET.ig?'Kamu masuk sebagai @'+NET.ig+'.':'Kamu masih Tamu. Ketuk "Isi nama" untuk memakai username IG.','sys');countOnline();
   document.addEventListener('visibilitychange',()=>{if(document.hidden){D.goOffline(db)}else{D.goOnline(db);setTimeout(()=>sendPos(true),400)}});
   setInterval(()=>{if(NET.on&&!NET.idleOff&&Date.now()-lastInput>240000){NET.idleOff=true;D.goOffline(db);setOnl(0,false)}else if(!NET.idleOff)countOnline()},15000);
  }catch(e){console.warn('online gagal',e);setOnl(0,false);logLine('','Mode online sedang tidak tersedia. Kamu tetap bisa jalan-jalan sendiri.','sys')}}
-document.getElementById('chatForm').addEventListener('submit',async e=>{e.preventDefault();const m=cleanText(chatIn.value).slice(0,120);if(!m)return;
+document.getElementById('chatForm').addEventListener('submit',async e=>{e.preventDefault();const m=cleanText(chatIn.value).slice(0,120);if(!m)return;if(NET.on&&!NET.ig){openIdentity('Isi username Instagram kamu dulu supaya bisa chat.');return}
  if(!NET.on){logLine('','Chat belum tersambung.','sys');return}const F=NET.F,key=F.push(F.ref(NET.db,'chat')).key;
  try{await F.update(F.ref(NET.db),{['chat/'+key]:{u:NET.uid,n:myName(),m,t:F.serverTimestamp()},['rate/'+NET.uid]:F.serverTimestamp()});chatIn.value=''}
  catch(err){logLine('','Pesan gagal terkirim. Tunggu 3 detik lalu coba lagi.','sys')}});
 chatIn.addEventListener('keydown',e=>e.stopPropagation());
+document.getElementById('mName').onclick=()=>openIdentity();
 netStart();
 // iPad/iPhone: setelah keyboard tertutup, kembalikan halaman ke posisi semula supaya UI tidak hilang
 (function(){const reset=()=>{if(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;window.scrollTo(0,0);document.documentElement.scrollTop=0;document.body.scrollTop=0};

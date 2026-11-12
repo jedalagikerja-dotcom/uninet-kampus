@@ -301,6 +301,7 @@ document.getElementById('f').addEventListener('submit', async e => {
   const user = clean(document.getElementById('user').value);
   const jur = document.getElementById('jur').value;
   if (!nama || !user) { status.className = 'status no'; status.textContent = 'Isi nama dan username dulu.'; return; }
+  try { localStorage.setItem('uninet_ig', user); } catch (e) {}
   const rank = MEMBERS.get(fnv(user)) || null;
   if (false) {
     status.innerHTML = `Username <b>@${user.replace(/[<>&"]/g, '')}</b> belum ada di daftar mahasiswa. Pastikan ejaannya benar, lalu <a href="https://www.instagram.com/uninet.id/" target="_blank" rel="noopener">follow @uninet.id</a>. Kursi Angkatan Pertama masih tersedia ${fmt(TOTAL - COUNT)}.`;
