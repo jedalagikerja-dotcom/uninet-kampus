@@ -135,8 +135,8 @@ let camDrag=false;
 function setWalk(on){WALK=on;document.body.classList.toggle('walk',on);document.getElementById('mWalk').classList.toggle('on',on);document.getElementById('mTop').classList.toggle('on',!on);
  if(on){fly=null;HL=null;cam.fov=58;WCAM.yaw=PL1.yaw+Math.PI}else{cam.fov=50;flyTo({tgt:[0,3,0],dist:46,yaw:.25,pitch:.42},1400)}}
 document.getElementById('mWalk').onclick=()=>setWalk(true);document.getElementById('mTop').onclick=()=>setWalk(false);
-document.getElementById('mFind').onclick=()=>{document.body.classList.toggle('find');if(document.body.classList.contains('find'))document.getElementById('q').focus()};
-document.getElementById('wNear').onclick=()=>{if(NEAR)showCard(INFO[NEAR]())};
+document.getElementById('mFind').onclick=()=>{if(document.body.classList.contains('find'))document.body.classList.remove('find');else openFind()};
+document.getElementById('wNear').onclick=()=>{if(NEAR)openPlace(NEAR)};
 (function(){const bj=document.getElementById('bJump'),br=document.getElementById('bRun');
  const hold=(el,f)=>{el.addEventListener('touchstart',e=>{e.preventDefault();f()},{passive:false});el.addEventListener('mousedown',e=>{e.preventDefault();f()})};
  hold(bj,jump);hold(br,()=>{PL1.run=!PL1.run;br.classList.toggle('on',!!PL1.run)})})();
@@ -163,13 +163,17 @@ addEventListener('keyup',e=>{KEYS[e.code]=false});addEventListener('blur',()=>{f
  addEventListener('mouseup',e=>{if(md&&md.m<6)tap(e.clientX,e.clientY);md=null;camDrag=false});
  pad.addEventListener('wheel',e=>{e.preventDefault();WCAM.dist=cl(WCAM.dist*Math.exp(e.deltaY*.001),3,16)},{passive:false})})();
 // di mode jalan, ketuk tempat = buka info tanpa terbang
-const _openPlace=openPlace;openPlace=function(id){if(WALK){showCard(INFO[id]());return}_openPlace(id)};
-const _closeCard=closeCard;closeCard=function(){_closeCard();if(WALK)fly=null};
+function openFind(){document.body.classList.add('find');const q=document.getElementById('q');q.focus();q.select&&q.select()}
+const _openPlace=openPlace;openPlace=function(id){if(WALK){showCard(INFO[id]());const f=card.querySelector('[data-act="focus"]');if(f)f.onclick=()=>{closeCard();openFind()};return}_openPlace(id)};
+const _closeCard=closeCard;closeCard=function(){const h=HL;_closeCard();if(!WALK)return;fly=null;
+ // setelah cari nama: pindahkan pemain ke depan namanya
+ if(h){let px,pz,face;if(MONO[h.i]){const q=nameWorld(h.i);px=cl(q[0],-20,20);pz=MON.z+4.2;face=Math.PI}else if(FENO[h.i]){const R=fenceWorld(h.i),k=(FEN.R-2.2)/Math.hypot(R.p[0],R.p[2]);px=R.p[0]*k;pz=R.p[2]*k;face=Math.atan2(R.p[0]-px,R.p[2]-pz)}
+  MARK=h;if(px!==undefined){PL1.x=px;PL1.z=pz;PL1.y=0;PL1.vy=0;PL1.side=-1;PL1.yaw=face;WCAM.yaw=face+Math.PI;WCAM.pitch=.22;collide(PL1)}document.body.classList.remove('find')}};
 
-let lastT=null;
+let lastT=null,MARK=null;
 function loop(now){TIME=(now-t0)/1000;const dt=lastT?Math.min(.05,(now-lastT)/1000):0;lastT=now;
  if(WALK&&!HL){stepPlayer(dt);if(!fly)followCam();nearPlace()}
  if(fly){const k=eio((now-fly.t0)/fly.dur);const f=fly.from,t=fly.to;cam.tgt=[0,1,2].map(i=>lerp(f.tgt[i],t.tgt[i],k));cam.dist=lerp(f.dist,t.dist,k);cam.yaw=lerp(f.yaw,t.yaw,k);cam.pitch=lerp(f.pitch,t.pitch,k);if(k>=1)fly=null}
  else if(!WALK&&!dragging&&!HL&&idle()>6)cam.yaw+=.0012;
  if(!WALK&&!fly){const pmin=cam.dist>38?.04+(cam.dist-38)*.008:.04;if(cam.pitch<pmin)cam.pitch=lerp(cam.pitch,pmin,.15)}
- EYE=camEye();DL=[];world();if(WALK||HL)player();render();requestAnimationFrame(loop)}
+ EYE=camEye();DL=[];const hs=HL;if(!HL&&MARK)HL=MARK;world();HL=hs;if(WALK||HL)player();render();requestAnimationFrame(loop)}
