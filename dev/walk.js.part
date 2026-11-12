@@ -43,7 +43,7 @@ function proyek(){const i0=DL.length,x=KX,z=KZ,bz=KBZ,nt=ENV.night>.5;
  textPlane(signTex('kantinB',['KANTIN UNINET','BUKA SETIAP HARI']),x,5.75,bz+3.32,6.2,1.85,0,{emis:nt?.5:.05});
  for(let i=i0;i<DL.length;i++)DL[i].M=M4.mul(KR,DL[i].M)}
 CONFIG.warung=CONFIG.warung||['?','?','?','?','?'];
-{const pk=PLACES.find(p=>p.id==='proyek');pk.name='Kantin UNINET';pk.c=[KX,2,KZ];pk.r=7;pk.cam={tgt:[KX,2,KZ],dist:26,yaw:Math.PI/2+.35,pitch:.32}}
+{const pk=PLACES.find(p=>p.id==='proyek');pk.name='Kantin UNINET';document.querySelectorAll('#places .chip').forEach(b=>{if(b.textContent==='Proyek Berikutnya')b.textContent='Kantin UNINET'});pk.c=[KX,2,KZ];pk.r=7;pk.cam={tgt:[KX,2,KZ],dist:26,yaw:Math.PI/2+.35,pitch:.32}}
 INFO.proyek=()=>`<h2>Kantin UNINET</h2><p>Kantin dua lantai: lima warung di bawah, rooftop berpayung di atas, dan colokan di setiap meja. Lima warungnya belum punya nama. Usulkan nama warung dan menu andalannya di kolom komentar video kantin.</p><div class="row"><a class="btn" href="${CONFIG.igUrl}" target="_blank" rel="noopener">Usulkan di Instagram</a></div>`;
 
 // ---- tabrakan ----
