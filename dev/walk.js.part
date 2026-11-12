@@ -58,7 +58,7 @@ function buildSolids(){SOL.length=0;FLOORS.length=0;
  addBox(-.72,.72,1.28,2.72,9);for(const s of[-1,1])addBox(12+s*2.6-.2,12+s*2.6+.2,15.5,15.9,5.2);
  const gx=FEN.R*Math.sin(FEN.gate),gz=FEN.R*Math.cos(FEN.gate);for(const s of[-1,1])addBox(s*gx-.6,s*gx+.6,gz-.6,gz+.6,5);
  for(const [x,z] of [[-20,-6],[20,-6],[-6,-21],[6,-21],[-22,12],[22,12]])addBox(x-.35,x+.35,z-.35,z+.35,6);
- for(const [x,z] of [[-3,-9],[3,-9],[-7,4],[7,4],[-3,12],[3,12]])addBox(x-.15,x+.15,z-.15,z+.15,3.2);
+ for(const [x,z] of LAMPXZ)addBox(x-.15,x+.15,z-.15,z+.15,3.2);
  // kantin (koordinat lokal, diputar)
  addLocal(KX-7.6,KX+7.6,KBZ-3.2,KBZ-2.6,3.45);for(const s of[-1,1])addLocal(KX+s*7.4-.25,KX+s*7.4+.25,KBZ-3,KBZ+2.8,3.45);
  for(const px of [-7.2,-3.6,0,3.6,7.2])addLocal(KX+px-.3,KX+px+.3,KBZ+2.5,KBZ+3.1,3.6);

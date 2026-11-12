@@ -123,13 +123,14 @@ in vec3 p; in vec2 uv; uniform mat4 M,VP,LVP; uniform float wave,time; uniform v
 void main(){vec3 q=p; if(wave>0.){float a=q.x; q.z+=sin(a*4.0-time*7.0)*0.09*a; q.y+=sin(a*3.0-time*5.)*0.02*a;}
 vec4 w=M*vec4(q,1.); vW=w.xyz; vL=LVP*w; vUV=uv*uvs; gl_Position=VP*w;}`,`#version 300 es
 precision highp float; in vec3 vW; in vec4 vL; in vec2 vUV;
-uniform vec3 col,sunDir,sunCol,skyCol,gndCol,fogCol,eye; uniform float fogN,fogF,emis,useTex,alpha,recv,glow; uniform sampler2D shm,tex; out vec4 o;
+uniform vec3 col,sunDir,sunCol,skyCol,gndCol,fogCol,eye; uniform float fogN,fogF,emis,useTex,alpha,recv,glow,lampOn; uniform vec3 lpos[12]; uniform int nl; uniform sampler2D shm,tex; out vec4 o;
 float shadow(){vec3 c=vL.xyz/vL.w*.5+.5; if(c.x<0.||c.x>1.||c.y<0.||c.y>1.||c.z>1.) return 1.; float s=0.; vec2 ts=vec2(1./1536.);
  for(int i=-1;i<=1;i++)for(int j=-1;j<=1;j++){float d=texture(shm,c.xy+vec2(i,j)*ts*1.5).r; s+=c.z-.0018>d?0.:1.;} return s/9.;}
 void main(){vec3 N=normalize(cross(dFdx(vW),dFdy(vW))); vec3 base=col; float a=alpha;
  float winA=0.; if(useTex>1.5){vec4 tx=texture(tex,vUV); vec3 lit=mix(vec3(1.,.8,.42),vec3(1.,.95,.78),clamp((tx.b-.62)*6.,0.,1.)); base=mix(col,mix(tx.rgb,lit,glow),tx.a); winA=tx.a;} else if(useTex>0.){vec4 tx=texture(tex,vUV); if(tx.a<.04)discard; base=mix(col,tx.rgb,tx.a);}
  float ndl=max(dot(N,sunDir),0.); float s=recv>0.?shadow():1.;
  vec3 hemi=mix(gndCol,skyCol,N.y*.5+.5); vec3 c=base*(hemi*.56+sunCol*(ndl*s)*.58+.04);
+ if(lampOn>0.){float L=0.;for(int i=0;i<12;i++){if(i>=nl)break;vec3 d=lpos[i]-vW;float r2=dot(d,d);float at=clamp(1.-r2/150.,0.,1.);at*=at;L+=at*(abs(dot(N,d*inversesqrt(r2+.001)))*.7+.3);} L=min(L,1.6); c+=(base*1.2+.1)*vec3(1.,.8,.48)*L*lampOn;}
  c=mix(c,base,max(emis,winA*glow)); float d=length(vW-eye); c=mix(c,fogCol,smoothstep(fogN,fogF,d)*(1.-emis*.6)); o=vec4(c,a);}`);
 const PD=prog(`#version 300 es
 in vec3 p; uniform mat4 M,LVP; uniform float wave,time; void main(){vec3 q=p; if(wave>0.){float a=q.x; q.z+=sin(a*4.0-time*7.0)*0.09*a;} gl_Position=LVP*M*vec4(q,1.);}`,`#version 300 es
@@ -219,7 +220,7 @@ function wibHour(){try{const s=new Date().toLocaleString('en-GB',{timeZone:'Asia
 const ENVS={
  day:{top:'#7cc8ef',bot:'#e7f5fb',sun:[.55,.9,.35],sunCol:'#fff6e4',sky:'#d8eefa',gnd:'#f0dcb4',fog:'#e7f5fb',night:0,label:'Siang'},
  dusk:{top:'#f58a62',bot:'#ffd6a0',sun:[-.7,.38,.5],sunCol:'#ffc58a',sky:'#ffc9a6',gnd:'#e9b98a',fog:'#ffd2a2',night:.3,label:'Senja'},
- night:{top:'#141a3a',bot:'#3a3f6e',sun:[.3,.8,.5],sunCol:'#6f7bb8',sky:'#4a5590',gnd:'#3a3458',fog:'#2c3060',night:1,label:'Malam'},
+ night:{top:'#141a3a',bot:'#3a3f6e',sun:[.3,.8,.5],sunCol:'#6f7bb8',sky:'#56619e',gnd:'#453e64',fog:'#2c3060',night:1,label:'Malam'},
  dawn:{top:'#8fb4e6',bot:'#ffd9c2',sun:[.7,.35,.4],sunCol:'#ffd9b8',sky:'#d9d6f0',gnd:'#e7cdb0',fog:'#f3dccd',night:.15,label:'Pagi'}};
 function envNow(){const h=wibHour();if(h>=5&&h<7)return ENVS.dawn;if(h>=7&&h<17)return ENVS.day;if(h>=17&&h<19)return ENVS.dusk;return ENVS.night}
 let ENV=envNow();document.getElementById('tTime').textContent=ENV.label+' di kampus';
@@ -239,7 +240,8 @@ const PLACES=[
 function tree(x,z,s,k){D(CYL6,'#a7764d',[x,0,z],[0,k,0],[.28*s,2.2*s,.28*s]);D(ICO,k%2?'#7fd06c':'#68c25e',[x,2.6*s,z],[k,k*2,0],[1.25*s,1.1*s,1.25*s]);D(ICO,'#8edb78',[x+.5*s,3.3*s,z+.2*s],[k,0,k],[.8*s,.75*s,.8*s])}
 function bush(x,z,s,k){D(ICO0,k%2?'#79c968':'#9ad57a',[x,.35*s,z],[k,k,0],[.7*s,.55*s,.7*s])}
 function rock(x,z,s,k){D(ICO0,k%2?'#c3ccd2':'#aeb9c0',[x,.2*s,z],[k,k*3,k],[.7*s,.45*s,.6*s])}
-function lamp(x,z){D(CYL6,'#3d3a44',[x,0,z],0,[.08,3.2,.08]);D(ICO,ENV.night>.5?'#ffe08a':'#f6f1e1',[x,3.3,z],0,[.28,.28,.28],{emis:ENV.night>.5?1:.2,cast:0});if(ENV.night>.5)D(DISC,'#ffd77a',[x,.03,z],0,[2.2,.01,2.2],{alpha:.22,emis:1,cast:0,recv:0})}
+let LAMPS=[];const LAMPXZ=[[-3,-9],[3,-9],[-7,4],[7,4],[-3,12],[3,12],[-12,-8],[12,-8],[-25,2],[25,2],[22,20],[7,23]];
+function lamp(x,z){LAMPS.push([x,3.3,z]);D(CYL6,'#3d3a44',[x,0,z],0,[.08,3.2,.08]);D(ICO,ENV.night>.5?'#ffe08a':'#f6f1e1',[x,3.3,z],0,[.28,.28,.28],{emis:ENV.night>.5?1:.2,cast:0});if(ENV.night>.5)D(DISC,'#ffd77a',[x,.03,z],0,[2.2,.01,2.2],{alpha:.12,emis:1,cast:0,recv:0})}
 function person(x,z,c,yaw,h){const C=['#ff8a5c','#6cc3f5','#ffd166','#8bd17c','#c79bf2','#ff9fb8','#5fd0c5','#f7a440'];D(CYL,C[c%8],[x,h,z],[0,yaw,0],[.32,.8,.32]);D(ICO,'#ffd9b8',[x,h+1.12,z],[c,c,0],[.33,.33,.33]);D(ICO,'#5b3a24',[x,h+1.24,z-.05],[c,0,0],[.31,.2,.3])}
 function flag(x,z,h,s){D(CYL,'#f4f1ea',[x,0,z],0,[.09*s,h,.09*s]);D(ICO,'#f1c24b',[x,h+.12*s,z],0,[.2*s,.2*s,.2*s],{emis:.2});const y=h-1.25*s;
  D(FLAG,'#e3342f',[x+.1,y+.6*s,z],0,[2.2*s,.62*s,1],{wave:1});D(FLAG,'#fbfbf7',[x+.1,y,z],0,[2.2*s,.62*s,1],{wave:1});D(BOX,'#d9d2c4',[x,.25,z],0,[1.2*s,.5,1.2*s])}
@@ -305,10 +307,10 @@ function traffic(){
  LN.forEach((l,li)=>{for(let q=0;q<3;q++){const k=li*3+q,dir=(k%2)?1:-1,off=dir*1.4,sp=6+rnd(k)*3;let t=((TIME*sp+rnd(k*3)*200)%200)-100;t*=dir;
   if(Math.abs(l[0])<44&&Math.abs(t)<Math.sqrt(44*44-l[0]*l[0])+3)continue;
   if(l[1]==='z')car(l[0]+off,t,dir>0?0:Math.PI,k+20);else car(t,l[0]-off,dir>0?Math.PI/2:-Math.PI/2,k+20)}})}
-function world(){GLOW=cl((ENV.night-.2)/.6);
+function world(){GLOW=cl((ENV.night-.2)/.6);LAMPS=[];
  city();traffic();
  for(const [x,z] of [[-20,-6],[20,-6],[-6,-21],[6,-21],[-22,12],[22,12]])tree(x,z,1,x);
- paths();for(const [x,z] of [[-3,-9],[3,-9],[-7,4],[7,4],[-3,12],[3,12]])lamp(x,z);
+ paths();for(const [x,z] of LAMPXZ)lamp(x,z);
  flag(0,2,9,1.2);monument();fence();sejarah();baak();proyek();papan();npcs();stars();
  cloud(-30,30,-70,1.4);cloud(26,34,-80,1.8);cloud(50,28,-60,1.1);
  if(HL){const q=.5+.5*Math.sin(TIME*6);if(MONO[HL.i]){const p=nameWorld(HL.i),w=MONO[HL.i].w/PW*MON.pw+.08;D(BOX,'#ffd23f',[p[0],p[1],p[2]+.01],0,[w,.06+q*.02,.02],{emis:1,cast:0,alpha:.55+q*.35});
@@ -333,6 +335,7 @@ function render(){resize();const W=cv.width,H=cv.height,e=ENV,sun=norm(e.sun),ey
  gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,W,H);gl.clearColor(0,0,0,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
  gl.disable(gl.DEPTH_TEST);gl.useProgram(PS.p);gl.uniform3fv(PS.u.top,hex(e.top));gl.uniform3fv(PS.u.bot,hex(e.bot));gl.bindVertexArray(TRI);gl.drawArrays(gl.TRIANGLES,0,3);
  gl.enable(gl.DEPTH_TEST);gl.useProgram(P.p);const u=P.u;gl.uniformMatrix4fv(u.VP,false,VP);gl.uniformMatrix4fv(u.LVP,false,LVP);gl.uniform3fv(u.sunDir,sun);gl.uniform3fv(u.sunCol,hex(e.sunCol));gl.uniform3fv(u.skyCol,hex(e.sky));gl.uniform3fv(u.gndCol,hex(e.gnd));gl.uniform3fv(u.fogCol,hex(e.fog));gl.uniform3fv(u.eye,eye);
+ {const tg=(typeof WALK!=='undefined'&&WALK&&typeof PL1!=='undefined'&&PL1)?[PL1.x,0,PL1.z]:cam.tgt,ls=LAMPS.slice().sort((a,b)=>Math.hypot(a[0]-tg[0],a[2]-tg[2])-Math.hypot(b[0]-tg[0],b[2]-tg[2])).slice(0,12);gl.uniform1i(u.nl,ls.length);if(ls.length)gl.uniform3fv(u['lpos[0]'],ls.flat());gl.uniform1f(u.lampOn,GLOW)}
  gl.uniform1f(u.fogN,80);gl.uniform1f(u.fogF,200);gl.uniform1f(u.time,TIME);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,smT);gl.uniform1i(u.shm,0);gl.uniform1i(u.tex,1);
  const ord=DL.filter(d=>d.alpha>=1).concat(DL.filter(d=>d.alpha<1));
  for(const d of ord){if(d.alpha<1){gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false)}else{gl.disable(gl.BLEND);gl.depthMask(true)}
@@ -483,7 +486,7 @@ function buildSolids(){SOL.length=0;FLOORS.length=0;
  addBox(-.72,.72,1.28,2.72,9);for(const s of[-1,1])addBox(12+s*2.6-.2,12+s*2.6+.2,15.5,15.9,5.2);
  const gx=FEN.R*Math.sin(FEN.gate),gz=FEN.R*Math.cos(FEN.gate);for(const s of[-1,1])addBox(s*gx-.6,s*gx+.6,gz-.6,gz+.6,5);
  for(const [x,z] of [[-20,-6],[20,-6],[-6,-21],[6,-21],[-22,12],[22,12]])addBox(x-.35,x+.35,z-.35,z+.35,6);
- for(const [x,z] of [[-3,-9],[3,-9],[-7,4],[7,4],[-3,12],[3,12]])addBox(x-.15,x+.15,z-.15,z+.15,3.2);
+ for(const [x,z] of LAMPXZ)addBox(x-.15,x+.15,z-.15,z+.15,3.2);
  // kantin (koordinat lokal, diputar)
  addLocal(KX-7.6,KX+7.6,KBZ-3.2,KBZ-2.6,3.45);for(const s of[-1,1])addLocal(KX+s*7.4-.25,KX+s*7.4+.25,KBZ-3,KBZ+2.8,3.45);
  for(const px of [-7.2,-3.6,0,3.6,7.2])addLocal(KX+px-.3,KX+px+.3,KBZ+2.5,KBZ+3.1,3.6);
