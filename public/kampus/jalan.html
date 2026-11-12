@@ -463,8 +463,9 @@ function proyek(){const i0=DL.length,x=KX,z=KZ,bz=KBZ,nt=ENV.night>.5;
   D(CYL,'#f4f1ea',[tx,3.82,bz],0,[.7,.1,.7]);D(CYL6,'#f4f1ea',[tx,3.82,bz],0,[.06,2.4,.06]);D(CONE,U[i],[tx,5.92,bz],0,[1.6,.6,1.6]);
   for(let k=0;k<3;k++){if(rnd(i*5+k)<.4)continue;const a=k*2.1+i;person(tx+Math.cos(a)*1.15,bz+Math.sin(a)*1.15,i*3+k+40,Math.atan2(-Math.cos(a),-Math.sin(a)),3.82)}}
  for(let k=0;k<14;k++){const q=k/13;D(ICO,['#ffd23f','#ff9fb8','#6cc3f5'][k%3],[x-7.2+14.4*q,3.35-Math.abs(Math.sin(q*Math.PI*4))*.18,bz+2.9],0,[.12,.12,.12],{emis:.9,cast:0})}
- D(BOX,'#a7764d',[SX-1.8,.8,SZ],0,[.15,1.6,.15]);D(BOX,'#a7764d',[SX+1.8,.8,SZ],0,[.15,1.6,.15]);
- textPlane(signTex('kantinB',['KANTIN UNINET','BUKA SETIAP HARI']),SX,1.6,SZ+.1,5.4,2.0,0,{emis:nt?.4:0});
+ // papan nama di atas kantin, menghadap depan
+ for(const s2 of[-1,1])D(BOX,'#5a3c24',[x+s2*2.6,4.9,bz+2.98],0,[.18,1.9,.18]);D(BOX,'#2b1a0e',[x,5.75,bz+3.2],0,[6.5,2.05,.2]);
+ textPlane(signTex('kantinB',['KANTIN UNINET','BUKA SETIAP HARI']),x,5.75,bz+3.32,6.2,1.85,0,{emis:nt?.5:.05});
  for(let i=i0;i<DL.length;i++)DL[i].M=M4.mul(KR,DL[i].M)}
 CONFIG.warung=CONFIG.warung||['?','?','?','?','?'];
 {const pk=PLACES.find(p=>p.id==='proyek');pk.name='Kantin UNINET';pk.c=[KX,2,KZ];pk.r=7;pk.cam={tgt:[KX,2,KZ],dist:26,yaw:Math.PI/2+.35,pitch:.32}}
@@ -488,7 +489,7 @@ function buildSolids(){SOL.length=0;FLOORS.length=0;
  for(const px of [-7.2,-3.6,0,3.6,7.2])addLocal(KX+px-.3,KX+px+.3,KBZ+2.5,KBZ+3.1,3.6);
  for(let i=0;i<5;i++){const sx=KX-5.6+i*2.8;addLocal(sx-1.1,sx+1.1,KBZ-2.4,KBZ-.6,2.8)}
  for(let i=0;i<4;i++){const tx=KX-5.4+i*3.6;addLocal(tx-1.15,tx+1.15,KZ+1.6,KZ+5.2,1.05)}
- for(let k=0;k<8;k++)addLocal(KX+7.5,KX+8.9,KBZ+2.1-k*.6,KBZ+2.7-k*.6,.45*(k+1),0,1);addLocal(KX+7.5,KX+8.9,KBZ-3.0,KBZ-2.1,3.83,0,1);addLocal(KX+8.9,KX+9.05,KBZ-3.1,KBZ-2.1,4.6,3.6);addLocal(KX+7.4,KX+9,KBZ-3.15,KBZ-3.0,4.6,3.6);addLocal(KX-7.7,KX+7.7,KBZ+3.0,KBZ+3.25,4.6,3.6);addLocal(KX-7.7,KX+7.7,KBZ-3.25,KBZ-3.0,4.6,3.6);addLocal(KX-7.65,KX-7.4,KBZ-3.2,KBZ+3.2,4.6,3.6);addLocal(KX+7.4,KX+7.65,KBZ-1.6,KBZ+3.2,4.6,3.6);for(let i=0;i<4;i++){const tx=KX-5.4+i*3.6;addLocal(tx-.7,tx+.7,KBZ-.7,KBZ+.7,4.9,3.6)}addLocal(SX-2.7,SX+2.7,SZ-.1,SZ+.25,2.6,.6);for(const s of[-1,1])addLocal(SX+s*1.8-.15,SX+s*1.8+.15,SZ-.15,SZ+.15,2.6);
+ for(let k=0;k<8;k++)addLocal(KX+7.5,KX+8.9,KBZ+2.1-k*.6,KBZ+2.7-k*.6,.45*(k+1),0,1);addLocal(KX+7.5,KX+8.9,KBZ-3.0,KBZ-2.1,3.83,0,1);addLocal(KX+8.9,KX+9.05,KBZ-3.1,KBZ-2.1,4.6,3.6);addLocal(KX+7.4,KX+9,KBZ-3.15,KBZ-3.0,4.6,3.6);addLocal(KX-7.7,KX+7.7,KBZ+3.0,KBZ+3.25,4.6,3.6);addLocal(KX-7.7,KX+7.7,KBZ-3.25,KBZ-3.0,4.6,3.6);addLocal(KX-7.65,KX-7.4,KBZ-3.2,KBZ+3.2,4.6,3.6);addLocal(KX+7.4,KX+7.65,KBZ-1.6,KBZ+3.2,4.6,3.6);for(let i=0;i<4;i++){const tx=KX-5.4+i*3.6;addLocal(tx-.7,tx+.7,KBZ-.7,KBZ+.7,4.9,3.6)}
  FLOORS.push({lx0:KX-7.5,lx1:KX+7.5,lz0:KBZ-3,lz1:KBZ+3,y:.4},{lx0:KX-7.7,lx1:KX+7.7,lz0:KBZ-3.2,lz1:KBZ+3.2,y:3.83});
  for(const b of SOL)if(b.st)FLOORS.push({x0:b.x0,x1:b.x1,z0:b.z0,z1:b.z1,y:b.h})}
 const STEP=.55;function groundAt(x,z,py){if(py===undefined)py=PL1.y;const L=toLocal(x,z);let y=0;for(const f of FLOORS){const inn=f.lx0!==undefined?(L[0]>f.lx0&&L[0]<f.lx1&&L[1]>f.lz0&&L[1]<f.lz1):(x>f.x0&&x<f.x1&&z>f.z0&&z<f.z1);if(inn&&f.y<=py+STEP)y=Math.max(y,f.y)}return y}
