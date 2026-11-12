@@ -452,7 +452,7 @@ function proyek(){const i0=DL.length,x=KX,z=KZ,bz=KBZ,nt=ENV.night>.5;
  for(const px of [-7.2,-3.6,0,3.6,7.2])D(BOX,'#efe4cf',[x+px,1.75,bz+2.8],0,[.45,3.5,.45]);
  for(let i=0;i<5;i++)kiosk2(x-5.6+i*2.8,bz-1.6,i);
  D(BOX,'#e3342f',[x,3.65,bz],0,[15.4,.35,6.4]);
- for(const s of[-1,1])D(BOX,'#f4f1ea',[x,4.25,bz+s*3.1],0,[15,.6,.12]);for(const s of[-1,1])D(BOX,'#f4f1ea',[x+s*7.5,4.25,bz],0,[.12,.6,6.2]);
+ for(const s of[-1,1])D(BOX,'#f4f1ea',[x,4.25,bz+s*3.1],0,[15,.6,.12]);D(BOX,'#f4f1ea',[x-7.5,4.25,bz],0,[.12,.6,6.2]);D(BOX,'#f4f1ea',[x+7.5,4.25,bz+.75],0,[.12,.6,4.7]);D(BOX,'#c9c3b5',[x+8.2,3.7,bz-2.55],0,[1.4,.25,.9]);D(BOX,'#f4f1ea',[x+8.95,4.25,bz-2.55],0,[.1,.6,.9]);D(BOX,'#f4f1ea',[x+8.2,4.25,bz-3.05],0,[1.5,.6,.1]);
  for(let k=0;k<8;k++)D(BOX,'#c9c3b5',[x+8.2,.22+k*.45,bz+2.4-k*.6],0,[1.4,.45,.6]);
  for(let k=0;k<5;k++)D(BOX,'#ffe08a',[x-6+k*3,3.42,bz+.5],0,[.6,.08,.6],{emis:nt?1:.3,cast:0});
  const U=['#ffd23f','#3a6ea5','#2f8f6a','#ff9fb8'];
@@ -472,8 +472,9 @@ INFO.proyek=()=>`<h2>Kantin UNINET</h2><p>Kantin dua lantai: lima warung di bawa
 
 // ---- tabrakan ----
 const SOL=[];// {x0,x1,z0,z1,h}
-function addBox(x0,x1,z0,z1,h){SOL.push({x0:Math.min(x0,x1),x1:Math.max(x0,x1),z0:Math.min(z0,z1),z1:Math.max(z0,z1),h})}
-function addLocal(x0,x1,z0,z1,h){const a=KPT([x0,0,z0]),b=KPT([x1,0,z1]);addBox(a[0],b[0],a[2],b[2],h)}
+function addBox(x0,x1,z0,z1,h,y0,st){SOL.push({x0:Math.min(x0,x1),x1:Math.max(x0,x1),z0:Math.min(z0,z1),z1:Math.max(z0,z1),h,y0:y0||0,st:st||0})}
+function addLocal(x0,x1,z0,z1,h,y0,st){const a=KPT([x0,0,z0]),b=KPT([x1,0,z1]);addBox(a[0],b[0],a[2],b[2],h,y0,st)}
+function toLocal(x,z){const M=KR,dx=x-M[12],dz=z-M[14];return [M[0]*dx+M[2]*dz,M[8]*dx+M[10]*dz]}
 const FLOORS=[];
 function buildSolids(){SOL.length=0;FLOORS.length=0;
  addBox(-21,-13,-3,7,6.5);addBox(13.5,20.5,-2,6,4.5);
@@ -483,15 +484,16 @@ function buildSolids(){SOL.length=0;FLOORS.length=0;
  for(const [x,z] of [[-20,-6],[20,-6],[-6,-21],[6,-21],[-22,12],[22,12]])addBox(x-.35,x+.35,z-.35,z+.35,6);
  for(const [x,z] of [[-3,-9],[3,-9],[-7,4],[7,4],[-3,12],[3,12]])addBox(x-.15,x+.15,z-.15,z+.15,3.2);
  // kantin (koordinat lokal, diputar)
- addLocal(KX-7.6,KX+7.6,KBZ-3.2,KBZ-2.6,4.6);for(const s of[-1,1])addLocal(KX+s*7.4-.25,KX+s*7.4+.25,KBZ-3,KBZ+2.8,4.6);
+ addLocal(KX-7.6,KX+7.6,KBZ-3.2,KBZ-2.6,3.45);for(const s of[-1,1])addLocal(KX+s*7.4-.25,KX+s*7.4+.25,KBZ-3,KBZ+2.8,3.45);
  for(const px of [-7.2,-3.6,0,3.6,7.2])addLocal(KX+px-.3,KX+px+.3,KBZ+2.5,KBZ+3.1,3.6);
  for(let i=0;i<5;i++){const sx=KX-5.6+i*2.8;addLocal(sx-1.1,sx+1.1,KBZ-2.4,KBZ-.6,2.8)}
  for(let i=0;i<4;i++){const tx=KX-5.4+i*3.6;addLocal(tx-1.15,tx+1.15,KZ+1.6,KZ+5.2,1.05)}
- addLocal(KX+7.5,KX+8.9,KBZ-1,KBZ+2.7,3.8);for(const s of[-1,1])addLocal(SX+s*1.8-.15,SX+s*1.8+.15,SZ-.15,SZ+.15,2.6);
- {const a=KPT([KX-7.5,0,KBZ-3]),b=KPT([KX+7.5,0,KBZ+3]);FLOORS.push({x0:Math.min(a[0],b[0]),x1:Math.max(a[0],b[0]),z0:Math.min(a[2],b[2]),z1:Math.max(a[2],b[2]),y:.4})}}
-function groundAt(x,z){let y=0;for(const f of FLOORS)if(x>f.x0&&x<f.x1&&z>f.z0&&z<f.z1)y=Math.max(y,f.y);return y}
+ for(let k=0;k<8;k++)addLocal(KX+7.5,KX+8.9,KBZ+2.1-k*.6,KBZ+2.7-k*.6,.45*(k+1),0,1);addLocal(KX+7.5,KX+8.9,KBZ-3.0,KBZ-2.1,3.83,0,1);addLocal(KX+8.9,KX+9.05,KBZ-3.1,KBZ-2.1,4.6,3.6);addLocal(KX+7.4,KX+9,KBZ-3.15,KBZ-3.0,4.6,3.6);addLocal(KX-7.7,KX+7.7,KBZ+3.0,KBZ+3.25,4.6,3.6);addLocal(KX-7.7,KX+7.7,KBZ-3.25,KBZ-3.0,4.6,3.6);addLocal(KX-7.65,KX-7.4,KBZ-3.2,KBZ+3.2,4.6,3.6);addLocal(KX+7.4,KX+7.65,KBZ-1.6,KBZ+3.2,4.6,3.6);for(let i=0;i<4;i++){const tx=KX-5.4+i*3.6;addLocal(tx-.7,tx+.7,KBZ-.7,KBZ+.7,4.9,3.6)}addLocal(SX-2.7,SX+2.7,SZ-.1,SZ+.25,2.6,.6);for(const s of[-1,1])addLocal(SX+s*1.8-.15,SX+s*1.8+.15,SZ-.15,SZ+.15,2.6);
+ FLOORS.push({lx0:KX-7.5,lx1:KX+7.5,lz0:KBZ-3,lz1:KBZ+3,y:.4},{lx0:KX-7.7,lx1:KX+7.7,lz0:KBZ-3.2,lz1:KBZ+3.2,y:3.83});
+ for(const b of SOL)if(b.st)FLOORS.push({x0:b.x0,x1:b.x1,z0:b.z0,z1:b.z1,y:b.h})}
+const STEP=.55;function groundAt(x,z,py){if(py===undefined)py=PL1.y;const L=toLocal(x,z);let y=0;for(const f of FLOORS){const inn=f.lx0!==undefined?(L[0]>f.lx0&&L[0]<f.lx1&&L[1]>f.lz0&&L[1]<f.lz1):(x>f.x0&&x<f.x1&&z>f.z0&&z<f.z1);if(inn&&f.y<=py+STEP)y=Math.max(y,f.y)}return y}
 const PR=.38;
-function collide(p){for(const b of SOL){if(p.y>b.h-.05)continue;const cx=cl(p.x,b.x0,b.x1),cz=cl(p.z,b.z0,b.z1),dx=p.x-cx,dz=p.z-cz,d2=dx*dx+dz*dz;
+function collide(p){for(const b of SOL){if(p.y>b.h-.05||p.y+1.5<b.y0)continue;if(b.st&&b.h<=p.y+STEP)continue;const cx=cl(p.x,b.x0,b.x1),cz=cl(p.z,b.z0,b.z1),dx=p.x-cx,dz=p.z-cz,d2=dx*dx+dz*dz;
   if(d2<PR*PR){if(d2>1e-6){const d=Math.sqrt(d2),k=(PR-d)/d;p.x+=dx*k;p.z+=dz*k}else{const o=[p.x-b.x0,b.x1-p.x,p.z-b.z0,b.z1-p.z],m=Math.min(...o);if(m===o[0])p.x=b.x0-PR;else if(m===o[1])p.x=b.x1+PR;else if(m===o[2])p.z=b.z0-PR;else p.z=b.z1+PR}}}
  // pagar melingkar: lewat hanya di gerbang
  const r=Math.hypot(p.x,p.z),th=Math.atan2(p.x,p.z),inGate=Math.abs(th)<FEN.gate-.04;
@@ -514,10 +516,10 @@ function stepPlayer(dt){let ix=JOY.x,iy=JOY.y;if(KEYS.KeyW||KEYS.ArrowUp)iy-=1;i
  const fx=-Math.sin(WCAM.yaw),fz=-Math.cos(WCAM.yaw),rx=-fz,rz=fx;
  const mx=fx*(-iy)+rx*ix,mz=fz*(-iy)+rz*ix,ml=Math.hypot(mx,mz);
  const run=PL1.run||KEYS.ShiftLeft||KEYS.ShiftRight,sp=(run?8:4.4)*Math.min(1,ml);
- PL1.moving=ml>.08;if(PL1.moving){PL1.x+=mx/ml*sp*dt;PL1.z+=mz/ml*sp*dt;let d=Math.atan2(mx,mz)-PL1.yaw;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;PL1.yaw+=d*Math.min(1,dt*12);PL1.phase+=dt*(run?14:10);
+ PL1.moving=ml>.08;if(PL1.moving){const dist=sp*dt,n=Math.max(1,Math.ceil(dist/.12));for(let q=0;q<n;q++){PL1.x+=mx/ml*dist/n;PL1.z+=mz/ml*dist/n;collide(PL1);const gg=groundAt(PL1.x,PL1.z);if(gg>PL1.y&&gg<=PL1.y+STEP){PL1.y=gg;PL1.vy=0}}let d=Math.atan2(mx,mz)-PL1.yaw;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;PL1.yaw+=d*Math.min(1,dt*12);PL1.phase+=dt*(run?14:10);
   // kamera pelan-pelan ikut ke belakang pemain saat berjalan
   if(!camDrag){let e=(PL1.yaw+Math.PI)-WCAM.yaw;while(e>Math.PI)e-=2*Math.PI;while(e<-Math.PI)e+=2*Math.PI;WCAM.yaw+=e*Math.min(1,dt*1.2)*Math.min(1,Math.abs(-iy)+.2)}}
- collide(P);const g=groundAt(PL1.x,PL1.z);PL1.vy-=22*dt;PL1.y+=PL1.vy*dt;if(PL1.y<=g){PL1.y=g;PL1.vy=0}
+ collide(PL1);const g=groundAt(PL1.x,PL1.z);PL1.vy-=22*dt;PL1.y+=PL1.vy*dt;if(PL1.y<=g){PL1.y=g;PL1.vy=0}
  if(PL1.moving||Math.abs(PL1.vy)>0)lastAct=performance.now()}
 function jump(){if(PL1.y<=groundAt(PL1.x,PL1.z)+.02)PL1.vy=7.5}
 function followCam(){const t=[PL1.x,PL1.y+1.5,PL1.z];let d=WCAM.dist;
@@ -544,8 +546,8 @@ body.walk #search{display:none}body.walk.find #search{display:flex}
 #mode{position:fixed;z-index:5;right:max(12px,env(safe-area-inset-right,0px));top:calc(env(safe-area-inset-top,0px) + 12px);display:flex;gap:6px}
 #mode button{font-family:var(--display);font-size:15px;border:3px solid var(--ink);border-radius:999px;padding:6px 12px;background:var(--cream);color:var(--ink);box-shadow:0 3px 0 var(--ink);cursor:pointer}
 #mode button.on{background:var(--ink);color:#fff}
-@media (max-width:620px){#mode{right:auto;left:max(14px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 62px)}}
 body.walk #top .tag{display:none}
+@media (max-width:620px){#mode{right:auto;left:max(14px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 62px)}}
 body:not(.walk) #wbtn,body:not(.walk) #wNear,body:not(.walk) #walkpad{display:none}
 @media (max-width:520px){#top .tag{display:none}#top .brand{font-size:17px}}
 </style>`);
