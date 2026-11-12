@@ -1,7 +1,7 @@
 // ================= ONLINE: mahasiswa lain + chat (Firebase) =================
 const FB_CFG={apiKey:"AIzaSyBq2b8RFiq0j47Hek0OghBABHv982ikuCw",authDomain:"uninet-kampus.firebaseapp.com",databaseURL:"https://uninet-kampus-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"uninet-kampus",storageBucket:"uninet-kampus.firebasestorage.app",messagingSenderId:"918457767424",appId:"1:918457767424:web:e42e5e58eed798ce296ae5"};
 const FBV='10.14.1',FBU=n=>`https://www.gstatic.com/firebasejs/${FBV}/firebase-${n}.js`;
-const NET={ig:null,auth:null,AU:null,on:false,uid:null,db:null,F:null,me:null,others:new Map(),last:{x:0,z:0,yaw:0,t:0},bubbles:new Map(),idleOff:false};
+const NET={off:0,ig:null,auth:null,AU:null,on:false,uid:null,db:null,F:null,me:null,others:new Map(),last:{x:0,z:0,yaw:0,t:0},bubbles:new Map(),idleOff:false};
 const BADW=["anjing","anjg","babi","kontol","kntl","memek","mmk","ngentot","ngewe","bangsat","bajingan","goblok","tolol","kampret","jancok","jancuk","pepek","lonte","pelacur","fuck","shit","bitch","porn","bokep","judi","slot","gacor","togel","casino","maxwin"];
 function cleanText(s){let o=String(s||'').replace(/[\u0000-\u001f<>]/g,'').trim();for(const w of BADW){o=o.replace(new RegExp(w,'gi'),m=>m[0]+'*'.repeat(m.length-1))}return o}
 function badName(s){const f=s.toLowerCase().replace(/[^a-z]/g,'');return BADW.some(w=>f.includes(w))}
@@ -14,7 +14,7 @@ const LS={get:k=>{try{return localStorage.getItem(k)||''}catch(e){return ''}},se
 const INAPP=/Instagram|FBAN|FBAV|Line\/|TikTok/i.test(navigator.userAgent);
 // ---- UI ----
 document.head.insertAdjacentHTML('beforeend',`<style>
-#onl{font-family:var(--display);font-size:14px;border:3px solid var(--ink);border-radius:999px;padding:5px 11px;background:var(--cream);color:var(--ink);box-shadow:0 3px 0 var(--ink);display:flex;align-items:center;gap:6px;white-space:nowrap}
+#onl{cursor:pointer;font-family:var(--display);font-size:14px;border:3px solid var(--ink);border-radius:999px;padding:5px 11px;background:var(--cream);color:var(--ink);box-shadow:0 3px 0 var(--ink);display:flex;align-items:center;gap:6px;white-space:nowrap}
 #onl i{width:9px;height:9px;border-radius:50%;background:#9aa1a8;display:inline-block}#onl.live i{background:#2fbf71}
 #chatBtn{position:fixed;z-index:5;left:max(14px,env(safe-area-inset-left,0px));top:50%;transform:translateY(-50%);font-family:var(--display);font-size:14px;border:3px solid var(--ink);border-radius:16px;padding:10px 10px;background:var(--cream);color:var(--ink);box-shadow:0 3px 0 var(--ink);cursor:pointer}
 #chatBtn b{display:block;font-size:11px;background:var(--red);color:#fff;border-radius:999px;padding:1px 6px;margin-top:4px}
@@ -63,6 +63,8 @@ function updMent(){const L=document.getElementById('mentList'),mm=chatIn.value.s
  if(!mm){L.classList.remove('on');return}const c=mentionCands(mm[2]);if(!c.length){L.classList.remove('on');return}
  L.innerHTML='';for(const n of c){const b=document.createElement('button');b.type='button';b.textContent='@'+n;b.onmousedown=b.ontouchstart=e=>e.preventDefault();
   b.onclick=()=>{const end=chatIn.selectionEnd||chatIn.value.length,before=chatIn.value.slice(0,end).replace(/@([a-z0-9._]{0,30})$/i,'@'+n+' ');chatIn.value=before+chatIn.value.slice(end);L.classList.remove('on');chatIn.focus()};L.appendChild(b)}L.classList.add('on')}
+function showOnlineList(){const now=srvNow(),L=[...NET.others.values()].filter(o=>now-o.seen<70000).map(o=>({n:o.n,d:Math.hypot(o.x-PL1.x,o.z-PL1.z)})).sort((a,b)=>a.d-b.d);
+ showCard(`<h2>${L.length+1} mahasiswa online</h2><p>${NET.ig?'<b>@'+esc(NET.ig)+'</b> (kamu)':'Kamu (Tamu)'}</p><div style="max-height:40vh;overflow-y:auto;touch-action:pan-y">${L.length?L.map(o=>`<p style="margin:0 0 6px">${esc(shown(o.n))} <span style="color:#8a7560;font-size:13px">· ${o.d<8?'di dekatmu':Math.round(o.d)+' m'}</span></p>`).join(''):'<p>Belum ada mahasiswa lain. Ajak temanmu ke kampus!</p>'}</div>`)}
 function setOnl(n,live){const e=document.getElementById('onl');e.classList.toggle('live',!!live);e.lastChild.textContent=live?(n+' online'):'offline'}
 // ---- identitas: username IG yang dikunci ----
 async function claimIG(v){const F=NET.F,db=NET.db,k=igKey(v);
@@ -104,7 +106,8 @@ function bubbleTex(key,msg){return ctex('bb_'+key,512,170,(x,w,h)=>{x.font='800 
 function dropTex(key){if(TX[key]){gl.deleteTexture(TX[key]);delete TX[key]}}
 // ---- gambar mahasiswa online lain ----
 const SHIRT=['#ff8a5c','#6cc3f5','#ffd166','#8bd17c','#c79bf2','#ff9fb8','#5fd0c5','#f7a440','#e3342f','#2f8f6a'];
-function drawOthers(dt){const now=Date.now();let k=Math.min(1,dt*6);for(const [id,o] of NET.others){if(now-o.seen>90000)continue;
+function srvNow(){return Date.now()+NET.off}
+function drawOthers(dt){const now=srvNow();let k=Math.min(1,dt*6);for(const [id,o] of NET.others){if(now-o.seen>70000)continue;
   const dx=o.tx-o.x,dz=o.tz-o.z,d=Math.hypot(dx,dz);o.x+=dx*k;o.z+=dz*k;let dy=o.tyaw-o.yaw;while(dy>Math.PI)dy-=2*Math.PI;while(dy<-Math.PI)dy+=2*Math.PI;o.yaw+=dy*k;o.mv=d>.05;if(o.mv)o.ph=(o.ph||0)+dt*10;
   const h=o.mv?Math.abs(Math.sin(o.ph))*.1:0;person(o.x,o.z,o.c,o.yaw,(o.y||0)+h,{col:SHIRT[o.c%SHIRT.length],swing:o.mv?Math.sin(o.ph)*.9:0});
   const far=(o.x-EYE[0])**2+(o.z-EYE[2])**2;if(far<1600)textPlane(nameTagTex(shown(o.n)),o.x,(o.y||0)+2.1,o.z,1.7,.38,cam.yaw,{emis:1,recv:0});
@@ -116,7 +119,7 @@ let lastInput=Date.now();['touchstart','keydown','mousedown'].forEach(ev=>addEve
 function sendPos(force){if(!NET.on||!NET.uid||NET.idleOff)return;const now=Date.now(),L=NET.last,moved=Math.hypot(PL1.x-L.x,PL1.z-L.z)>.25||Math.abs(PL1.yaw-L.yaw)>.4;
  if(!force&&!(moved&&now-L.t>1200)&&now-L.t<25000)return;NET.last={x:PL1.x,z:PL1.z,yaw:PL1.yaw,t:now};
  const F=NET.F;F.set(NET.me,{n:myName(),x:+PL1.x.toFixed(2),z:+PL1.z.toFixed(2),y:+PL1.y.toFixed(2),yaw:+PL1.yaw.toFixed(2),c:hashN(NET.uid)%SHIRT.length,t:F.serverTimestamp()}).catch(e=>console.warn('pos',e&&e.code))}
-function countOnline(){const now=Date.now();let n=1;for(const o of NET.others.values())if(now-o.seen<90000)n++;setOnl(n,true)}
+function countOnline(){if(NET.idleOff)return;const now=srvNow();let n=1;for(const o of NET.others.values())if(now-o.seen<70000)n++;setOnl(n,true)}
 // ---- sambung ke Firebase ----
 async function netStart(){try{
   const [A,AU,D]=await Promise.all([import(FBU('app')),import(FBU('auth')),import(FBU('database'))]);
@@ -126,7 +129,7 @@ async function netStart(){try{
   if(!NET.ig){const c=[LS.get('uninet_ig_claimed'),LS.get('uninet_ig')].find(x=>x&&igOk(x));let ok=false;if(c){try{ok=(await claimIG(c))==='ok'}catch(e){}}
    if(!ok)setTimeout(()=>{if(card.hidden)openIdentity()},1200)}
   const R=D.ref(db,'online');const up=s=>{if(s.key===NET.uid)return;const v=s.val()||{};if(typeof v.x!=='number')return;let o=NET.others.get(s.key);
-   if(!o){o={x:v.x,z:v.z,yaw:v.yaw||0};NET.others.set(s.key,o)}Object.assign(o,{tx:v.x,tz:v.z,tyaw:v.yaw||0,y:v.y||0,n:cleanText(v.n||'Tamu').slice(0,30)||'Tamu',c:v.c||0,seen:Date.now()});countOnline()};
+   if(!o){o={x:v.x,z:v.z,yaw:v.yaw||0};NET.others.set(s.key,o)}Object.assign(o,{tx:v.x,tz:v.z,tyaw:v.yaw||0,y:v.y||0,n:cleanText(v.n||'Tamu').slice(0,30)||'Tamu',c:v.c||0,seen:typeof v.t==='number'?v.t:srvNow()});countOnline()};
   D.onChildAdded(R,up);D.onChildChanged(R,up);D.onChildRemoved(R,s=>{NET.others.delete(s.key);dropTex('nt_'+s.key);countOnline()});
   const Q=D.query(D.ref(db,'chat'),D.orderByChild('t'),D.limitToLast(30));let first=true;setTimeout(()=>first=false,2500);
   D.onChildAdded(Q,s=>{const v=s.val()||{};const m=cleanText(v.m).slice(0,120),n=cleanText(v.n).slice(0,30)||'Tamu';if(!m)return;
@@ -136,7 +139,8 @@ async function netStart(){try{
    if(Date.now()-(v.t||0)<15000)NET.bubbles.set(v.u,{key:s.key,m,until:Date.now()+6000});if(!first&&!chatEl.classList.contains('open'))setUnread(unread+1)});
   logLine('',NET.ig?'Kamu masuk sebagai @'+NET.ig+'.':'Kamu masih Tamu. Ketuk "Isi nama" untuk memakai username IG.','sys');logLine('','Ketuk pesan untuk membalas. Ketik @ untuk menyebut nama.','sys');countOnline();
   document.addEventListener('visibilitychange',()=>{if(document.hidden){D.goOffline(db)}else{D.goOnline(db);setTimeout(()=>sendPos(true),400)}});
-  setInterval(()=>{if(NET.on&&!NET.idleOff&&Date.now()-lastInput>240000){NET.idleOff=true;D.goOffline(db);setOnl(0,false)}else if(!NET.idleOff)countOnline()},15000);
+  D.onValue(D.ref(db,'.info/serverTimeOffset'),x=>{NET.off=x.val()||0;countOnline()});
+  setInterval(()=>{if(NET.on&&!NET.idleOff&&Date.now()-lastInput>600000){NET.idleOff=true;D.goOffline(db);const e=document.getElementById('onl');e.classList.remove('live');e.lastChild.textContent='ketuk layar';}else countOnline()},5000);
  }catch(e){console.warn('online gagal',e);setOnl(0,false);logLine('','Mode online sedang tidak tersedia. Kamu tetap bisa jalan-jalan sendiri.','sys')}}
 document.getElementById('chatForm').addEventListener('submit',async e=>{e.preventDefault();const m=cleanText(chatIn.value).slice(0,120);if(!m)return;if(NET.on&&!NET.ig){openIdentity('Isi username Instagram kamu dulu supaya bisa chat.');return}
  if(!NET.on){logLine('','Chat belum tersambung.','sys');return}const F=NET.F,key=F.push(F.ref(NET.db,'chat')).key;
@@ -144,7 +148,7 @@ document.getElementById('chatForm').addEventListener('submit',async e=>{e.preven
  try{await F.update(F.ref(NET.db),{['chat/'+key]:msg,['rate/'+NET.uid]:F.serverTimestamp()});chatIn.value='';setReply(null);document.getElementById('mentList').classList.remove('on')}
  catch(err){logLine('','Pesan gagal terkirim. Tunggu 3 detik lalu coba lagi.','sys')}});
 chatIn.addEventListener('keydown',e=>e.stopPropagation());chatIn.addEventListener('input',updMent);document.getElementById('replyX').onclick=()=>setReply(null);
-document.getElementById('mName').onclick=()=>openIdentity();
+document.getElementById('mName').onclick=()=>openIdentity();document.getElementById('onl').onclick=()=>{if(NET.on&&!NET.idleOff)showOnlineList()};
 netStart();
 // iPad/iPhone: cegah zoom halaman & kembalikan posisi setelah keyboard tertutup supaya UI tidak hilang
 (function(){const vm=document.querySelector('meta[name=viewport]'),BASE='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover';

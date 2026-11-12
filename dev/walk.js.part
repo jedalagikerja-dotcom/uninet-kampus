@@ -177,4 +177,4 @@ function loop(now){TIME=(now-t0)/1000;const dt=lastT?Math.min(.05,(now-lastT)/10
  if(fly){const k=eio((now-fly.t0)/fly.dur);const f=fly.from,t=fly.to;cam.tgt=[0,1,2].map(i=>lerp(f.tgt[i],t.tgt[i],k));cam.dist=lerp(f.dist,t.dist,k);cam.yaw=lerp(f.yaw,t.yaw,k);cam.pitch=lerp(f.pitch,t.pitch,k);if(k>=1)fly=null}
  else if(!WALK&&!dragging&&!HL&&idle()>6)cam.yaw+=.0012;
  if(!WALK&&!fly){const pmin=cam.dist>38?.04+(cam.dist-38)*.008:.04;if(cam.pitch<pmin)cam.pitch=lerp(cam.pitch,pmin,.15)}
- EYE=camEye();DL=[];const hs=HL;if(!HL&&MARK)HL=MARK;world();HL=hs;if(WALK||HL)player();if(NET.on)drawOthers(dt);if(WALK)sendPos();render();requestAnimationFrame(loop)}
+ EYE=camEye();DL=[];const hs=HL;if(!HL&&MARK)HL=MARK;world();HL=hs;if(WALK||HL)player();if(NET.on)drawOthers(dt);sendPos();render();requestAnimationFrame(loop)}
