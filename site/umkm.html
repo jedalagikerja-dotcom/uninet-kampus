@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Bantu UMKM · Kantin UNINET</title>
+<meta name="description" content="5 UMKM tercepat dapat warung gratis 7 hari di Kantin UNINET.">
+<style>
+:root{--ink:#2b1a0e;--cream:#fff8e6;--yellow:#ffd23f;--red:#e3342f;--green:#2fbf71}
+*{box-sizing:border-box}body{margin:0;background:#ffe9a8;color:var(--ink);font:600 16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+.hero{background:var(--ink);color:#fff;padding:28px 18px 34px;text-align:center}
+.hero small{display:inline-block;background:var(--red);color:#fff;font-weight:900;border-radius:999px;padding:3px 12px;letter-spacing:.5px}
+.hero h1{font-size:clamp(30px,8vw,46px);line-height:1.05;margin:12px 0 6px;color:var(--yellow)}
+.hero p{margin:0 auto;max-width:520px;color:#f4e6cc}
+main{max-width:560px;margin:-18px auto 30px;padding:0 14px}
+.card{background:var(--cream);border:3px solid var(--ink);border-radius:18px;padding:16px;margin:0 0 14px;box-shadow:0 5px 0 var(--ink)}
+.slots{display:flex;gap:8px;justify-content:center;margin:6px 0 4px}.slots i{width:44px;height:44px;border-radius:12px;border:3px solid var(--ink);background:#fff;display:grid;place-items:center;font-style:normal;font-weight:900}
+.slots i.on{background:var(--green);color:#fff}
+.big{font-size:20px;font-weight:900;text-align:center;margin:4px 0 0}
+ul{padding-left:20px;margin:6px 0}li{margin:3px 0}
+label{display:block;font-size:14px;color:#6b5440;margin:10px 0 4px}
+input,textarea{width:100%;font:700 16px system-ui,sans-serif;border:2px solid var(--ink);border-radius:12px;padding:10px 12px;background:#fff}
+textarea{min-height:70px;resize:vertical}
+.btn{width:100%;margin-top:14px;font:900 18px system-ui,sans-serif;border:3px solid var(--ink);border-radius:14px;background:var(--yellow);color:var(--ink);padding:12px;cursor:pointer;box-shadow:0 4px 0 var(--ink)}
+.btn:disabled{opacity:.55}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:14px;margin-top:12px}.chk input{width:20px;height:20px;flex:none;margin-top:2px}
+#st{margin-top:12px;font-weight:800}#st.ok{color:#1d7a45}#st.bad{color:#b0302b}
+.muted{color:#7a6450;font-size:14px}
+a{color:#3a6ea5}
+</style></head><body>
+<div class="hero"><small>PROGRAM BANTU UMKM</small><h1>Warung Gratis 7 Hari di Kantin UNINET</h1><p>5 UMKM pendaftar tercepat dapat warung di Kampus Mini UNINET, dilihat ribuan mahasiswa netizen.</p></div>
+<main>
+<div class="card"><div class="slots" id="slots"><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i></div><p class="big" id="sisa">Memuat kuota…</p><p class="muted" style="text-align:center;margin:2px 0 0" id="sisa2"></p></div>
+<div class="card"><b>Yang kamu dapat, gratis 7 hari:</b>
+<ul><li>Warung sendiri di Kantin UNINET, lengkap dengan banner brand</li><li>4 foto produk dan harganya</li><li>Kode promo dan tombol ke toko online, IG, atau WhatsApp</li><li>Akses Portal Mitra untuk mengubah isi warung kapan saja</li><li>Laporan: berapa mahasiswa yang mampir dan klik</li></ul>
+<p class="muted" style="margin:6px 0 0">Syarat: usaha mikro atau kecil asli, produk halal dan legal, follow <a href="https://www.instagram.com/uninet.id/" target="_blank" rel="noopener">@uninet.id</a>.</p></div>
+<form class="card" id="f" autocomplete="on">
+<b>Daftar sekarang</b>
+<label for="usaha">Nama usaha</label><input id="usaha" maxlength="28" required placeholder="mis. Warung Bu Tini">
+<label for="produk">Produk andalan</label><input id="produk" maxlength="60" required placeholder="mis. Nasi goreng kampung, es teh jumbo">
+<label for="ig">Instagram usaha</label><input id="ig" maxlength="31" required placeholder="@namausaha" autocapitalize="none" autocorrect="off">
+<label for="wa">Nomor WhatsApp</label><input id="wa" maxlength="16" required inputmode="tel" placeholder="08xxxxxxxxxx">
+<label for="email">Email Google (untuk masuk Portal Mitra)</label><input id="email" type="email" maxlength="80" required placeholder="nama@gmail.com" autocapitalize="none">
+<label for="kota">Kota</label><input id="kota" maxlength="30" placeholder="mis. Bandung">
+<div class="chk"><input type="checkbox" id="ok" required><label for="ok" style="margin:0;color:#2b1a0e">Data ini benar dan saya setuju dihubungi @uninet.id lewat WhatsApp atau Instagram.</label></div>
+<button class="btn" id="go" type="submit" disabled>Memuat…</button>
+<p id="st" role="status"></p>
+</form>
+<p class="muted" style="text-align:center">Pendaftar setelah kuota penuh masuk daftar tunggu dan dihubungi untuk gelombang berikutnya.</p>
+</main>
+<script type="module">
+const V='10.14.1',U=n=>`https://www.gstatic.com/firebasejs/${V}/firebase-${n}.js`;const $=s=>document.querySelector(s);
+const go=$('#go'),st=$('#st');const set=(t,c)=>{st.textContent=t;st.className=c||''};
+try{
+const [{initializeApp},A,D]=await Promise.all([import(U('app')),import(U('auth')),import(U('database'))]);
+const app=initializeApp({apiKey:"AIzaSyBq2b8RFiq0j47Hek0OghBABHv982ikuCw",authDomain:"uninet-kampus.firebaseapp.com",databaseURL:"https://uninet-kampus-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"uninet-kampus",storageBucket:"uninet-kampus.firebasestorage.app",messagingSenderId:"918457767424",appId:"1:918457767424:web:e42e5e58eed798ce296ae5"});
+const auth=A.getAuth(app),db=D.getDatabase(app);
+let u=await new Promise(r=>{const un=A.onAuthStateChanged(auth,x=>{un();r(x)})});if(!u)u=(await A.signInAnonymously(auth)).user;
+const KUOTA=5;let n=0,mine=false;
+D.onValue(D.ref(db,'umkmPub'),s=>{const v=s.val()||{};n=Object.keys(v).length;mine=!!v[u.uid];
+ document.querySelectorAll('#slots i').forEach((el,i)=>el.classList.toggle('on',i<Math.min(n,KUOTA)));
+ const sisa=Math.max(0,KUOTA-n);$('#sisa').textContent=sisa?`Slot tersisa ${sisa} dari ${KUOTA}`:'Kuota gelombang ini penuh';
+ $('#sisa2').textContent=n?`${n} UMKM sudah mendaftar`:'Jadilah yang pertama!';
+ if(mine){go.disabled=true;go.textContent='Kamu sudah terdaftar';set('Terima kasih! Pendaftaranmu sudah kami terima. Admin akan menghubungimu lewat WhatsApp atau Instagram.','ok')}
+ else{go.disabled=false;go.textContent=sisa?'Daftar sekarang':'Masuk daftar tunggu'}},e=>{set('Pendaftaran belum dibuka. Coba lagi nanti.','bad');go.textContent='Belum dibuka'});
+$('#f').addEventListener('submit',async e=>{e.preventDefault();if(mine)return;
+ const usaha=$('#usaha').value.trim(),produk=$('#produk').value.trim(),ig=$('#ig').value.trim().replace(/^@+/,'').toLowerCase(),wa=$('#wa').value.replace(/[^0-9+]/g,''),email=$('#email').value.trim().toLowerCase(),kota=$('#kota').value.trim();
+ if(!/^[a-z0-9._]{1,30}$/.test(ig))return set('Username Instagram hanya huruf kecil, angka, titik, dan garis bawah.','bad');
+ if(!/^(\+62|62|0)8[0-9]{7,12}$/.test(wa))return set('Nomor WhatsApp belum benar. Contoh: 081234567890.','bad');
+ if(!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/.test(email))return set('Email belum benar.','bad');
+ go.disabled=true;go.textContent='Mengirim…';
+ try{await D.update(D.ref(db),{['umkm/'+u.uid]:{usaha,produk,ig,wa,email,kota,t:D.serverTimestamp()},['umkmPub/'+u.uid]:{usaha,t:D.serverTimestamp()}});
+  set('Berhasil! Kamu pendaftar ke-'+(n)+'. Admin UNINET akan menghubungimu.','ok')}
+ catch(err){go.disabled=false;go.textContent='Daftar sekarang';set('Gagal mengirim. Coba lagi sebentar.','bad')}});
+}catch(e){set('Halaman gagal dimuat. Periksa koneksi lalu muat ulang.','bad');go.textContent='Gagal memuat'}
+</script></body></html>
