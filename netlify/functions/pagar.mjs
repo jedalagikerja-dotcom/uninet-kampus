@@ -4,14 +4,16 @@ import { getStore } from "@netlify/blobs";
 const BAD = ["anjing","anjg","babi","kontol","kntl","memek","mmk","ngentot","ngewe","bangsat","bajingan","goblok","tolol","kampret","asu","jancok","jancuk","pepek","lonte","pelacur","fuck","shit","bitch","porn","bokep","sex","seks","xxx","judi","slot","gacor","togel","casino","maxwin","scam","nazi"];
 const VALID = /^[a-z0-9._]{1,30}$/;
 const KUOTA = 100000;
-const json = (data, status = 200, extra = {}) => new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json", ...extra } });
+const CORS = { "access-control-allow-origin": "*", "access-control-allow-methods": "GET, POST, OPTIONS", "access-control-allow-headers": "content-type" };
+const json = (data, status = 200, extra = {}) => new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json", ...CORS, ...extra } });
 async function allKeys(store) { const { blobs } = await store.list({ prefix: "n/" }); return blobs.map(b => b.key).sort(); }
 
 export default async (req) => {
   const store = getStore({ name: "pagar", consistency: "strong" });
+  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: { ...CORS, "access-control-max-age": "86400" } });
   if (req.method === "GET") {
     const keys = await allKeys(store);
-    return json({ names: keys.map(k => k.split("~")[1]), count: keys.length, kuota: KUOTA }, 200, { "cache-control": "public, max-age=15" });
+    return json({ names: keys.map(k => k.split("~")[1]), count: keys.length, kuota: KUOTA }, 200, { "cache-control": "public, max-age=30", "netlify-cdn-cache-control": "public, s-maxage=60, stale-while-revalidate=120" });
   }
   if (req.method === "POST") {
     let body = {};

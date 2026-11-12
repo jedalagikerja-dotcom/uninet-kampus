@@ -1,0 +1,612 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body><title>Jalan-jalan · Kampus Mini UNINET</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800;900&display=swap">
+<style>
+/* Layout: full-screen 3D campus; floating chunky UI pieces over it (single deliberate look, like the UNINET videos) */
+:root{
+  --ink:#2b1a0e; --cream:#fff8e6; --yellow:#ffd23f; --red:#e3342f; --sky:#7cc8ef; --muted:#7a5a3c;
+  --display:'Lilita One','Arial Black',system-ui,sans-serif; --body:'Nunito',system-ui,-apple-system,sans-serif;
+  color-scheme:light;
+}
+html,body{height:100%;margin:0;overflow:hidden;overscroll-behavior:none;-webkit-user-select:none;user-select:none;background:var(--sky);color:var(--ink);font-family:var(--body)}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#gl:active{cursor:grabbing}
+.ui{position:fixed;z-index:5;pointer-events:none}
+.ui>*{pointer-events:auto}
+#top{top:calc(env(safe-area-inset-top,0px) + 12px);left:max(14px,env(safe-area-inset-left,0px));right:max(14px,env(safe-area-inset-right,0px));display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.brand{font-family:var(--display);font-size:22px;letter-spacing:.5px;background:var(--ink);color:#fff;padding:8px 14px;border-radius:14px}
+.brand b{color:var(--yellow);font-weight:400}
+.tag{font-weight:900;font-size:13px;background:var(--cream);border:3px solid var(--ink);border-radius:999px;padding:5px 11px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tag.red{background:var(--red);color:#fff;border-color:var(--ink)}
+#bottom{left:0;right:0;bottom:0;padding:0 max(14px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 14px) max(14px,env(safe-area-inset-left,0px));display:grid;gap:10px}
+#places{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 6px;scrollbar-width:none}
+#places::-webkit-scrollbar{display:none}
+.chip{font-family:var(--display);font-size:16px;letter-spacing:.3px;white-space:nowrap;background:var(--cream);color:var(--ink);border:3px solid var(--ink);border-radius:999px;padding:7px 14px;box-shadow:0 4px 0 var(--ink);cursor:pointer}
+.chip:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.chip:focus-visible,.btn:focus-visible,#q:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+#search{display:flex;gap:8px;background:var(--cream);border:3px solid var(--ink);border-radius:18px;padding:6px;box-shadow:0 5px 0 var(--ink);max-width:560px;width:100%;box-sizing:border-box;justify-self:center}
+#q{flex:1;min-width:0;border:0;background:transparent;font:800 17px var(--body);color:var(--ink);padding:8px 8px}
+#q::placeholder{color:#a08a72}
+.btn{font-family:var(--display);font-size:17px;background:var(--yellow);color:var(--ink);border:3px solid var(--ink);border-radius:12px;padding:6px 14px;cursor:pointer;white-space:nowrap}
+.btn.dark{background:var(--ink);color:#fff}
+#card{position:fixed;z-index:6;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 150px);width:min(560px,calc(100% - 28px));background:var(--cream);border:3px solid var(--ink);border-radius:20px;box-shadow:0 6px 0 var(--ink);padding:16px 16px 14px;box-sizing:border-box}
+#card h2{font-family:var(--display);font-weight:400;font-size:26px;margin:0 30px 4px 0;line-height:1.1;text-wrap:balance}
+#card p{margin:0 0 10px;font-weight:600;font-size:15px;line-height:1.45;color:#4a3524}
+#card .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#card .x{position:absolute;right:10px;top:10px;width:32px;height:32px;border-radius:10px;border:3px solid var(--ink);background:#fff;font:900 16px var(--body);cursor:pointer;line-height:1}
+#card a{text-decoration:none}
+.bar{height:16px;border:3px solid var(--ink);border-radius:999px;background:#fff;overflow:hidden;margin:2px 0 10px}
+.bar i{display:block;height:100%;background:repeating-linear-gradient(-45deg,var(--yellow) 0 10px,#f2b630 10px 20px)}
+#plate{width:100%;height:auto;border-radius:12px;border:3px solid var(--ink);display:block;margin:4px 0 10px;background:#e4e7ea}
+#ctrl{right:max(12px,env(safe-area-inset-right,0px));top:calc(env(safe-area-inset-top,0px) + 120px);display:grid;grid-template-columns:repeat(2,40px);gap:6px}
+#ctrl .cb:nth-child(1),#ctrl .cb:nth-child(4){grid-column:span 2;justify-self:center}
+.cb{width:40px;height:40px;border-radius:12px;border:3px solid var(--ink);background:var(--cream);color:var(--ink);font:900 16px var(--body);box-shadow:0 3px 0 var(--ink);touch-action:none;-webkit-user-select:none;user-select:none;cursor:pointer;padding:0}
+.cb:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+#hint{position:fixed;z-index:4;left:50%;top:60%;transform:translate(-50%,-50%);max-width:min(86vw,440px);width:max-content;font-family:var(--display);font-size:16px;line-height:1.35;color:#fff;background:rgba(43,26,14,.86);border:3px solid #fff;border-radius:18px;padding:10px 16px;text-align:center;pointer-events:none;transition:opacity .6s;white-space:normal;box-shadow:0 4px 0 rgba(43,26,14,.5)}
+#load{position:fixed;inset:0;z-index:20;background:var(--sky);display:grid;place-items:center;padding:24px;font-family:var(--display);font-size:clamp(20px,6vw,28px);color:#fff;text-align:center;transition:opacity .5s}
+#load span{background:var(--ink);border-radius:999px;padding:14px 26px;box-shadow:0 5px 0 rgba(0,0,0,.25)}
+#err{position:fixed;inset:0;z-index:30;background:var(--cream);display:grid;place-items:center;padding:24px;text-align:center;font-weight:800}
+@media (max-width:420px){.brand{font-size:19px}#card h2{font-size:22px}}
+@media (prefers-reduced-motion:reduce){#hint{transition:none}}
+</style>
+
+<canvas id="gl" aria-label="Kampus UNINET 3D, geser untuk memutar"></canvas>
+<div id="load"><span>Membuka gerbang kampus…</span></div>
+<div class="ui" id="top">
+  <div class="brand">UNINET <b>KAMPUS MINI</b></div>
+  <div class="tag" id="tMhs">10.188 mahasiswa</div>
+  <div class="tag" id="tPagar">Pagar</div>
+  <div class="tag red" id="tTime">Siang</div>
+</div>
+<div id="hint">Geser untuk memutar · cubit untuk zoom<br>ketuk gedung untuk masuk</div>
+<div id="ctrl" class="ui" aria-label="Kendali kamera">
+  <button class="cb" data-k="u" aria-label="Lihat dari atas">▲</button>
+  <button class="cb" data-k="l" aria-label="Putar kiri">◀</button><button class="cb" data-k="r" aria-label="Putar kanan">▶</button>
+  <button class="cb" data-k="d" aria-label="Lihat lebih rendah">▼</button>
+  <button class="cb" data-k="i" aria-label="Perbesar">+</button><button class="cb" data-k="o" aria-label="Perkecil">−</button>
+</div>
+<div id="card" hidden></div>
+<div class="ui" id="bottom">
+  <div id="places"></div>
+  <form id="search" autocomplete="off">
+    <input id="q" type="text" inputmode="text" placeholder="Cari namamu di monumen, contoh: @username" aria-label="Username Instagram">
+    <button class="btn" type="submit">Cari</button>
+  </form>
+</div>
+
+<script src="data.js"></script>
+<script>
+// ================= CONFIG (diubah tiap update) =================
+const CONFIG = {
+  diperbarui: '10 November 2026',
+  proyek: { nama: 'Gedung Berikutnya', status: 'Menunggu hasil voting mahasiswa', progres: 15 },
+  pengumuman: { judul: 'Video terbaru', isi: 'Hari Pahlawan & 10.000 Mahasiswa. Monumen Angkatan Perintis resmi penuh!' },
+  igUrl: 'https://www.instagram.com/uninet.id/',
+  ktmUrl: 'https://ktm-universitas-netizenid.netlify.app/',
+};
+// ================= DATA =================
+const NAMES = (window.UNI_NAMES||'').split(' ').filter(Boolean);
+const RANKS = []; { let r=0; (window.UNI_RD||[]).forEach(d=>{ r+=d; RANKS.push(r); }); }
+const IDX = new Map(NAMES.map((n,i)=>[n,i]));
+const fmt = n => n.toLocaleString('id-ID');
+document.getElementById('tMhs').textContent = fmt(NAMES.length) + ' mahasiswa';
+
+const cv = document.getElementById('gl');
+const gl = cv.getContext('webgl2',{antialias:true,preserveDrawingBuffer:false});
+if(!gl){ document.body.insertAdjacentHTML('beforeend','<div id="err">Browser ini belum mendukung WebGL2. Coba buka lewat Chrome atau Safari terbaru.</div>'); throw new Error('no webgl2'); }
+
+// ---------- math ----------
+const M4={
+ mul(a,b){const o=new Array(16);for(let c=0;c<4;c++)for(let r=0;r<4;r++){let s=0;for(let k=0;k<4;k++)s+=a[k*4+r]*b[c*4+k];o[c*4+r]=s}return o},
+ persp(fov,asp,n,f){const t=1/Math.tan(fov/2);return [t/asp,0,0,0,0,t,0,0,0,0,(f+n)/(n-f),-1,0,0,2*f*n/(n-f),0]},
+ ortho(l,r,b,t,n,f){return [2/(r-l),0,0,0,0,2/(t-b),0,0,0,0,-2/(f-n),0,-(r+l)/(r-l),-(t+b)/(t-b),-(f+n)/(f-n),1]},
+ look(e,c,u){let z=norm(sub(e,c)),x=norm(cross(u,z)),y=cross(z,x);return [x[0],y[0],z[0],0,x[1],y[1],z[1],0,x[2],y[2],z[2],0,-dot(x,e),-dot(y,e),-dot(z,e),1]},
+ trs(p,r,s){const [x,y,z]=p,[rx,ry,rz]=r||[0,0,0],[sx,sy,sz]=s||[1,1,1];const cy=Math.cos(ry),sy_=Math.sin(ry),cx=Math.cos(rx),sx_=Math.sin(rx),cz=Math.cos(rz),sz_=Math.sin(rz);
+  return [(cy*cz+sy_*sx_*sz_)*sx,(cx*sz_)*sx,(-sy_*cz+cy*sx_*sz_)*sx,0,(-cy*sz_+sy_*sx_*cz)*sy,(cx*cz)*sy,(sy_*sz_+cy*sx_*cz)*sy,0,(sy_*cx)*sz,(-sx_)*sz,(cy*cx)*sz,0,x,y,z,1]}
+};
+function sub(a,b){return [a[0]-b[0],a[1]-b[1],a[2]-b[2]]}
+function cross(a,b){return [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]]}
+function dot(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]}
+function norm(a){const l=Math.hypot(a[0],a[1],a[2])||1;return [a[0]/l,a[1]/l,a[2]/l]}
+const lerp=(a,b,k)=>a+(b-a)*k, cl=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
+const eio=k=>{k=cl(k);return k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2};
+function hex(h){const n=parseInt(h.slice(1),16);return [(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]}
+function rnd(s){const x=Math.sin(s*127.1+311.7)*43758.5453;return x-Math.floor(x)}
+function mixHex(a,b,k){const A=hex(a),B=hex(b);return '#'+[0,1,2].map(i=>Math.round(lerp(A[i],B[i],k)*255).toString(16).padStart(2,'0')).join('')}
+
+// ---------- shaders ----------
+function prog(vs,fs){const p=gl.createProgram();for(const [t,src] of [[gl.VERTEX_SHADER,vs],[gl.FRAGMENT_SHADER,fs]]){const s=gl.createShader(t);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw gl.getShaderInfoLog(s);gl.attachShader(p,s)}
+ gl.bindAttribLocation(p,0,'p');gl.bindAttribLocation(p,1,'uv');gl.linkProgram(p);const u={};const n=gl.getProgramParameter(p,gl.ACTIVE_UNIFORMS);for(let i=0;i<n;i++){const a=gl.getActiveUniform(p,i);u[a.name]=gl.getUniformLocation(p,a.name)}return {p,u}}
+const P=prog(`#version 300 es
+in vec3 p; in vec2 uv; uniform mat4 M,VP,LVP; uniform float wave,time; uniform vec2 uvs; out vec3 vW; out vec4 vL; out vec2 vUV;
+void main(){vec3 q=p; if(wave>0.){float a=q.x; q.z+=sin(a*4.0-time*7.0)*0.09*a; q.y+=sin(a*3.0-time*5.)*0.02*a;}
+vec4 w=M*vec4(q,1.); vW=w.xyz; vL=LVP*w; vUV=uv*uvs; gl_Position=VP*w;}`,`#version 300 es
+precision highp float; in vec3 vW; in vec4 vL; in vec2 vUV;
+uniform vec3 col,sunDir,sunCol,skyCol,gndCol,fogCol,eye; uniform float fogN,fogF,emis,useTex,alpha,recv,glow; uniform sampler2D shm,tex; out vec4 o;
+float shadow(){vec3 c=vL.xyz/vL.w*.5+.5; if(c.x<0.||c.x>1.||c.y<0.||c.y>1.||c.z>1.) return 1.; float s=0.; vec2 ts=vec2(1./1536.);
+ for(int i=-1;i<=1;i++)for(int j=-1;j<=1;j++){float d=texture(shm,c.xy+vec2(i,j)*ts*1.5).r; s+=c.z-.0018>d?0.:1.;} return s/9.;}
+void main(){vec3 N=normalize(cross(dFdx(vW),dFdy(vW))); vec3 base=col; float a=alpha;
+ float winA=0.; if(useTex>1.5){vec4 tx=texture(tex,vUV); vec3 lit=mix(vec3(1.,.8,.42),vec3(1.,.95,.78),clamp((tx.b-.62)*6.,0.,1.)); base=mix(col,mix(tx.rgb,lit,glow),tx.a); winA=tx.a;} else if(useTex>0.){vec4 tx=texture(tex,vUV); base=mix(col,tx.rgb,tx.a);}
+ float ndl=max(dot(N,sunDir),0.); float s=recv>0.?shadow():1.;
+ vec3 hemi=mix(gndCol,skyCol,N.y*.5+.5); vec3 c=base*(hemi*.56+sunCol*(ndl*s)*.58+.04);
+ c=mix(c,base,max(emis,winA*glow)); float d=length(vW-eye); c=mix(c,fogCol,smoothstep(fogN,fogF,d)*(1.-emis*.6)); o=vec4(c,a);}`);
+const PD=prog(`#version 300 es
+in vec3 p; uniform mat4 M,LVP; uniform float wave,time; void main(){vec3 q=p; if(wave>0.){float a=q.x; q.z+=sin(a*4.0-time*7.0)*0.09*a;} gl_Position=LVP*M*vec4(q,1.);}`,`#version 300 es
+precision mediump float; out vec4 o; void main(){o=vec4(1.);}`);
+const PS=prog(`#version 300 es
+in vec3 p; out float y; void main(){y=p.y*.5+.5; gl_Position=vec4(p.xy,.9999,1.);}`,`#version 300 es
+precision highp float; in float y; uniform vec3 top,bot; out vec4 o; void main(){o=vec4(mix(bot,top,smoothstep(.3,1.,y)),1.);}`);
+
+// ---------- meshes ----------
+function mk(pos,uv){const vao=gl.createVertexArray();gl.bindVertexArray(vao);const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(pos),gl.STATIC_DRAW);gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+ const b2=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b2);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(uv||new Array(pos.length/3*2).fill(0)),gl.STATIC_DRAW);gl.enableVertexAttribArray(1);gl.vertexAttribPointer(1,2,gl.FLOAT,false,0,0);return {vao,n:pos.length/3}}
+function quad(Pp,a,b,c,d,U){Pp.push(...a,...b,...c,...a,...c,...d);U.push(0,0,1,0,1,1,0,0,1,1,0,1)}
+function boxM(){const Pp=[],U=[];const v=(x,y,z)=>[x-.5,y-.5,z-.5];
+ quad(Pp,v(0,0,1),v(1,0,1),v(1,1,1),v(0,1,1),U);quad(Pp,v(1,0,0),v(0,0,0),v(0,1,0),v(1,1,0),U);quad(Pp,v(1,0,1),v(1,0,0),v(1,1,0),v(1,1,1),U);
+ quad(Pp,v(0,0,0),v(0,0,1),v(0,1,1),v(0,1,0),U);quad(Pp,v(0,1,1),v(1,1,1),v(1,1,0),v(0,1,0),U);quad(Pp,v(0,0,0),v(1,0,0),v(1,0,1),v(0,0,1),U);return mk(Pp,U)}
+function cylM(n,rt,rb){const Pp=[],U=[];for(let i=0;i<n;i++){const a=i/n*Math.PI*2,b=(i+1)/n*Math.PI*2;const A=[Math.cos(a),Math.sin(a)],B=[Math.cos(b),Math.sin(b)];
+ quad(Pp,[A[0]*rb,0,A[1]*rb],[B[0]*rb,0,B[1]*rb],[B[0]*rt,1,B[1]*rt],[A[0]*rt,1,A[1]*rt],U);if(rt>0){Pp.push(0,1,0,A[0]*rt,1,A[1]*rt,B[0]*rt,1,B[1]*rt);U.push(0,0,0,0,0,0)}
+ Pp.push(0,0,0,B[0]*rb,0,B[1]*rb,A[0]*rb,0,A[1]*rb);U.push(0,0,0,0,0,0)}return mk(Pp,U)}
+function icoM(sd){const t=(1+Math.sqrt(5))/2;let V=[[-1,t,0],[1,t,0],[-1,-t,0],[1,-t,0],[0,-1,t],[0,1,t],[0,-1,-t],[0,1,-t],[t,0,-1],[t,0,1],[-t,0,-1],[-t,0,1]].map(norm);
+ let F=[[0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],[1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],[3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],[4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1]];
+ for(let s=0;s<sd;s++){const NF=[];const mid=(a,b)=>{V.push(norm([(V[a][0]+V[b][0])/2,(V[a][1]+V[b][1])/2,(V[a][2]+V[b][2])/2]));return V.length-1};for(const [a,b,c] of F){const ab=mid(a,b),bc=mid(b,c),ca=mid(c,a);NF.push([a,ab,ca],[b,bc,ab],[c,ca,bc],[ab,bc,ca])}F=NF}
+ const Pp=[];for(const f of F)for(const i of f)Pp.push(...V[i]);return mk(Pp)}
+function planeM(nx,ny){const Pp=[],U=[];for(let i=0;i<nx;i++)for(let j=0;j<ny;j++){const x0=i/nx,x1=(i+1)/nx,y0=j/ny,y1=(j+1)/ny;Pp.push(x0,y0,0,x1,y0,0,x1,y1,0,x0,y0,0,x1,y1,0,x0,y1,0);U.push(x0,1-y0,x1,1-y0,x1,1-y1,x0,1-y0,x1,1-y1,x0,1-y1)}return mk(Pp,U)}
+function groundM(){const N=40,S=4,Pp=[];const h=(i,j)=>{const x=(i-N/2)*S,z=(j-N/2)*S;const r=Math.hypot(x,z);return (r<30?0:(rnd(i*91+j*7)-.5)*.5)+Math.max(0,r-52)*.16*(.6+.8*rnd(i*13+j*3))};
+ for(let i=0;i<N;i++)for(let j=0;j<N;j++){const p=(a,b)=>[(a-N/2)*S,h(a,b),(b-N/2)*S];Pp.push(...p(i,j),...p(i,j+1),...p(i+1,j+1),...p(i,j),...p(i+1,j+1),...p(i+1,j))}return mk(Pp)}
+const BOX=boxM(),CYL=cylM(10,1,1),CYL6=cylM(6,1,1),CONE=cylM(10,0,1),PYR=cylM(4,0,1),ICO=icoM(1),ICO0=icoM(0),PL=planeM(1,1),FLAG=planeM(14,4),GND=groundM(),DISC=cylM(24,1,1);
+const TRI=(()=>{const vao=gl.createVertexArray();gl.bindVertexArray(vao);const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,0,3,-1,0,-1,3,0]),gl.STATIC_DRAW);gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);return vao})();
+
+// ---------- textures ----------
+function texFrom(src){const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src);gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);const ext=gl.getExtension('EXT_texture_filter_anisotropic');if(ext)gl.texParameterf(gl.TEXTURE_2D,ext.TEXTURE_MAX_ANISOTROPY_EXT,4);return t}
+const TX={};
+function ctex(key,w,h,fn){if(TX[key])return TX[key];const c=document.createElement('canvas');c.width=w;c.height=h;fn(c.getContext('2d'),w,h);return TX[key]=texFrom(c)}
+const FD=s=>`${s}px 'Lilita One','Arial Black',sans-serif`;
+function signTex(key,lines,bg,fg){return ctex(key,1024,384,(x,w,h)=>{x.fillStyle=bg||'#fff8e6';x.fillRect(0,0,w,h);x.strokeStyle='#2b1a0e';x.lineWidth=24;x.strokeRect(0,0,w,h);x.fillStyle=fg||'#2b1a0e';x.textAlign='center';x.textBaseline='middle';
+ if(lines.length===1){let fs=150;x.font=FD(fs);while(x.measureText(lines[0]).width>w-70&&fs>30){fs-=4;x.font=FD(fs)}x.fillText(lines[0],w/2,h/2+8)}else{const fit=(t,f)=>{let fs=f;x.font=FD(fs);while(x.measureText(t).width>w-90&&fs>24){fs-=4;x.font=FD(fs)}};fit(lines[0],118);x.fillText(lines[0],w/2,140);fit(lines[1],66);x.fillText(lines[1],w/2,280)}})}
+function winTex(){return ctex('winA',256,256,(x,w,h)=>{x.clearRect(0,0,w,h);for(let i=0;i<3;i++)for(let j=0;j<3;j++){x.fillStyle=`rgb(${96+((i+j)%2)*12},${124+((i*3+j)%3)*8},${158+((i+2*j)%3)*14})`;x.fillRect(28+i*76,34+j*76,46,48)}})}
+function cityWin(){return ctex('cwin',256,256,(x,w,h)=>{x.clearRect(0,0,w,h);for(let i=0;i<2;i++)for(let j=0;j<2;j++){x.fillStyle=`rgb(${104+i*10},${132+j*8},${166+((i+j)%2)*20})`;x.fillRect(22+i*128,30+j*128,86,76)}})}
+let GLOW=0;
+function boardTex(){return ctex('board',1024,640,(x,w,h)=>{x.fillStyle='#2f5d4a';x.fillRect(0,0,w,h);x.strokeStyle='#c99b63';x.lineWidth=36;x.strokeRect(0,0,w,h);x.textAlign='center';x.textBaseline='middle';
+ x.fillStyle='#ffd23f';x.font=FD(84);x.fillText('PAPAN PENGUMUMAN',w/2,110);x.fillStyle='#f6f2e4';x.font=FD(64);x.fillText(CONFIG.pengumuman.judul.toUpperCase()+':',w/2,230);
+ const words=CONFIG.pengumuman.isi.split(' ');let line='',y=330;x.font=FD(56);for(const wd of words){const t=line?line+' '+wd:wd;if(x.measureText(t).width>880){x.fillText(line,w/2,y);y+=74;line=wd}else line=t}x.fillText(line,w/2,y)})}
+
+// monument layout (virtual 1536x3072 per panel, 16px names, 24px rows)
+const PW=1536,PH=3072,FONT_V=16,ROW=24, MONO=[]; let PANELS=0;
+function layoutMonument(){const c=document.createElement('canvas').getContext('2d');c.font=`600 ${FONT_V}px Nunito, sans-serif`;let p=0,x=0,y=PH;
+ for(let i=0;i<NAMES.length;i++){if(RANKS[i]>10000){MONO.push(null);continue}const w=Math.ceil(c.measureText('@'+NAMES[i]).width);
+  if(x+w>PW-20){x=20;y+=ROW}if(y>PH-30){p++;x=20;y=20}MONO.push({p,x,y,w});x+=w+16}PANELS=p+1}
+function panelTex(p){return ctex('pn'+p,512,1024,(x,w,h)=>{x.fillStyle='#e3e7ea';x.fillRect(0,0,w,h);x.scale(w/PW,h/PH);x.font=`600 ${FONT_V}px Nunito, sans-serif`;x.textBaseline='top';
+ for(let i=0;i<MONO.length;i++){const m=MONO[i];if(!m||m.p!==p)continue;x.fillStyle='#fbfcfd';x.fillText('@'+NAMES[i],m.x+2,m.y+2);x.fillStyle='#5b6470';x.fillText('@'+NAMES[i],m.x,m.y)}})}
+const MON={z:-17,y0:1.4,pw:3.2,ph:6.4,gap:.35};
+function panelX(p){const n=PANELS,tot=n*MON.pw+(n-1)*MON.gap;return -tot/2+p*(MON.pw+MON.gap)}
+// ---- pagar nama (Angkatan Kedua dst) ----
+const FEN={R:31,NP:64,gate:.17,w:2.55,h:1.7,y0:.45},PWF=1024,PHF=640,FONT_F=22,ROW_F=32,FENO=[];let FPANELS=0;
+const FSTEP=(2*Math.PI-2*FEN.gate)/FEN.NP;
+function fTheta(j){return FEN.gate+(j+.5)*FSTEP}
+function fFrame(j){const th=fTheta(j),s_=Math.sin(th),c_=Math.cos(th);return {th,c:[FEN.R*s_,FEN.R*c_],n:[-s_,-c_],t:[-c_,s_]}}
+function layoutFence(){const c=document.createElement('canvas').getContext('2d');c.font=`600 ${FONT_F}px Nunito, sans-serif`;let p=-1,x=0,y=PHF;
+ for(let i=0;i<NAMES.length;i++){if(RANKS[i]<=10000){FENO.push(null);continue}const w=Math.ceil(c.measureText('@'+NAMES[i]).width);
+  if(x+w>PWF-18){x=18;y+=ROW_F}if(y>PHF-36){p++;x=18;y=18}FENO.push({p,x,y,w,f:1});x+=w+18}FPANELS=Math.min(FEN.NP,p+1)}
+function fenceTex(p){return ctex('fn'+p,512,320,(x,w,h)=>{x.fillStyle='#e7e2d6';x.fillRect(0,0,w,h);x.scale(w/PWF,h/PHF);x.font=`600 ${FONT_F}px Nunito, sans-serif`;x.textBaseline='top';
+ for(let i=0;i<FENO.length;i++){const m=FENO[i];if(!m||m.p!==p)continue;x.fillStyle='#fbfaf6';x.fillText('@'+NAMES[i],m.x+2,m.y+2);x.fillStyle='#6d6656';x.fillText('@'+NAMES[i],m.x,m.y)}})}
+function fenceWorld(i){const m=FENO[i],F=fFrame(m.p),u=(m.x+m.w/2)/PWF-.5,v=(m.y+FONT_F/2)/PHF;return {p:[F.c[0]+F.t[0]*u*FEN.w+F.n[0]*.22,FEN.y0+FEN.h-v*FEN.h,F.c[1]+F.t[1]*u*FEN.w+F.n[1]*.22],F,wd:m.w/PWF*FEN.w}}
+function fence(){const night=ENV.night>.5;
+ for(let j=0;j<FEN.NP;j++){const F=fFrame(j),[cx,cz]=F.c;
+  if(j<FPANELS){D(BOX,'#d8d1c1',[cx,FEN.y0+FEN.h/2,cz],[0,F.th,0],[FEN.w+.1,FEN.h+.25,.36]);D(BOX,'#c9c1ae',[cx,.22,cz],[0,F.th,0],[FEN.w+.3,.45,.6]);
+   textPlane(fenceTex(j),cx+F.n[0]*.19,FEN.y0+FEN.h/2,cz+F.n[1]*.19,FEN.w,FEN.h,F.th+Math.PI,{recv:1})}
+  else{D(BOX,night?'#5b5470':'#dcc79c',[cx,.07,cz],[0,F.th,0],[FEN.w,.14,.5],{cast:0})}
+  const a=FEN.gate+j*FSTEP;const built=j<=FPANELS;D(BOX,built?'#bfb6a2':'#b9874f',[FEN.R*Math.sin(a),built?1.1:.55,FEN.R*Math.cos(a)],[0,a,0],built?[.45,2.2,.45]:[.12,1.1,.12])}
+ const a=FEN.gate+FEN.NP*FSTEP;D(BOX,'#b9874f',[FEN.R*Math.sin(a),.55,FEN.R*Math.cos(a)],[0,a,0],[.12,1.1,.12]);
+ // gate
+ const gx=FEN.R*Math.sin(FEN.gate),gz=FEN.R*Math.cos(FEN.gate);for(const sg of [-1,1]){D(BOX,'#3a6ea5',[sg*gx,2.4,gz],0,[1.1,4.8,1.1]);D(BOX,'#ffd23f',[sg*gx,4.95,gz],0,[1.3,.3,1.3])}
+ D(BOX,'#2b1a0e',[0,5.4,gz],0,[2*gx+1.4,.9,.7]);textPlane(ctex('gate',2048,160,(x,w,h)=>{x.fillStyle='#2b1a0e';x.fillRect(0,0,w,h);x.fillStyle='#ffd23f';x.textAlign='center';x.textBaseline='middle';let fs=120;x.font=FD(fs);while(x.measureText('UNIVERSITAS NETIZEN INDONESIA').width>w-80){fs-=4;x.font=FD(fs)}x.fillText('UNIVERSITAS NETIZEN INDONESIA',w/2,h/2+6)}),0,5.4,gz+.37,2*gx+1.1,.82,0,{emis:.35});
+ textPlane(TX['gate'],0,5.4,gz-.37,2*gx+1.1,.82,Math.PI,{emis:.35})}
+function nameWorld(i){const m=MONO[i];const x0=panelX(m.p);return [x0+(m.x+m.w/2)/PW*MON.pw, MON.y0+MON.ph-(m.y+FONT_V/2)/PH*MON.ph, MON.z+.62]}
+
+// ---------- shadow fb ----------
+const SM=1536;const smT=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,smT);gl.texImage2D(gl.TEXTURE_2D,0,gl.DEPTH_COMPONENT24,SM,SM,0,gl.DEPTH_COMPONENT,gl.UNSIGNED_INT,null);
+for(const [k,v] of [[gl.TEXTURE_MIN_FILTER,gl.NEAREST],[gl.TEXTURE_MAG_FILTER,gl.NEAREST],[gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE],[gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE]])gl.texParameteri(gl.TEXTURE_2D,k,v);
+const smF=gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,smF);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.TEXTURE_2D,smT,0);gl.drawBuffers([gl.NONE]);gl.readBuffer(gl.NONE);gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+
+// ---------- draw list ----------
+let DL=[],TIME=0;
+function D(mesh,color,p,r,s,o){const d={mesh,col:typeof color==='string'?hex(color):color,M:M4.trs(p,r,s),cast:1,recv:1,alpha:1,emis:0};if(o)Object.assign(d,o);DL.push(d);return d}
+
+// ---------- time of day (Asia/Jakarta) ----------
+function wibHour(){try{const s=new Date().toLocaleString('en-GB',{timeZone:'Asia/Jakarta',hour:'2-digit',minute:'2-digit',hour12:false});const [h,m]=s.split(':').map(Number);return h+m/60}catch(e){const d=new Date();return d.getHours()+d.getMinutes()/60}}
+const ENVS={
+ day:{top:'#7cc8ef',bot:'#e7f5fb',sun:[.55,.9,.35],sunCol:'#fff6e4',sky:'#d8eefa',gnd:'#f0dcb4',fog:'#e7f5fb',night:0,label:'Siang'},
+ dusk:{top:'#f58a62',bot:'#ffd6a0',sun:[-.7,.38,.5],sunCol:'#ffc58a',sky:'#ffc9a6',gnd:'#e9b98a',fog:'#ffd2a2',night:.3,label:'Senja'},
+ night:{top:'#141a3a',bot:'#3a3f6e',sun:[.3,.8,.5],sunCol:'#6f7bb8',sky:'#4a5590',gnd:'#3a3458',fog:'#2c3060',night:1,label:'Malam'},
+ dawn:{top:'#8fb4e6',bot:'#ffd9c2',sun:[.7,.35,.4],sunCol:'#ffd9b8',sky:'#d9d6f0',gnd:'#e7cdb0',fog:'#f3dccd',night:.15,label:'Pagi'}};
+function envNow(){const h=wibHour();if(h>=5&&h<7)return ENVS.dawn;if(h>=7&&h<17)return ENVS.day;if(h>=17&&h<19)return ENVS.dusk;return ENVS.night}
+let ENV=envNow();document.getElementById('tTime').textContent=ENV.label+' di kampus';
+setInterval(()=>{ENV=envNow();document.getElementById('tTime').textContent=ENV.label+' di kampus'},60000);
+
+// ---------- world ----------
+const _F0=fFrame(1);
+const PLACES=[
+ {id:'monumen',name:'Monumen 10.000 Nama',c:[0,4.5,-17],r:8,cam:{tgt:[0,4.6,-17],dist:25,yaw:-.15,pitch:.14}},
+ {id:'sejarah',name:'Ruang Sejarah',c:[-17,3,2],r:6,cam:{tgt:[-17,3,2],dist:20,yaw:1.2,pitch:.22}},
+ {id:'baak',name:'BAAK · KTM',c:[17,2.5,2],r:5,cam:{tgt:[17,2.4,2],dist:17,yaw:-1.2,pitch:.22}},
+ {id:'proyek',name:'Proyek Berikutnya',c:[-12,3,17],r:6,cam:{tgt:[-12,3,17],dist:24,yaw:-.25,pitch:.32}},
+ {id:'papan',name:'Papan Pengumuman',c:[12,3.2,16],r:4.5,cam:{tgt:[12,3.4,16],dist:13,yaw:.55,pitch:.15}},
+ {id:'pagar',name:'Pagar Nama',c:[_F0.c[0],1.4,_F0.c[1]],r:3.5,cam:{tgt:[_F0.c[0]+_F0.n[0]*.3,-.6,_F0.c[1]+_F0.n[1]*.3],dist:12,yaw:_F0.th+Math.PI,pitch:.16,raw:1}},
+ {id:'bendera',name:'Lapangan Upacara',c:[0,4,2],r:4,cam:{tgt:[0,4,2],dist:22,yaw:.3,pitch:.3}},
+];
+function tree(x,z,s,k){D(CYL6,'#a7764d',[x,0,z],[0,k,0],[.28*s,2.2*s,.28*s]);D(ICO,k%2?'#7fd06c':'#68c25e',[x,2.6*s,z],[k,k*2,0],[1.25*s,1.1*s,1.25*s]);D(ICO,'#8edb78',[x+.5*s,3.3*s,z+.2*s],[k,0,k],[.8*s,.75*s,.8*s])}
+function bush(x,z,s,k){D(ICO0,k%2?'#79c968':'#9ad57a',[x,.35*s,z],[k,k,0],[.7*s,.55*s,.7*s])}
+function rock(x,z,s,k){D(ICO0,k%2?'#c3ccd2':'#aeb9c0',[x,.2*s,z],[k,k*3,k],[.7*s,.45*s,.6*s])}
+function lamp(x,z){D(CYL6,'#3d3a44',[x,0,z],0,[.08,3.2,.08]);D(ICO,ENV.night>.5?'#ffe08a':'#f6f1e1',[x,3.3,z],0,[.28,.28,.28],{emis:ENV.night>.5?1:.2,cast:0});if(ENV.night>.5)D(DISC,'#ffd77a',[x,.03,z],0,[2.2,.01,2.2],{alpha:.22,emis:1,cast:0,recv:0})}
+function person(x,z,c,yaw,h){const C=['#ff8a5c','#6cc3f5','#ffd166','#8bd17c','#c79bf2','#ff9fb8','#5fd0c5','#f7a440'];D(CYL,C[c%8],[x,h,z],[0,yaw,0],[.32,.8,.32]);D(ICO,'#ffd9b8',[x,h+1.12,z],[c,c,0],[.33,.33,.33]);D(ICO,'#5b3a24',[x,h+1.24,z-.05],[c,0,0],[.31,.2,.3])}
+function flag(x,z,h,s){D(CYL,'#f4f1ea',[x,0,z],0,[.09*s,h,.09*s]);D(ICO,'#f1c24b',[x,h+.12*s,z],0,[.2*s,.2*s,.2*s],{emis:.2});const y=h-1.25*s;
+ D(FLAG,'#e3342f',[x+.1,y+.6*s,z],0,[2.2*s,.62*s,1],{wave:1});D(FLAG,'#fbfbf7',[x+.1,y,z],0,[2.2*s,.62*s,1],{wave:1});D(BOX,'#d9d2c4',[x,.25,z],0,[1.2*s,.5,1.2*s])}
+function textPlane(tex,x,y,z,w,h,ry,o){const d=D(PL,'#ffffff',[0,0,0],0,0,Object.assign({tex,cast:0},o||{}));d.M=M4.mul(M4.trs([x,y,z],[0,ry||0,0],[1,1,1]),M4.trs([-w/2,-h/2,0],0,[w,h,1]));return d}
+function monument(){const n=PANELS,tot=n*MON.pw+(n-1)*MON.gap,z=MON.z;
+ D(BOX,'#cfd5da',[0,.4,z],0,[tot+4,.8,6]);D(BOX,'#dde2e6',[0,1.0,z],0,[tot+1.5,.5,4.4]);
+ for(let p=0;p<n;p++){const x=panelX(p)+MON.pw/2;D(BOX,'#e3e7ea',[x,MON.y0+MON.ph/2,z-.05],0,[MON.pw+.2,MON.ph+.2,1.2]);textPlane(panelTex(p),x,MON.y0+MON.ph/2,z+.56,MON.pw,MON.ph,0,{recv:1})}
+ D(BOX,'#c9cfd4',[0,MON.y0+MON.ph+.45,z-.05],0,[tot+.8,.7,1.6]);D(BOX,'#d8a93c',[0,MON.y0+MON.ph+1.6,z+.2],0,[9.2,2.2,.2]);
+ textPlane(signTex('plq',['ANGKATAN PERINTIS','10.000 NAMA PERTAMA'],'#d8a93c','#4a3208'),0,MON.y0+MON.ph+1.6,z+.32,8.8,2.0);
+ D(BOX,'#e3342f',[0,MON.y0+MON.ph*.62,z+.6],0,[tot+.4,.32,.06],{cast:0});D(BOX,'#fbfbf7',[0,MON.y0+MON.ph*.62-.32,z+.6],0,[tot+.4,.32,.06],{cast:0})}
+function sejarah(){const x=-17,z=2,ry=Math.PI/2;
+ D(BOX,'#e6e0d3',[x,.3,z],0,[8,.6,10]);D(BOX,'#efeae0',[x,.75,z],0,[7,.3,9]);D(BOX,'#f6efe0',[x-.8,3.2,z],0,[5,4.6,8],{tex:winTex(),win:1});
+ for(let i=0;i<5;i++)D(CYL,'#fbf7ee',[x+2.4,.9,z-3.6+i*1.8],0,[.32,4.6,.32]);
+ D(BOX,'#f3ecdc',[x+.2,5.7,z],0,[7.2,.5,9.2]);D(PYR,'#c98b5e',[x+.2,5.95,z],[0,Math.PI/4,0],[4.8,1.8,6.2]);
+ textPlane(signTex('sj',['RUANG SEJARAH']),x+3.1,5.0,z,4.2,1.1,ry)}
+function baak(){const x=17,z=2,ry=-Math.PI/2;D(BOX,'#dfe9f0',[x,.2,z],0,[7,.4,8]);D(BOX,'#f7efe0',[x,2.2,z],0,[5.5,3.8,6.5],{tex:winTex(),win:1});D(BOX,'#3a6ea5',[x,4.25,z],0,[6,.4,7]);
+ D(BOX,'#3a6ea5',[x-2.9,1.2,z],0,[.2,2.2,1.6]);textPlane(signTex('bk',['BAAK','LOKET KTM'],'#ffd23f'),x-2.95,3.3,z,3.6,1.35,ry)}
+function proyek(){const x=-12,z=17,g=cl(CONFIG.proyek.progres/100),fl=Math.max(1,Math.round(g*5));
+ D(BOX,'#d4a96c',[x,.05,z],0,[10,.1,8],{cast:0});for(let i=0;i<fl;i++)D(BOX,'#efe4cf',[x,.5+i,z],0,[7,1,5],{tex:winTex(),win:1});
+ for(let i=0;i<4;i++)D(BOX,'#e8a54b',[x-3.6+(i%2)*7.2,3,z-2.6+Math.floor(i/2)*5.2],0,[.15,6,.15]);D(BOX,'#e8a54b',[x,6,z-2.6],0,[7.4,.15,.15]);D(BOX,'#e8a54b',[x,6,z+2.6],0,[7.4,.15,.15]);
+ D(BOX,'#f2b630',[x+6,6,z-3],0,[.5,12,.5]);D(BOX,'#f2b630',[x+3,12,z-3],[0,Math.sin(TIME*.4)*.5,0],[9,.45,.45]);D(BOX,'#3d3a44',[x+3+Math.cos(TIME*.4)*0,9,z-3],0,[.05,6,.05],{cast:0});
+ textPlane(signTex('pj',['PROYEK BERIKUTNYA',CONFIG.proyek.progres+'% · '+CONFIG.proyek.status.toUpperCase().slice(0,26)]),x,1.6,z+4.2,5.4,2.0,0);D(BOX,'#a7764d',[x-1.8,.8,z+4.1],0,[.15,1.6,.15]);D(BOX,'#a7764d',[x+1.8,.8,z+4.1],0,[.15,1.6,.15])}
+function papan(){const x=12,z=16;D(BOX,'#a7764d',[x-2.6,2.6,z-.32],0,[.3,5.2,.3]);D(BOX,'#a7764d',[x+2.6,2.6,z-.32],0,[.3,5.2,.3]);D(BOX,'#c99b63',[x,3.4,z-.05],0,[6.2,3.9,.25]);
+ textPlane(boardTex(),x,3.4,z+.09,5.8,3.6,-.0);D(BOX,'#e3342f',[x,5.55,z-.1],[.12,0,0],[6.8,.22,1.2]);D(BOX,'#b8261f',[x,5.38,z+.42],0,[6.8,.16,.12])}
+// NPC paths
+const PATHS=[[[0,6],[0,-11]],[[-4,3],[-12,2]],[[4,3],[13,2]],[[-3,6],[-10,13]],[[3,6],[10,13]],[[-8,-12],[8,-12]],[[-14,8],[14,8]]];
+function npcs(){for(let i=0;i<46;i++){const pa=PATHS[i%PATHS.length],sp=.035+rnd(i)*.03,ph=(TIME*sp+rnd(i*3))%2,k=ph<1?ph:2-ph,dir=ph<1?1:-1;
+ const a=pa[0],b=pa[1],off=(rnd(i*7)-.5)*2.2;const x=lerp(a[0],b[0],k)+off*(Math.abs(b[1]-a[1])>Math.abs(b[0]-a[0])?1:0),z=lerp(a[1],b[1],k)+off*(Math.abs(b[0]-a[0])>=Math.abs(b[1]-a[1])?1:0);
+ const yaw=Math.atan2((b[0]-a[0])*dir,(b[1]-a[1])*dir);person(x,z,i,yaw,Math.abs(Math.sin(TIME*7+i))*.08)}}
+function paths(){const c=ENV.night>.5?'#5a5070':'#e2c48f';D(DISC,c,[0,.02,2],0,[6,.04,6],{cast:0});
+ for(const [a,b] of PATHS.slice(0,5)){const mx=(a[0]+b[0])/2,mz=(a[1]+b[1])/2,len=Math.hypot(b[0]-a[0],b[1]-a[1]),ry=Math.atan2(b[0]-a[0],b[1]-a[1]);D(BOX,c,[mx,.03,mz],[0,ry,0],[2.2,.04,len+2],{cast:0})}
+ D(BOX,c,[0,.03,-12],0,[22,.04,2.2],{cast:0})}
+function stars(){if(ENV.night<.5)return;for(let i=0;i<60;i++){const a=rnd(i)*6.283,e=.25+rnd(i+9)*1.1;D(ICO0,'#ffffff',[Math.cos(a)*130*Math.cos(e),20+Math.sin(e)*110,Math.sin(a)*130*Math.cos(e)],0,[.35,.35,.35],{emis:1,cast:0,recv:0})}}
+function cloud(x,y,z,s){if(ENV.night>.5)return;for(const [dx,dy,sx,sy] of [[0,0,3,1.6],[2.4,-.3,2,1.2],[-2.2,-.4,1.8,1.1]])D(ICO,'#ffffff',[x+dx*s+TIME*.15%40,y+dy*s,z],0,[sx*s,sy*s,(sx-1)*s+.6],{cast:0,recv:0,emis:.5})}
+let HL=null;
+// ---- kota di sekeliling kampus ----
+const CITY=[];(()=>{const cols=['#f6c9a8','#cfe3f2','#f3e3b3','#d7cdea','#bfe0cf','#f2b8b8','#e8e1d4','#c9d6df'];
+ for(let i=-4;i<=4;i++)for(let j=-4;j<=4;j++){const cx=i*22,cz=j*22,r=Math.hypot(cx,cz);if(r<48)continue;const k=i*31+j*7;
+  const n=r<70?2:1;for(let q=0;q<n;q++){const w=n===2?6.5:12+rnd(k)*3,dd=n===2?14:12+rnd(k+1)*3,ox=n===2?(q?3.6:-3.6):0;const h=Math.round((r<70?6+rnd(k+q)*9:10+rnd(k+q)*26)/3)*3;
+   CITY.push({x:cx+ox,z:cz,w,d:dd,h,col:cols[Math.abs(k+q*3)%cols.length]})}}})();
+const ROADS=[];(()=>{for(const c of [-77,-55,-33,-11,11,33,55,77]){const a=Math.abs(c)<44?Math.sqrt(44*44-c*c):0;
+  if(a===0){ROADS.push({x:c,z:0,w:6,d:200},{x:0,z:c,w:200,d:6})}else{const L=(100-a);for(const sg of [-1,1]){ROADS.push({x:c,z:sg*(a+L/2),w:6,d:L},{x:sg*(a+L/2),z:c,w:L,d:6})}}}})();
+function city(){const night=ENV.night>.5;
+ D(BOX,night?'#3b3f52':'#cfd2d4',[0,-.05,0],0,[230,.1,230],{cast:0});
+ for(const r of ROADS)D(BOX,night?'#22252f':'#565c63',[r.x,.01,r.z],0,[r.w,.02,r.d],{cast:0});
+ D(DISC,night?'#22252f':'#565c63',[0,.0,0],0,[39.5,.03,39.5],{cast:0});D(DISC,night?'#4a4e60':'#d9dcdc',[0,.0,0],0,[33.4,.045,33.4],{cast:0});
+ D(DISC,night?'#2f4a35':'#9fd486',[0,.0,0],0,[31.8,.06,31.8],{cast:0});
+ for(let i=0;i<48;i++){const a=i/48*6.283;D(BOX,'#f4f1e6',[Math.sin(a)*36.5,.035,Math.cos(a)*36.5],[0,a,0],[.18,.02,1.4],{cast:0})}
+ for(let i=0;i<6;i++)D(BOX,'#f4f1e6',[-2.5+i,.035,36.4],0,[.55,.02,5.6],{cast:0});
+ for(const b of CITY){D(BOX,b.col,[b.x,b.h/2,b.z],0,[b.w,b.h,b.d],{tex:cityWin(),win:1,uvs:[Math.round(b.w/3),b.h/3]});D(BOX,mixHex(b.col,'#555555',.25),[b.x,b.h+.25,b.z],0,[b.w+.3,.5,b.d+.3])}
+ for(let i=0;i<28;i++){const a=i/28*6.283+.11;tree(Math.sin(a)*41.5,Math.cos(a)*41.5,.8,i)}
+ for(let i=0;i<16;i++){const a=i/16*6.283;lamp(Math.sin(a)*33.9,Math.cos(a)*33.9)}}
+// ---- kendaraan ----
+const CARC=['#e3342f','#3a6ea5','#ffd23f','#f4f1e6','#2f8f6a','#f28c38','#8c6bd6','#1f2a36'];
+function car(x,z,yaw,k){const bus=k%9===0,c=bus?'#f2b630':CARC[k%CARC.length],L=bus?5.2:2.6,Hh=bus?1.9:.7;const night=ENV.night>.5;
+ D(BOX,'#23262c',[x,.32,z],[0,yaw,0],[1.3,.4,L*.92]);D(BOX,c,[x,.45+Hh/2,z],[0,yaw,0],[1.4,Hh,L]);
+ if(!bus)D(BOX,'#bfe3f2',[x,1.25,z],[0,yaw,0],[1.2,.5,L*.5]);else D(BOX,'#bfe3f2',[x,1.75,z],[0,yaw,0],[1.42,.45,L*.9]);
+ const fx=Math.sin(yaw),fz=Math.cos(yaw);D(BOX,'#fff6c8',[x+fx*L/2,.75,z+fz*L/2],[0,yaw,0],[1.1,.18,.06],{emis:night?1:.3,cast:0});D(BOX,'#ff3b30',[x-fx*L/2,.75,z-fz*L/2],[0,yaw,0],[1.1,.15,.06],{emis:night?1:.3,cast:0});
+ if(night)D(DISC,'#fff2b0',[x+fx*(L/2+2.4),.06,z+fz*(L/2+2.4)],0,[1.6,.01,1.6],{alpha:.28,emis:1,cast:0,recv:0})}
+function traffic(){
+ for(let i=0;i<16;i++){const lane=i%2,r=lane?37.7:35.3,dir=lane?1:-1,sp=(5+rnd(i)*2)/r,a=rnd(i*5)*6.283+dir*TIME*sp;car(Math.sin(a)*r,Math.cos(a)*r,a+dir*Math.PI/2,i)}
+ const LN=[[55,'z'],[-55,'z'],[55,'x'],[-55,'x'],[77,'z'],[-77,'x'],[33,'z'],[-33,'x']];
+ LN.forEach((l,li)=>{for(let q=0;q<3;q++){const k=li*3+q,dir=(k%2)?1:-1,off=dir*1.4,sp=6+rnd(k)*3;let t=((TIME*sp+rnd(k*3)*200)%200)-100;t*=dir;
+  if(Math.abs(l[0])<44&&Math.abs(t)<Math.sqrt(44*44-l[0]*l[0])+3)continue;
+  if(l[1]==='z')car(l[0]+off,t,dir>0?0:Math.PI,k+20);else car(t,l[0]-off,dir>0?Math.PI/2:-Math.PI/2,k+20)}})}
+function world(){GLOW=cl((ENV.night-.2)/.6);
+ city();traffic();
+ for(const [x,z] of [[-20,-6],[20,-6],[-6,-21],[6,-21],[-22,12],[22,12]])tree(x,z,1,x);
+ paths();for(const [x,z] of [[-3,-9],[3,-9],[-7,4],[7,4],[-3,12],[3,12]])lamp(x,z);
+ flag(0,2,9,1.2);monument();fence();sejarah();baak();proyek();papan();npcs();stars();
+ cloud(-30,30,-70,1.4);cloud(26,34,-80,1.8);cloud(50,28,-60,1.1);
+ if(HL){const q=.5+.5*Math.sin(TIME*6);if(MONO[HL.i]){const p=nameWorld(HL.i),w=MONO[HL.i].w/PW*MON.pw+.08;D(BOX,'#ffd23f',[p[0],p[1],p[2]+.01],0,[w,.06+q*.02,.02],{emis:1,cast:0,alpha:.55+q*.35});
+  D(ICO0,'#fff3a0',[p[0]+w/2+.12,p[1]+.12,p[2]+.05],[TIME*3,TIME*2,0],[.07,.07,.07],{emis:1,cast:0})}
+  else{const R=fenceWorld(HL.i);D(BOX,'#ffd23f',R.p,[0,R.F.th,0],[R.wd+.06,.09+q*.02,.02],{emis:1,cast:0,alpha:.55+q*.35})}}}
+
+// ---------- camera ----------
+const cam={tgt:[0,3,-2],dist:46,yaw:.35,pitch:.42,fov:50};let fly=null;
+function flyTo(c,dur){if(!c.raw){const asp=cv.clientWidth/Math.max(1,cv.clientHeight),k=asp<.8?1.55:1;c=Object.assign({},c,{dist:c.dist*k,tgt:[c.tgt[0],c.tgt[1]-c.dist*k*.16,c.tgt[2]]})}fly={from:{tgt:cam.tgt.slice(),dist:cam.dist,yaw:cam.yaw,pitch:cam.pitch},to:c,t0:performance.now(),dur:dur||1400};
+ let dy=c.yaw-cam.yaw;while(dy>Math.PI)dy-=2*Math.PI;while(dy<-Math.PI)dy+=2*Math.PI;fly.to=Object.assign({},c,{yaw:cam.yaw+dy})}
+function camEye(){const cp=Math.cos(cam.pitch);return [cam.tgt[0]+Math.sin(cam.yaw)*cp*cam.dist,cam.tgt[1]+Math.sin(cam.pitch)*cam.dist,cam.tgt[2]+Math.cos(cam.yaw)*cp*cam.dist]}
+
+// ---------- render ----------
+function resize(){const dpr=Math.min(window.devicePixelRatio||1,2);const w=Math.round(cv.clientWidth*dpr),h=Math.round(cv.clientHeight*dpr);if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h}}
+let VPm=null;
+function render(){resize();const W=cv.width,H=cv.height,e=ENV,sun=norm(e.sun),eye=camEye();
+ const V=M4.look(eye,cam.tgt,[0,1,0]),Pm=M4.persp(cam.fov*Math.PI/180,W/H,.2,400),VP=M4.mul(Pm,V);VPm={VP,eye,W,H};
+ const lc=[cam.tgt[0],0,cam.tgt[2]],ls=Math.min(60,Math.max(22,cam.dist*.9));const LV=M4.look([lc[0]+sun[0]*90,lc[1]+sun[1]*90,lc[2]+sun[2]*90],lc,[0,1,0]);const LVP=M4.mul(M4.ortho(-ls,ls,-ls,ls,1,220),LV);
+ gl.bindFramebuffer(gl.FRAMEBUFFER,smF);gl.viewport(0,0,SM,SM);gl.clear(gl.DEPTH_BUFFER_BIT);gl.enable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.disable(gl.BLEND);
+ gl.useProgram(PD.p);gl.uniformMatrix4fv(PD.u.LVP,false,LVP);gl.uniform1f(PD.u.time,TIME);
+ for(const d of DL){if(!d.cast||d.alpha<1)continue;gl.uniformMatrix4fv(PD.u.M,false,d.M);gl.uniform1f(PD.u.wave,d.wave||0);gl.bindVertexArray(d.mesh.vao);gl.drawArrays(gl.TRIANGLES,0,d.mesh.n)}
+ gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,W,H);gl.clearColor(0,0,0,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+ gl.disable(gl.DEPTH_TEST);gl.useProgram(PS.p);gl.uniform3fv(PS.u.top,hex(e.top));gl.uniform3fv(PS.u.bot,hex(e.bot));gl.bindVertexArray(TRI);gl.drawArrays(gl.TRIANGLES,0,3);
+ gl.enable(gl.DEPTH_TEST);gl.useProgram(P.p);const u=P.u;gl.uniformMatrix4fv(u.VP,false,VP);gl.uniformMatrix4fv(u.LVP,false,LVP);gl.uniform3fv(u.sunDir,sun);gl.uniform3fv(u.sunCol,hex(e.sunCol));gl.uniform3fv(u.skyCol,hex(e.sky));gl.uniform3fv(u.gndCol,hex(e.gnd));gl.uniform3fv(u.fogCol,hex(e.fog));gl.uniform3fv(u.eye,eye);
+ gl.uniform1f(u.fogN,80);gl.uniform1f(u.fogF,200);gl.uniform1f(u.time,TIME);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,smT);gl.uniform1i(u.shm,0);gl.uniform1i(u.tex,1);
+ const ord=DL.filter(d=>d.alpha>=1).concat(DL.filter(d=>d.alpha<1));
+ for(const d of ord){if(d.alpha<1){gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false)}else{gl.disable(gl.BLEND);gl.depthMask(true)}
+  gl.uniformMatrix4fv(u.M,false,d.M);gl.uniform3fv(u.col,d.col);gl.uniform1f(u.emis,d.emis);gl.uniform1f(u.alpha,d.alpha);gl.uniform1f(u.recv,d.recv);gl.uniform1f(u.wave,d.wave||0);gl.uniform1f(u.useTex,d.tex?(d.win?2:1):0);gl.uniform2fv(u.uvs,d.uvs||[1,1]);gl.uniform1f(u.glow,d.win?GLOW:0);
+  if(d.tex){gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,d.tex);gl.activeTexture(gl.TEXTURE0)}gl.bindVertexArray(d.mesh.vao);gl.drawArrays(gl.TRIANGLES,0,d.mesh.n)}
+ gl.depthMask(true);gl.disable(gl.BLEND)}
+const t0=performance.now();
+function loop(now){TIME=(now-t0)/1000;
+ if(fly){const k=eio((now-fly.t0)/fly.dur);const f=fly.from,t=fly.to;cam.tgt=[0,1,2].map(i=>lerp(f.tgt[i],t.tgt[i],k));cam.dist=lerp(f.dist,t.dist,k);cam.yaw=lerp(f.yaw,t.yaw,k);cam.pitch=lerp(f.pitch,t.pitch,k);if(k>=1)fly=null}
+ else if(!dragging&&!HL&&idle()>6)cam.yaw+=.0012;
+ if(!fly){const pmin=cam.dist>38?.04+(cam.dist-38)*.008:.04;if(cam.pitch<pmin)cam.pitch=lerp(cam.pitch,pmin,.15)}
+ DL=[];world();render();requestAnimationFrame(loop)}
+
+// ---------- input ----------
+let dragging=false,lastAct=performance.now(),ptrs=new Map(),pinch0=null,downAt=null;const idle=()=>(performance.now()-lastAct)/1000;
+cv.addEventListener('pointerdown',e=>{if(e.pointerType==='touch')return;cv.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,[e.clientX,e.clientY]);downAt={x:e.clientX,y:e.clientY,t:performance.now(),moved:0};dragging=true;fly=null;lastAct=performance.now();hideHint();
+ if(ptrs.size===2){const [a,b]=[...ptrs.values()];pinch0={d:Math.hypot(a[0]-b[0],a[1]-b[1]),dist:cam.dist}}});
+cv.addEventListener('pointermove',e=>{if(e.pointerType==='touch'||!ptrs.has(e.pointerId))return;const pr=ptrs.get(e.pointerId);const dx=e.clientX-pr[0],dy=e.clientY-pr[1];ptrs.set(e.pointerId,[e.clientX,e.clientY]);lastAct=performance.now();
+ if(downAt)downAt.moved+=Math.abs(dx)+Math.abs(dy);
+ if(ptrs.size===2&&pinch0){const [a,b]=[...ptrs.values()];const d=Math.hypot(a[0]-b[0],a[1]-b[1]);cam.dist=cl(pinch0.dist*pinch0.d/d,4,90);return}
+ cam.yaw-=dx*.006;cam.pitch=cl(cam.pitch+dy*.004,.04,1.35)});
+function up(e){if(e.pointerType==='touch')return;ptrs.delete(e.pointerId);if(ptrs.size<2)pinch0=null;if(ptrs.size===0){dragging=false;if(downAt&&downAt.moved<8&&performance.now()-downAt.t<400)tap(e.clientX,e.clientY);downAt=null}}
+// touch (HP): ditangani langsung supaya halaman/aplikasi tidak ikut menggulir
+let tch=null;
+function tPts(e){return [...e.touches].map(t=>[t.clientX,t.clientY])}
+cv.addEventListener('touchstart',e=>{e.preventDefault();const p=tPts(e);fly=null;dragging=true;lastAct=performance.now();hideHint();
+ if(p.length===1)tch={last:p[0],start:p[0],t:performance.now(),moved:0};else if(p.length>=2){const d=Math.hypot(p[0][0]-p[1][0],p[0][1]-p[1][1]);tch={pinch:d,dist:cam.dist,moved:99,last:p[0]}}},{passive:false});
+cv.addEventListener('touchmove',e=>{e.preventDefault();if(!tch)return;const p=tPts(e);lastAct=performance.now();
+ if(p.length>=2){const d=Math.hypot(p[0][0]-p[1][0],p[0][1]-p[1][1]);if(!tch.pinch){tch={pinch:d,dist:cam.dist,moved:99,last:p[0]}}cam.dist=cl(tch.dist*tch.pinch/d,4,90);return}
+ if(tch.pinch){tch={last:p[0],start:p[0],t:0,moved:99};return}
+ const dx=p[0][0]-tch.last[0],dy=p[0][1]-tch.last[1];tch.last=p[0];tch.moved+=Math.abs(dx)+Math.abs(dy);cam.yaw-=dx*.007;cam.pitch=cl(cam.pitch+dy*.005,.04,1.35)},{passive:false});
+cv.addEventListener('touchend',e=>{e.preventDefault();if(e.touches.length>0){const p=tPts(e);tch={last:p[0],start:p[0],t:0,moved:99};return}
+ dragging=false;if(tch&&tch.moved<10&&performance.now()-tch.t<450){const c=e.changedTouches[0];tap(c.clientX,c.clientY)}tch=null},{passive:false});
+cv.addEventListener('touchcancel',()=>{dragging=false;tch=null});
+// tombol kendali (cadangan kalau geser tidak jalan)
+(function(){const box=document.getElementById('ctrl');let iv=null;const act={l:()=>cam.yaw+=.05,r:()=>cam.yaw-=.05,u:()=>cam.pitch=cl(cam.pitch+.03,.04,1.35),d:()=>cam.pitch=cl(cam.pitch-.03,.04,1.35),i:()=>cam.dist=cl(cam.dist*.96,4,90),o:()=>cam.dist=cl(cam.dist*1.04,4,90)};
+ box.querySelectorAll('button').forEach(b=>{const f=act[b.dataset.k];const start=e=>{e.preventDefault();fly=null;lastAct=performance.now();hideHint();f();clearInterval(iv);iv=setInterval(()=>{f();lastAct=performance.now()},30)};const stop=()=>{clearInterval(iv);iv=null};
+  b.addEventListener('touchstart',start,{passive:false});b.addEventListener('mousedown',start);['touchend','touchcancel','mouseup','mouseleave'].forEach(ev=>b.addEventListener(ev,stop))})})();
+cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+cv.addEventListener('wheel',e=>{e.preventDefault();cam.dist=cl(cam.dist*Math.exp(e.deltaY*.001),4,90);lastAct=performance.now();hideHint()},{passive:false});
+function tap(x,y){if(!VPm)return;const r=cv.getBoundingClientRect();const nx=((x-r.left)/r.width)*2-1,ny=1-((y-r.top)/r.height)*2;
+ // build ray via inverse of view directions
+ const eye=VPm.eye,fwd=norm(sub(cam.tgt,eye)),right=norm(cross(fwd,[0,1,0])),upv=cross(right,fwd);const th=Math.tan(cam.fov*Math.PI/360),asp=r.width/r.height;
+ const dir=norm([fwd[0]+right[0]*nx*th*asp+upv[0]*ny*th,fwd[1]+right[1]*nx*th*asp+upv[1]*ny*th,fwd[2]+right[2]*nx*th*asp+upv[2]*ny*th]);
+ let best=null;for(const pl of PLACES){const oc=sub(pl.c,eye),t=dot(oc,dir);if(t<0)continue;const d2=dot(oc,oc)-t*t;if(d2<pl.r*pl.r&&(!best||t<best.t))best={pl,t}}
+ if(best)openPlace(best.pl.id)}
+let hintShown=true;function hideHint(){if(hintShown){document.getElementById('hint').style.opacity=0;hintShown=false}}setTimeout(hideHint,7000);
+setTimeout(hideHint,7000);
+
+// ---------- UI ----------
+const card=document.getElementById('card');
+function showCard(html){card.innerHTML='<button class="x" aria-label="Tutup">✕</button>'+html;card.hidden=false;card.querySelector('.x').onclick=closeCard}
+function closeCard(){card.hidden=true;HL=null}
+const INFO={
+ monumen:()=>`<h2>Monumen 10.000 Nama</h2><p>Di sini terukir nama-nama mahasiswa Angkatan Perintis UNINET, sesuai urutan follow. Kursinya sudah penuh.</p><div class="row"><button class="btn" data-act="focus">Cari namaku</button></div>`,
+ sejarah:()=>`<h2>Ruang Sejarah</h2><p>Gedung pertama kampus, hasil voting mahasiswa. Dibangun dari nol di video "Pembangunan Ruang Sejarah".</p><div class="row"><a class="btn" href="${CONFIG.igUrl}" target="_blank" rel="noopener">Tonton di Instagram</a></div>`,
+ baak:()=>`<h2>BAAK · Loket KTM</h2><p>Ambil Kartu Tanda Mahasiswa digitalmu. Terbuka untuk semua netizen.</p><div class="row"><a class="btn" href="${CONFIG.ktmUrl}" target="_blank" rel="noopener">Buat KTM</a></div>`,
+ proyek:()=>`<h2>${CONFIG.proyek.nama}</h2><p>${CONFIG.proyek.status}. Usulkan gedungnya di kolom komentar video terbaru.</p><div class="bar" aria-label="Progres ${CONFIG.proyek.progres} persen"><i style="width:${CONFIG.proyek.progres}%"></i></div><p style="margin-top:-4px"><b>${CONFIG.proyek.progres}%</b> selesai</p>`,
+ papan:()=>`<h2>${CONFIG.pengumuman.judul}</h2><p>${CONFIG.pengumuman.isi}</p><div class="row"><a class="btn" href="${CONFIG.igUrl}" target="_blank" rel="noopener">Buka @uninet.id</a></div>`,
+ pagar:()=>`<h2>Pagar Nama Mahasiswa</h2><p>Setelah Monumen Angkatan Perintis penuh, setiap mahasiswa baru terukir di pagar kampus. Cari username-mu di bawah lalu tekan Ukir namaku. Sudah <b>${FPANELS} dari ${FEN.NP}</b> panel berdiri. Makin banyak yang follow, makin cepat kampus ini berpagar.</p><div class="bar"><i style="width:${Math.max(2,Math.round(FPANELS/FEN.NP*100))}%"></i></div><div class="row"><a class="btn" href="${CONFIG.igUrl}" target="_blank" rel="noopener">Ajak teman follow</a></div>`,
+ bendera:()=>`<h2>Lapangan Upacara</h2><p>Pusat kampus. Data mahasiswa diperbarui ${CONFIG.diperbarui}. Total ${fmt(NAMES.length)} mahasiswa.</p>`,
+};
+function openPlace(id){const pl=PLACES.find(p=>p.id===id);HL=null;flyTo(pl.cam);showCard(INFO[id]());const f=card.querySelector('[data-act="focus"]');if(f)f.onclick=()=>{closeCard();document.getElementById('q').focus()}}
+const placesEl=document.getElementById('places');
+for(const pl of PLACES){const b=document.createElement('button');b.className='chip';b.textContent=pl.name;b.onclick=()=>openPlace(pl.id);placesEl.appendChild(b)}
+function plateCanvas(i){const isF=!MONO[i],L=isF?FENO:MONO,FS=isF?FONT_F:FONT_V,RW=isF?ROW_F:ROW,m=L[i],c=document.createElement('canvas'),W=900,H=300;c.width=W;c.height=H;const x=c.getContext('2d');x.fillStyle='#e3e7ea';x.fillRect(0,0,W,H);
+ if(isF){x.fillStyle='#e7e2d6';x.fillRect(0,0,W,H)}const sc=isF?1.7:2.2,ox=W/2-(m.x+m.w/2)*sc,oy=H/2-(m.y+FS/2)*sc;x.save();x.translate(ox,oy);x.scale(sc,sc);x.font=`600 ${FS}px Nunito, sans-serif`;x.textBaseline='top';
+ for(let j=Math.max(0,i-160);j<Math.min(L.length,i+160);j++){const n=L[j];if(!n||n.p!==m.p)continue;if(Math.abs(n.y-m.y)>RW*4)continue;if(j===i)continue;x.fillStyle='#fbfcfd';x.fillText('@'+NAMES[j],n.x+1,n.y+1);x.fillStyle='#7d8590';x.fillText('@'+NAMES[j],n.x,n.y)}
+ x.fillStyle='#ffd23f';x.strokeStyle='#2b1a0e';x.lineWidth=2;x.beginPath();x.roundRect(m.x-6,m.y-5,m.w+12,FS+10,6);x.fill();x.stroke();x.fillStyle='#2b1a0e';x.font=`900 ${FS}px Nunito, sans-serif`;x.fillText('@'+NAMES[i],m.x,m.y);x.restore();return c.toDataURL('image/png')}
+document.getElementById('search').addEventListener('submit',e=>{e.preventDefault();const raw=document.getElementById('q').value.trim().replace(/^@+/,'').toLowerCase();if(!raw)return;document.getElementById('q').blur();
+ const i=IDX.get(raw);const esc=s=>s.replace(/[<>&"]/g,'');
+ if(i===undefined){HL=null;showCard(`<h2>Belum terukir</h2><p>Nama <b>@${esc(raw)}</b> belum ada di pagar kampus. Ukir sekarang, gratis dan langsung muncul!</p><div class="row"><button class="btn" data-act="ukir">Ukir namaku</button><a class="btn dark" href="${CONFIG.igUrl}" target="_blank" rel="noopener">Follow @uninet.id</a></div>`);
+  card.querySelector('[data-act="ukir"]').onclick=async e=>{e.target.disabled=true;e.target.textContent='Mengukir…';const r=await ukir(raw);
+   if(r==='ok'){document.getElementById('search').requestSubmit()}else{const m={format:'Username hanya boleh huruf kecil, angka, titik, dan garis bawah.',kata:'Username ini tidak bisa diukir.',offline:'Pengukiran belum aktif di halaman ini. Coba lewat ktm-universitas-netizenid.netlify.app/kampus/.'};card.querySelector('p').textContent=m[r]||'Gagal mengukir, coba lagi.';e.target.textContent='Ukir namaku';e.target.disabled=false}};return}
+ if(!MONO[i]){if(!FENO[i]){HL=null;showCard(`<h2>@${esc(raw)}</h2><p>Kamu mahasiswa ke-${fmt(RANKS[i])}. Pagar kampus sudah penuh untuk sementara, namamu masuk di pembangunan berikutnya.</p>`);return}
+  HL={i};const R=fenceWorld(i);flyTo({tgt:[R.p[0],R.p[1]-.55,R.p[2]],dist:5,yaw:R.F.th+Math.PI,pitch:.05,raw:1},1900);const row=Math.round((FENO[i].y-18)/ROW_F)+1;
+  showCard(`<h2>Ketemu! @${esc(raw)}</h2><img id="plate" alt="Namamu di pagar kampus" src="${plateCanvas(i)}"><p>${ONLINE.has(raw)?'Mahasiswa UNINET':'Mahasiswa ke-<b>'+fmt(RANKS[i])+'</b>'} · Angkatan Kedua · Pagar kampus panel ${FENO[i].p+1}, baris ${row}. Namamu jadi batu pagar UNINET. Screenshot dan tag @uninet.id!</p><div class="row"><a class="btn" href="${CONFIG.ktmUrl}" target="_blank" rel="noopener">Buat KTM</a><button class="btn dark" data-act="wide">Lihat pagar</button></div>`);
+  card.querySelector('[data-act="wide"]').onclick=()=>flyTo({tgt:[0,2,0],dist:62,yaw:R.F.th+Math.PI,pitch:.55});return}
+ HL={i};const p=nameWorld(i);flyTo({tgt:[p[0],p[1]-1.1,p[2]],dist:6,yaw:0,pitch:.03,raw:1},1800);
+ const row=Math.round((MONO[i].y-20)/ROW)+1;
+ showCard(`<h2>Ketemu! @${esc(raw)}</h2><img id="plate" alt="Namamu di monumen" src="${plateCanvas(i)}"><p>Mahasiswa ke-<b>${fmt(RANKS[i])}</b> · Senior Angkatan Perintis · Panel ${MONO[i].p+1}, baris ${row}. Screenshot dan bagikan ke story, tag @uninet.id!</p><div class="row"><a class="btn" href="${CONFIG.ktmUrl}" target="_blank" rel="noopener">Buat KTM</a><button class="btn dark" data-act="wide">Lihat monumen</button></div>`);
+ card.querySelector('[data-act="wide"]').onclick=()=>flyTo(PLACES[0].cam)});
+
+// ---------- pagar online (ukiran mandiri) ----------
+const API='/api/pagar';let ONLINE=new Set();
+function rebuildFence(){FENO.length=0;layoutFence();for(const k of Object.keys(TX))if(k.startsWith('fn')){gl.deleteTexture(TX[k]);delete TX[k]}document.getElementById('tPagar').textContent='Pagar '+FPANELS+'/'+FEN.NP+' panel'}
+function addOnline(list){let add=0;for(const u of list){if(IDX.has(u))continue;IDX.set(u,NAMES.length);NAMES.push(u);RANKS.push(99999);MONO.push(null);ONLINE.add(u);add++}if(add){rebuildFence();document.getElementById('tMhs').textContent=fmt(NAMES.length)+' mahasiswa'}}
+function loadOnline(){return fetch(API,{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{if(d&&Array.isArray(d.names))addOnline(d.names);return !!d}).catch(()=>false)}
+async function ukir(u){try{const r=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({username:u})});const d=await r.json();if(!d.ok)return d.reason||'gagal';await loadOnline();if(!IDX.has(u))addOnline([u]);return 'ok'}catch(e){return 'offline'}}
+setInterval(loadOnline,60000);
+// ================= MODE JALAN (orang ketiga) =================
+let EYE=[0,0,0];const ICO2=icoM(2),PCYL=cylM(16,.82,1),RCYL=cylM(16,1,1);
+function DM(mesh,col,P,p,r,sc,o){const d=D(mesh,col,[0,0,0],0,0,o);d.M=M4.mul(P,M4.trs(p,r,sc));return d}
+// mahasiswa versi rapi
+function person(x,z,c,yaw,h,o){const C=['#ff8a5c','#6cc3f5','#ffd166','#8bd17c','#c79bf2','#ff9fb8','#5fd0c5','#f7a440'],HC=['#4a2e1c','#2b1a0e','#6b3f22'];o=o||{};
+ const fx=Math.sin(yaw),fz=Math.cos(yaw),rx=Math.cos(yaw),rz=-Math.sin(yaw),col=o.col||C[c%8],sw=o.swing||0;
+ const far=(x-EYE[0])**2+(z-EYE[2])**2>400;if(far){D(PCYL,col,[x,h,z],[0,yaw,0],[.3,.74,.3]);D(ICO,'#ffd9b8',[x,h+1.1,z],0,[.32,.32,.32]);D(ICO,o.hair||HC[c%3],[x-fx*.1,h+1.24,z-fz*.1],0,[.335,.24,.335]);return}
+ D(PCYL,col,[x,h,z],[0,yaw,0],[.3,.74,.3]);D(ICO2,col,[x,h+.74,z],0,[.25,.1,.25]);
+ for(const s of[-1,1]){const a=sw*s;D(RCYL,col,[x+rx*s*.33+fx*a*.12,h+.24,z+rz*s*.33+fz*a*.12],0,[.085,.46,.085]);D(ICO2,'#ffd9b8',[x+rx*s*.33+fx*a*.2,h+.22,z+rz*s*.33+fz*a*.2],0,[.09,.09,.09],{cast:0})}
+ D(ICO2,'#ffd9b8',[x,h+1.1,z],0,[.32,.32,.32]);
+ D(ICO2,o.hair||HC[c%3],[x-fx*.1,h+1.24,z-fz*.1],0,[.335,.24,.335]);
+ for(const s of[-1,1])D(ICO0,'#2b1a0e',[x+fx*.3+rx*s*.11,h+1.11,z+fz*.3+rz*s*.11],0,[.04,.055,.04],{cast:0})}
+// ---- kantin 2 lantai (menggantikan Proyek Berikutnya) ----
+const KX=-11,KZ=16,SX=KX+5.5,SZ=KZ+7.6,KBZ=KZ-3.5;
+const KR=M4.mul(M4.trs([KX,0,KZ],[0,Math.PI/2,0],[1,1,1]),M4.trs([-KX,0,-KZ],0,[1,1,1]));
+function KPT(p){const M=KR;return [M[0]*p[0]+M[4]*p[1]+M[8]*p[2]+M[12],M[1]*p[0]+M[5]*p[1]+M[9]*p[2]+M[13],M[2]*p[0]+M[6]*p[1]+M[10]*p[2]+M[14]]}
+function brickTex(){return ctex('brick',256,256,(x,w,h)=>{x.fillStyle='#d9cbb5';x.fillRect(0,0,w,h);for(let r=0;r<8;r++)for(let c=0;c<6;c++){x.fillStyle=['#c0583e','#b14d35','#cc6648'][(r*3+c)%3];x.fillRect(c*52+(r%2?26:0)-26+3,r*32+3,46,26)}})}
+function stallTex(i,name){return ctex('st'+i+name,512,160,(x,w,h)=>{x.fillStyle='#fff8e6';x.fillRect(0,0,w,h);x.strokeStyle='#2b1a0e';x.lineWidth=10;x.strokeRect(5,5,w-10,h-10);x.fillStyle='#2b1a0e';x.textAlign='center';x.textBaseline='middle';let fs=name==='?'?110:64;x.font=FD(fs);while(x.measureText(name).width>w-40){fs-=4;x.font=FD(fs)}x.fillText(name,w/2,h/2+6)})}
+function kiosk2(x,z,i){const nt=ENV.night>.5;D(BOX,'#efe4cf',[x,1.3,z],0,[2.2,2.6,1.6]);
+ D(BOX,['#ffd23f','#6cc3f5','#8bd17c','#ff9fb8','#f7a440'][i],[x,.55,z+.85],0,[2.1,1.1,.4]);
+ D(BOX,['#e3342f','#3a6ea5','#2f8f6a','#c0392b','#e8892b'][i],[x,2.75,z+1.2],[-.35,0,0],[2.4,.12,1.1]);
+ textPlane(stallTex(i,CONFIG.warung[i]||'?'),x,2.1,z+.81,1.6,.5,0,{emis:nt?.6:.1})}
+function socket(x,y,z){D(BOX,'#f4f1ea',[x,y+.03,z],0,[.3,.07,.22],{cast:0});for(const s of[-1,1])D(BOX,'#2b1a0e',[x+s*.06,y+.075,z],0,[.04,.02,.06],{cast:0});D(BOX,'#3ddc84',[x+.12,y+.075,z+.08],0,[.03,.02,.03],{emis:1,cast:0})}
+function proyek(){const i0=DL.length,x=KX,z=KZ,bz=KBZ,nt=ENV.night>.5;
+ D(BOX,'#e9dcc2',[x,.06,z],0,[17,.12,13],{cast:0});D(BOX,'#f7efe0',[x,.2,bz],0,[15,.4,6]);
+ D(BOX,'#c0583e',[x,1.75,bz-2.8],0,[15,3.5,.35],{tex:brickTex(),uvs:[4,1]});for(const s of[-1,1])D(BOX,'#c0583e',[x+s*7.4,1.75,bz],0,[.35,3.5,5.6],{tex:brickTex(),uvs:[2,1]});
+ for(const px of [-7.2,-3.6,0,3.6,7.2])D(BOX,'#efe4cf',[x+px,1.75,bz+2.8],0,[.45,3.5,.45]);
+ for(let i=0;i<5;i++)kiosk2(x-5.6+i*2.8,bz-1.6,i);
+ D(BOX,'#e3342f',[x,3.65,bz],0,[15.4,.35,6.4]);
+ for(const s of[-1,1])D(BOX,'#f4f1ea',[x,4.25,bz+s*3.1],0,[15,.6,.12]);D(BOX,'#f4f1ea',[x-7.5,4.25,bz],0,[.12,.6,6.2]);D(BOX,'#f4f1ea',[x+7.5,4.25,bz+.75],0,[.12,.6,4.7]);D(BOX,'#c9c3b5',[x+8.2,3.7,bz-2.55],0,[1.4,.25,.9]);D(BOX,'#f4f1ea',[x+8.95,4.25,bz-2.55],0,[.1,.6,.9]);D(BOX,'#f4f1ea',[x+8.2,4.25,bz-3.05],0,[1.5,.6,.1]);
+ for(let k=0;k<8;k++)D(BOX,'#c9c3b5',[x+8.2,.22+k*.45,bz+2.4-k*.6],0,[1.4,.45,.6]);
+ for(let k=0;k<5;k++)D(BOX,'#ffe08a',[x-6+k*3,3.42,bz+.5],0,[.6,.08,.6],{emis:nt?1:.3,cast:0});
+ const U=['#ffd23f','#3a6ea5','#2f8f6a','#ff9fb8'];
+ for(let i=0;i<4;i++){const tx=x-5.4+i*3.6,tz=KZ+3.4;
+  D(BOX,'#a7764d',[tx,.95,tz],0,[1.2,.12,3.6]);D(BOX,'#7a5a3c',[tx,.5,tz],0,[.2,.9,2.9]);for(const b of [-1,1])D(BOX,'#8a5a36',[tx+b*.95,.55,tz],0,[.35,.1,3.6]);
+  for(let k=0;k<3;k++)socket(tx,1.01,tz+(k-1)*1.1);
+  for(let k=0;k<3;k++)for(const b of [-1,1]){if(rnd(i*13+k*7+b)<.45)continue;person(tx+b*1.05,tz+(k-1)*1.1,i*13+k*3+b+5,b>0?-Math.PI/2:Math.PI/2,-.25)}
+  D(CYL,'#f4f1ea',[tx,3.82,bz],0,[.7,.1,.7]);D(CYL6,'#f4f1ea',[tx,3.82,bz],0,[.06,2.4,.06]);D(CONE,U[i],[tx,5.92,bz],0,[1.6,.6,1.6]);
+  for(let k=0;k<3;k++){if(rnd(i*5+k)<.4)continue;const a=k*2.1+i;person(tx+Math.cos(a)*1.15,bz+Math.sin(a)*1.15,i*3+k+40,Math.atan2(-Math.cos(a),-Math.sin(a)),3.82)}}
+ for(let k=0;k<14;k++){const q=k/13;D(ICO,['#ffd23f','#ff9fb8','#6cc3f5'][k%3],[x-7.2+14.4*q,3.35-Math.abs(Math.sin(q*Math.PI*4))*.18,bz+2.9],0,[.12,.12,.12],{emis:.9,cast:0})}
+ // papan nama di atas kantin, menghadap depan
+ for(const s2 of[-1,1])D(BOX,'#5a3c24',[x+s2*2.6,4.9,bz+2.98],0,[.18,1.9,.18]);D(BOX,'#2b1a0e',[x,5.75,bz+3.2],0,[6.5,2.05,.2]);
+ textPlane(signTex('kantinB',['KANTIN UNINET','BUKA SETIAP HARI']),x,5.75,bz+3.32,6.2,1.85,0,{emis:nt?.5:.05});
+ for(let i=i0;i<DL.length;i++)DL[i].M=M4.mul(KR,DL[i].M)}
+CONFIG.warung=CONFIG.warung||['?','?','?','?','?'];
+{const pk=PLACES.find(p=>p.id==='proyek');pk.name='Kantin UNINET';pk.c=[KX,2,KZ];pk.r=7;pk.cam={tgt:[KX,2,KZ],dist:26,yaw:Math.PI/2+.35,pitch:.32}}
+INFO.proyek=()=>`<h2>Kantin UNINET</h2><p>Kantin dua lantai: lima warung di bawah, rooftop berpayung di atas, dan colokan di setiap meja. Lima warungnya belum punya nama. Usulkan nama warung dan menu andalannya di kolom komentar video kantin.</p><div class="row"><a class="btn" href="${CONFIG.igUrl}" target="_blank" rel="noopener">Usulkan di Instagram</a></div>`;
+
+// ---- tabrakan ----
+const SOL=[];// {x0,x1,z0,z1,h}
+function addBox(x0,x1,z0,z1,h,y0,st){SOL.push({x0:Math.min(x0,x1),x1:Math.max(x0,x1),z0:Math.min(z0,z1),z1:Math.max(z0,z1),h,y0:y0||0,st:st||0})}
+function addLocal(x0,x1,z0,z1,h,y0,st){const a=KPT([x0,0,z0]),b=KPT([x1,0,z1]);addBox(a[0],b[0],a[2],b[2],h,y0,st)}
+function toLocal(x,z){const M=KR,dx=x-M[12],dz=z-M[14];return [M[0]*dx+M[2]*dz,M[8]*dx+M[10]*dz]}
+const FLOORS=[];
+function buildSolids(){SOL.length=0;FLOORS.length=0;
+ addBox(-21,-13,-3,7,6.5);addBox(13.5,20.5,-2,6,4.5);
+ const tot=PANELS*MON.pw+(PANELS-1)*MON.gap;addBox(-(tot+4)/2,(tot+4)/2,MON.z-3,MON.z+3,9);
+ addBox(-.72,.72,1.28,2.72,9);for(const s of[-1,1])addBox(12+s*2.6-.2,12+s*2.6+.2,15.5,15.9,5.2);
+ const gx=FEN.R*Math.sin(FEN.gate),gz=FEN.R*Math.cos(FEN.gate);for(const s of[-1,1])addBox(s*gx-.6,s*gx+.6,gz-.6,gz+.6,5);
+ for(const [x,z] of [[-20,-6],[20,-6],[-6,-21],[6,-21],[-22,12],[22,12]])addBox(x-.35,x+.35,z-.35,z+.35,6);
+ for(const [x,z] of [[-3,-9],[3,-9],[-7,4],[7,4],[-3,12],[3,12]])addBox(x-.15,x+.15,z-.15,z+.15,3.2);
+ // kantin (koordinat lokal, diputar)
+ addLocal(KX-7.6,KX+7.6,KBZ-3.2,KBZ-2.6,3.45);for(const s of[-1,1])addLocal(KX+s*7.4-.25,KX+s*7.4+.25,KBZ-3,KBZ+2.8,3.45);
+ for(const px of [-7.2,-3.6,0,3.6,7.2])addLocal(KX+px-.3,KX+px+.3,KBZ+2.5,KBZ+3.1,3.6);
+ for(let i=0;i<5;i++){const sx=KX-5.6+i*2.8;addLocal(sx-1.1,sx+1.1,KBZ-2.4,KBZ-.6,2.8)}
+ for(let i=0;i<4;i++){const tx=KX-5.4+i*3.6;addLocal(tx-1.15,tx+1.15,KZ+1.6,KZ+5.2,1.05)}
+ for(let k=0;k<8;k++)addLocal(KX+7.5,KX+8.9,KBZ+2.1-k*.6,KBZ+2.7-k*.6,.45*(k+1),0,1);addLocal(KX+7.5,KX+8.9,KBZ-3.0,KBZ-2.1,3.83,0,1);addLocal(KX+8.9,KX+9.05,KBZ-3.1,KBZ-2.1,4.6,3.6);addLocal(KX+7.4,KX+9,KBZ-3.15,KBZ-3.0,4.6,3.6);addLocal(KX-7.7,KX+7.7,KBZ+3.0,KBZ+3.25,4.6,3.6);addLocal(KX-7.7,KX+7.7,KBZ-3.25,KBZ-3.0,4.6,3.6);addLocal(KX-7.65,KX-7.4,KBZ-3.2,KBZ+3.2,4.6,3.6);addLocal(KX+7.4,KX+7.65,KBZ-1.6,KBZ+3.2,4.6,3.6);for(let i=0;i<4;i++){const tx=KX-5.4+i*3.6;addLocal(tx-.7,tx+.7,KBZ-.7,KBZ+.7,4.9,3.6)}
+ FLOORS.push({lx0:KX-7.5,lx1:KX+7.5,lz0:KBZ-3,lz1:KBZ+3,y:.4},{lx0:KX-7.7,lx1:KX+7.7,lz0:KBZ-3.2,lz1:KBZ+3.2,y:3.83});
+ for(const b of SOL)if(b.st)FLOORS.push({x0:b.x0,x1:b.x1,z0:b.z0,z1:b.z1,y:b.h})}
+const STEP=.55;function groundAt(x,z,py){if(py===undefined)py=PL1.y;const L=toLocal(x,z);let y=0;for(const f of FLOORS){const inn=f.lx0!==undefined?(L[0]>f.lx0&&L[0]<f.lx1&&L[1]>f.lz0&&L[1]<f.lz1):(x>f.x0&&x<f.x1&&z>f.z0&&z<f.z1);if(inn&&f.y<=py+STEP)y=Math.max(y,f.y)}return y}
+const PR=.38;
+function collide(p){for(const b of SOL){if(p.y>b.h-.05||p.y+1.5<b.y0)continue;if(b.st&&b.h<=p.y+STEP)continue;const cx=cl(p.x,b.x0,b.x1),cz=cl(p.z,b.z0,b.z1),dx=p.x-cx,dz=p.z-cz,d2=dx*dx+dz*dz;
+  if(d2<PR*PR){if(d2>1e-6){const d=Math.sqrt(d2),k=(PR-d)/d;p.x+=dx*k;p.z+=dz*k}else{const o=[p.x-b.x0,b.x1-p.x,p.z-b.z0,b.z1-p.z],m=Math.min(...o);if(m===o[0])p.x=b.x0-PR;else if(m===o[1])p.x=b.x1+PR;else if(m===o[2])p.z=b.z0-PR;else p.z=b.z1+PR}}}
+ // pagar melingkar: lewat hanya di gerbang
+ const r=Math.hypot(p.x,p.z),th=Math.atan2(p.x,p.z),inGate=Math.abs(th)<FEN.gate-.04;
+ if(!inGate){if(p.side<0&&r>FEN.R-.6){const k=(FEN.R-.6)/r;p.x*=k;p.z*=k}if(p.side>0&&r<FEN.R+.6){const k=(FEN.R+.6)/r;p.x*=k;p.z*=k}}
+ const r2=Math.hypot(p.x,p.z);if(r2>33.1){const k=33.1/r2;p.x*=k;p.z*=k}
+ p.side=Math.hypot(p.x,p.z)<FEN.R?-1:1}
+
+// ---- pemain ----
+const PL1={x:0,z:26,y:0,vy:0,yaw:Math.PI,side:-1,moving:0,run:0,phase:0};
+let WALK=true;const KEYS={};const JOY={x:0,y:0};
+const WCAM={yaw:0,pitch:.32,dist:7.5};
+function nameTex(){return ctex('ptag',256,80,(x,w,h)=>{x.fillStyle='#2b1a0e';x.beginPath();x.roundRect(4,4,w-8,h-8,30);x.fill();x.fillStyle='#ffd23f';x.font=FD(46);x.textAlign='center';x.textBaseline='middle';x.fillText('KAMU',w/2,h/2+3)})}
+function player(){const h=PL1.y+(PL1.moving&&PL1.y<=groundAt(PL1.x,PL1.z)+.01?Math.abs(Math.sin(PL1.phase))*.1:0);
+ person(PL1.x,PL1.z,0,PL1.yaw,h,{col:'#3a6ea5',hair:'#2b1a0e',swing:PL1.moving?Math.sin(PL1.phase)*.9:0});
+ const fx=Math.sin(PL1.yaw),fz=Math.cos(PL1.yaw);DM(ICO2,'#ffd23f',M4.trs([PL1.x,h+1.27,PL1.z],[0,PL1.yaw,0],[1,1,1]),[0,0,0],0,[.35,.15,.35]);DM(BOX,'#ffd23f',M4.trs([PL1.x,h+1.27,PL1.z],[0,PL1.yaw,0],[1,1,1]),[0,0,.34],0,[.42,.05,.3]);
+ textPlane(nameTex(),PL1.x,h+2,PL1.z,.9,.28,WCAM.yaw,{emis:1,recv:0});
+ D(DISC,'#000000',[PL1.x,groundAt(PL1.x,PL1.z)+.02,PL1.z],0,[.4,.01,.4],{alpha:.18,cast:0,recv:0})}
+function stepPlayer(dt){let ix=JOY.x,iy=JOY.y;if(KEYS.KeyW||KEYS.ArrowUp)iy-=1;if(KEYS.KeyS||KEYS.ArrowDown)iy+=1;if(KEYS.KeyA||KEYS.ArrowLeft)ix-=1;if(KEYS.KeyD||KEYS.ArrowRight)ix+=1;
+ const m=Math.hypot(ix,iy);if(m>1){ix/=m;iy/=m}
+ const fx=-Math.sin(WCAM.yaw),fz=-Math.cos(WCAM.yaw),rx=-fz,rz=fx;
+ const mx=fx*(-iy)+rx*ix,mz=fz*(-iy)+rz*ix,ml=Math.hypot(mx,mz);
+ const run=PL1.run||KEYS.ShiftLeft||KEYS.ShiftRight,sp=(run?8:4.4)*Math.min(1,ml);
+ PL1.moving=ml>.08;if(PL1.moving){const dist=sp*dt,n=Math.max(1,Math.ceil(dist/.12));for(let q=0;q<n;q++){PL1.x+=mx/ml*dist/n;PL1.z+=mz/ml*dist/n;collide(PL1);const gg=groundAt(PL1.x,PL1.z);if(gg>PL1.y&&gg<=PL1.y+STEP){PL1.y=gg;PL1.vy=0}}let d=Math.atan2(mx,mz)-PL1.yaw;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;PL1.yaw+=d*Math.min(1,dt*12);PL1.phase+=dt*(run?14:10);
+  // kamera pelan-pelan ikut ke belakang pemain saat berjalan
+  if(!camDrag){let e=(PL1.yaw+Math.PI)-WCAM.yaw;while(e>Math.PI)e-=2*Math.PI;while(e<-Math.PI)e+=2*Math.PI;WCAM.yaw+=e*Math.min(1,dt*1.2)*Math.min(1,Math.abs(-iy)+.2)}}
+ collide(PL1);const g=groundAt(PL1.x,PL1.z);PL1.vy-=22*dt;PL1.y+=PL1.vy*dt;if(PL1.y<=g){PL1.y=g;PL1.vy=0}
+ if(PL1.moving||Math.abs(PL1.vy)>0)lastAct=performance.now()}
+function jump(){if(PL1.y<=groundAt(PL1.x,PL1.z)+.02)PL1.vy=7.5}
+function followCam(){const t=[PL1.x,PL1.y+1.5,PL1.z];let d=WCAM.dist;
+ // jangan tembus gedung
+ const cp=Math.cos(WCAM.pitch),dir=[Math.sin(WCAM.yaw)*cp,Math.sin(WCAM.pitch),Math.cos(WCAM.yaw)*cp];
+ for(let s=.6;s<=WCAM.dist;s+=.3){const q=[t[0]+dir[0]*s,t[1]+dir[1]*s,t[2]+dir[2]*s];if(SOL.some(b=>q[1]<b.h+.3&&q[0]>b.x0-.3&&q[0]<b.x1+.3&&q[2]>b.z0-.3&&q[2]<b.z1+.3)){d=Math.max(1.6,s-.4);break}}
+ cam.tgt=t;cam.yaw=WCAM.yaw;cam.pitch=WCAM.pitch;cam.dist=lerp(cam.dist,d,d<cam.dist?.6:.08);cam.fov=58}
+// tempat terdekat
+let NEAR=null;
+function nearPlace(){let best=null;for(const pl of PLACES){const d=Math.hypot(pl.c[0]-PL1.x,pl.c[2]-PL1.z)-pl.r;if(d<3.5&&(!best||d<best.d))best={pl,d}}
+ const b=document.getElementById('wNear');const id=best?best.pl.id:null;if(id!==NEAR){NEAR=id;if(id){b.textContent='Lihat: '+best.pl.name;b.hidden=false}else b.hidden=true}}
+
+// ---- UI mode jalan ----
+document.head.insertAdjacentHTML('beforeend',`<style>
+#walkpad{position:fixed;inset:0;z-index:2;touch-action:none}
+body.walk #ctrl,body.walk #places{display:none}
+body.walk #search{display:none}body.walk.find #search{display:flex}
+#joy{position:fixed;z-index:3;width:120px;height:120px;border-radius:50%;background:rgba(255,248,230,.35);border:3px solid rgba(43,26,14,.6);pointer-events:none;display:none;transform:translate(-50%,-50%)}
+#joy i{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:var(--cream);border:3px solid var(--ink);box-shadow:0 3px 0 var(--ink)}
+#wbtn{position:fixed;z-index:5;right:max(14px,env(safe-area-inset-right,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 22px);display:grid;gap:10px;justify-items:end}
+#wbtn .big{width:78px;height:78px;border-radius:50%;font-family:var(--display);font-size:14px;letter-spacing:.3px;padding:0;border:3px solid var(--ink);background:var(--yellow);color:var(--ink);box-shadow:0 4px 0 var(--ink);touch-action:none;-webkit-user-select:none;user-select:none}
+#wbtn .big.on{background:var(--red);color:#fff}
+#wNear{position:fixed;z-index:5;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 120px);font-family:var(--display);font-size:18px;background:var(--cream);border:3px solid var(--ink);border-radius:999px;padding:10px 18px;box-shadow:0 4px 0 var(--ink);cursor:pointer}
+#mode{position:fixed;z-index:5;right:max(12px,env(safe-area-inset-right,0px));top:calc(env(safe-area-inset-top,0px) + 12px);display:flex;gap:6px}
+#mode button{font-family:var(--display);font-size:15px;border:3px solid var(--ink);border-radius:999px;padding:6px 12px;background:var(--cream);color:var(--ink);box-shadow:0 3px 0 var(--ink);cursor:pointer}
+#mode button.on{background:var(--ink);color:#fff}
+body.walk #top .tag{display:none}
+@media (max-width:620px){#mode{right:auto;left:max(14px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 62px)}}
+body:not(.walk) #wbtn,body:not(.walk) #wNear,body:not(.walk) #walkpad{display:none}
+@media (max-width:520px){#top .tag{display:none}#top .brand{font-size:17px}}
+</style>`);
+document.body.insertAdjacentHTML('beforeend',`<div id="walkpad" aria-label="Area kendali: kiri untuk berjalan, kanan untuk memutar kamera"></div><div id="joy"><i></i></div>
+<div id="mode"><button id="mWalk" class="on">Jalan</button><button id="mTop">Atas</button><button id="mFind">Cari nama</button></div>
+<button id="wNear" hidden></button>
+<div id="wbtn"><button class="big" id="bJump" aria-label="Lompat">LOMPAT</button><button class="big" id="bRun" aria-label="Lari">LARI</button></div>`);
+document.getElementById('hint').innerHTML='Geser layar kiri untuk berjalan · geser kanan untuk memutar kamera<br>Keyboard: WASD, Shift lari, Spasi lompat';
+let camDrag=false;
+function setWalk(on){WALK=on;document.body.classList.toggle('walk',on);document.getElementById('mWalk').classList.toggle('on',on);document.getElementById('mTop').classList.toggle('on',!on);
+ if(on){fly=null;HL=null;cam.fov=58;WCAM.yaw=PL1.yaw+Math.PI}else{cam.fov=50;flyTo({tgt:[0,3,0],dist:46,yaw:.25,pitch:.42},1400)}}
+document.getElementById('mWalk').onclick=()=>setWalk(true);document.getElementById('mTop').onclick=()=>setWalk(false);
+document.getElementById('mFind').onclick=()=>{if(document.body.classList.contains('find'))document.body.classList.remove('find');else openFind()};
+document.getElementById('wNear').onclick=()=>{if(NEAR)openPlace(NEAR)};
+(function(){const bj=document.getElementById('bJump'),br=document.getElementById('bRun');
+ const hold=(el,f)=>{el.addEventListener('touchstart',e=>{e.preventDefault();f()},{passive:false});el.addEventListener('mousedown',e=>{e.preventDefault();f()})};
+ hold(bj,jump);hold(br,()=>{PL1.run=!PL1.run;br.classList.toggle('on',!!PL1.run)})})();
+addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;KEYS[e.code]=true;if(e.code==='Space'&&WALK){e.preventDefault();jump()}if(WALK)hideHint()});
+addEventListener('keyup',e=>{KEYS[e.code]=false});addEventListener('blur',()=>{for(const k in KEYS)KEYS[k]=false});
+(function(){const pad=document.getElementById('walkpad'),joy=document.getElementById('joy'),knob=joy.firstElementChild;const T=new Map();let pinch=null;
+ const half=()=>innerWidth*.45;
+ function setJoy(c,x,y){const dx=x-c.x0,dy=y-c.y0,m=Math.hypot(dx,dy),R=48,k=m>R?R/m:1;JOY.x=dx*k/R;JOY.y=dy*k/R;knob.style.transform=`translate(${dx*k}px,${dy*k}px)`}
+ pad.addEventListener('touchstart',e=>{e.preventDefault();hideHint();lastAct=performance.now();for(const t of e.changedTouches){
+   if(t.clientX<half()&&![...T.values()].some(v=>v.kind==='joy')){T.set(t.identifier,{kind:'joy',x0:t.clientX,y0:t.clientY});joy.style.display='block';joy.style.left=t.clientX+'px';joy.style.top=t.clientY+'px';setJoy(T.get(t.identifier),t.clientX,t.clientY)}
+   else T.set(t.identifier,{kind:'cam',x:t.clientX,y:t.clientY,sx:t.clientX,sy:t.clientY,t:performance.now(),moved:0})}
+  const cams=[...T.values()].filter(v=>v.kind==='cam');if(cams.length===2)pinch={d:Math.hypot(cams[0].x-cams[1].x,cams[0].y-cams[1].y),dist:WCAM.dist}},{passive:false});
+ pad.addEventListener('touchmove',e=>{e.preventDefault();lastAct=performance.now();for(const t of e.changedTouches){const c=T.get(t.identifier);if(!c)continue;
+   if(c.kind==='joy')setJoy(c,t.clientX,t.clientY);else{const dx=t.clientX-c.x,dy=t.clientY-c.y;c.x=t.clientX;c.y=t.clientY;c.moved+=Math.abs(dx)+Math.abs(dy);
+    const cams=[...T.values()].filter(v=>v.kind==='cam');if(cams.length===2&&pinch){const d=Math.hypot(cams[0].x-cams[1].x,cams[0].y-cams[1].y);WCAM.dist=cl(pinch.dist*pinch.d/d,3,16)}
+    else{camDrag=true;WCAM.yaw-=dx*.008;WCAM.pitch=cl(WCAM.pitch+dy*.005,.02,1.2)}}}},{passive:false});
+ function end(e){e.preventDefault();for(const t of e.changedTouches){const c=T.get(t.identifier);if(!c)continue;T.delete(t.identifier);
+   if(c.kind==='joy'){JOY.x=0;JOY.y=0;joy.style.display='none';knob.style.transform=''}else if(c.moved<10&&performance.now()-c.t<400)tap(t.clientX,t.clientY)}
+  if(![...T.values()].some(v=>v.kind==='cam')){camDrag=false;pinch=null}}
+ pad.addEventListener('touchend',end,{passive:false});pad.addEventListener('touchcancel',end,{passive:false});
+ // mouse: geser untuk memutar kamera
+ let md=null;pad.addEventListener('mousedown',e=>{md={x:e.clientX,y:e.clientY,m:0};camDrag=true;hideHint()});
+ addEventListener('mousemove',e=>{if(!md)return;const dx=e.clientX-md.x,dy=e.clientY-md.y;md.x=e.clientX;md.y=e.clientY;md.m+=Math.abs(dx)+Math.abs(dy);WCAM.yaw-=dx*.006;WCAM.pitch=cl(WCAM.pitch+dy*.004,.02,1.2)});
+ addEventListener('mouseup',e=>{if(md&&md.m<6)tap(e.clientX,e.clientY);md=null;camDrag=false});
+ pad.addEventListener('wheel',e=>{e.preventDefault();WCAM.dist=cl(WCAM.dist*Math.exp(e.deltaY*.001),3,16)},{passive:false})})();
+// di mode jalan, ketuk tempat = buka info tanpa terbang
+function openFind(){document.body.classList.add('find');const q=document.getElementById('q');q.focus();q.select&&q.select()}
+const _openPlace=openPlace;openPlace=function(id){if(WALK){showCard(INFO[id]());const f=card.querySelector('[data-act="focus"]');if(f)f.onclick=()=>{closeCard();openFind()};return}_openPlace(id)};
+const _closeCard=closeCard;closeCard=function(){const h=HL;_closeCard();if(!WALK)return;fly=null;
+ // setelah cari nama: pindahkan pemain ke depan namanya
+ if(h){let px,pz,face;if(MONO[h.i]){const q=nameWorld(h.i);px=cl(q[0],-20,20);pz=MON.z+4.2;face=Math.PI}else if(FENO[h.i]){const R=fenceWorld(h.i),k=(FEN.R-2.2)/Math.hypot(R.p[0],R.p[2]);px=R.p[0]*k;pz=R.p[2]*k;face=Math.atan2(R.p[0]-px,R.p[2]-pz)}
+  MARK=h;if(px!==undefined){PL1.x=px;PL1.z=pz;PL1.y=0;PL1.vy=0;PL1.side=-1;PL1.yaw=face;WCAM.yaw=face+Math.PI;WCAM.pitch=.22;collide(PL1)}document.body.classList.remove('find')}};
+
+let lastT=null,MARK=null;
+function loop(now){TIME=(now-t0)/1000;const dt=lastT?Math.min(.05,(now-lastT)/1000):0;lastT=now;
+ if(WALK&&!HL){stepPlayer(dt);if(!fly)followCam();nearPlace()}
+ if(fly){const k=eio((now-fly.t0)/fly.dur);const f=fly.from,t=fly.to;cam.tgt=[0,1,2].map(i=>lerp(f.tgt[i],t.tgt[i],k));cam.dist=lerp(f.dist,t.dist,k);cam.yaw=lerp(f.yaw,t.yaw,k);cam.pitch=lerp(f.pitch,t.pitch,k);if(k>=1)fly=null}
+ else if(!WALK&&!dragging&&!HL&&idle()>6)cam.yaw+=.0012;
+ if(!WALK&&!fly){const pmin=cam.dist>38?.04+(cam.dist-38)*.008:.04;if(cam.pitch<pmin)cam.pitch=lerp(cam.pitch,pmin,.15)}
+ EYE=camEye();DL=[];const hs=HL;if(!HL&&MARK)HL=MARK;world();HL=hs;if(WALK||HL)player();render();requestAnimationFrame(loop)}
+
+// ---------- start ----------
+(document.fonts&&document.fonts.load?Promise.all([document.fonts.load(FD(40)),document.fonts.load('600 16px Nunito'),document.fonts.load('900 16px Nunito')]).catch(()=>{}):Promise.resolve()).then(()=>{
+ layoutMonument();layoutFence();buildSolids();loadOnline();document.getElementById('tPagar').textContent='Pagar '+FPANELS+'/'+FEN.NP+' panel';requestAnimationFrame(loop);const L=document.getElementById('load');L.style.opacity=0;setTimeout(()=>L.remove(),600);
+ setWalk(true)});
+</script>
+</body></html>
