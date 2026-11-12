@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>Admin Mitra · UNINET</title><meta name="robots" content="noindex">
+<title>Admin Kampus · UNINET</title><meta name="robots" content="noindex">
 <style>
 :root{--ink:#2b1a0e;--cream:#fff8e6;--yellow:#ffd23f;--red:#e3342f;--bg:#f3e8d2}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:600 16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
@@ -20,10 +20,10 @@ input[type=text],input[type=url]{width:100%;font:700 16px system-ui,sans-serif;b
 #msg{margin:0 0 14px;padding:10px 14px;border-radius:12px;background:#fff;border:2px solid var(--ink);display:none}
 .muted{color:#7a6450;font-size:14px}
 </style></head><body>
-<header><h1>UNINET <b>Admin Mitra Brand</b></h1><span id="who" class="muted" style="color:#ddd"></span><button class="btn" id="login">Masuk dengan Google</button></header>
+<header><h1>UNINET <b>Admin Kampus</b></h1><span id="who" class="muted" style="color:#ddd"></span><button class="btn" id="login">Masuk dengan Google</button></header>
 <main>
 <div id="msg"></div>
-<p class="muted">Isi slot di bawah untuk memasang brand mitra di Kampus Mini. Perubahan langsung tampil untuk semua mahasiswa, tanpa upload ulang. Kosongkan nama atau matikan "Tampilkan" untuk mengosongkan slot.</p>
+<p class="muted"><b>Warung kantin</b> diisi dengan hasil voting mahasiswa (nama warung, menu, dan pengusulnya). <b>Baliho</b> untuk brand mitra. Perubahan langsung tampil untuk semua mahasiswa, tanpa upload ulang. Kosongkan nama atau matikan "Tampilkan" untuk mengosongkan slot.</p>
 <div id="slots"></div>
 </main>
 <script type="module">
@@ -31,8 +31,8 @@ const V='10.14.1',U=n=>`https://www.gstatic.com/firebasejs/${V}/firebase-${n}.js
 const [{initializeApp},A,D]=await Promise.all([import(U('app')),import(U('auth')),import(U('database'))]);
 const app=initializeApp({apiKey:"AIzaSyBq2b8RFiq0j47Hek0OghBABHv982ikuCw",authDomain:"uninet-kampus.firebaseapp.com",databaseURL:"https://uninet-kampus-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"uninet-kampus",storageBucket:"uninet-kampus.firebasestorage.app",messagingSenderId:"918457767424",appId:"1:918457767424:web:e42e5e58eed798ce296ae5"});
 const auth=A.getAuth(app),db=D.getDatabase(app);
-const SL=[['warung1','Warung 1 (kantin, paling kiri)'],['warung2','Warung 2 (kantin)'],['warung3','Warung 3 (kantin, tengah)'],['warung4','Warung 4 (kantin)'],['warung5','Warung 5 (kantin, paling kanan)'],['baliho1','Baliho 1 (luar pagar, kiri gerbang)'],['baliho2','Baliho 2 (luar pagar, kanan gerbang)']];
-const DEFC=['#ffd23f','#6cc3f5','#8bd17c','#ff9fb8','#f7a440','#3a6ea5','#e3342f'];
+const SL=[['baliho1','Baliho 1 · brand mitra (luar pagar, kiri gerbang)'],['baliho2','Baliho 2 · brand mitra (luar pagar, kanan gerbang)'],['warung1','Warung 1 · hasil voting (paling kiri)'],['warung2','Warung 2 · hasil voting'],['warung3','Warung 3 · hasil voting (tengah)'],['warung4','Warung 4 · hasil voting'],['warung5','Warung 5 · hasil voting (paling kanan)']];
+const DEFC={warung1:'#ffd23f',warung2:'#6cc3f5',warung3:'#8bd17c',warung4:'#ff9fb8',warung5:'#f7a440',baliho1:'#3a6ea5',baliho2:'#e3342f'};
 const msg=(t,bad)=>{const m=document.getElementById('msg');m.textContent=t;m.style.display=t?'block':'none';m.style.borderColor=bad?'#e3342f':'#2b1a0e'};
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let isAdmin=false;
@@ -41,12 +41,12 @@ function render(data,stats){const box=document.getElementById('slots');box.inner
  SL.forEach(([id,label],i)=>{const b=data[id]||{},st=stats[id]||{};let tv=0,tc=0;for(const k in st){tv+=st[k].v||0;tc+=st[k].c||0}
   const rows=[0,1,2,3,4,5,6].map(o=>{const k=day(o),x=st[k]||{};return `<tr><td>${k.slice(6)}/${k.slice(4,6)}</td><td>${x.v||0}</td><td>${x.c||0}</td></tr>`}).join('');
   const c=document.createElement('div');c.className='card';c.innerHTML=`<h2>${esc(label)} <span class="pill ${b.aktif&&b.nama?'on':''}">${b.aktif&&b.nama?'tayang':'kosong'}</span></h2>
-  <div class="grid"><div><label>Nama brand / warung</label><input type="text" maxlength="28" data-k="nama" value="${esc(b.nama)}"></div>
-  <div><label>Tagline / menu andalan</label><input type="text" maxlength="60" data-k="tagline" value="${esc(b.tagline)}"></div>
-  <div><label>Link (toko, IG, WA, dsb)</label><input type="url" maxlength="200" data-k="link" placeholder="https://" value="${esc(b.link)}"></div>
+  <div class="grid"><div><label>${id.startsWith('warung')?'Nama warung (pemenang voting)':'Nama brand'}</label><input type="text" maxlength="28" data-k="nama" value="${esc(b.nama)}"></div>
+  ${id.startsWith('warung')?`<div><label>Pengusul (username IG pemenang)</label><input type="text" maxlength="30" data-k="pengusul" placeholder="@username" value="${esc(b.pengusul)}"></div>`:''}<div><label>${id.startsWith('warung')?'Menu andalan':'Tagline'}</label><input type="text" maxlength="60" data-k="tagline" value="${esc(b.tagline)}"></div>
+  <div><label>Link${id.startsWith('warung')?' (opsional)':' (toko, IG, WA, dsb)'}</label><input type="url" maxlength="200" data-k="link" placeholder="https://" value="${esc(b.link)}"></div>
   <div><label>Teks tombol link</label><input type="text" maxlength="20" data-k="tombol" placeholder="Kunjungi" value="${esc(b.tombol)}"></div>
   <div><label>Kode promo (opsional)</label><input type="text" maxlength="20" data-k="promo" value="${esc(b.promo)}"></div>
-  <div><label>Warna brand</label><input type="color" data-k="warna" value="${/^#[0-9a-f]{6}$/i.test(b.warna||'')?b.warna:DEFC[i]}" style="width:100%;height:42px;border:2px solid #2b1a0e;border-radius:10px;padding:2px"></div></div>
+  <div><label>Warna brand</label><input type="color" data-k="warna" value="${/^#[0-9a-f]{6}$/i.test(b.warna||'')?b.warna:DEFC[id]}" style="width:100%;height:42px;border:2px solid #2b1a0e;border-radius:10px;padding:2px"></div></div>
   <div class="row"><label style="margin:0;display:flex;gap:6px;align-items:center;font-size:15px;color:#2b1a0e"><input type="checkbox" data-k="aktif" ${b.aktif?'checked':''} style="width:20px;height:20px"> Tampilkan</label>
   <button class="btn" data-save ${isAdmin?'':'disabled'}>Simpan</button><button class="btn" data-clear style="background:#fff" ${isAdmin?'':'disabled'}>Kosongkan</button></div>
   <div class="stats">${isAdmin?`<b>Statistik</b> · total ${tv} lihat, ${tc} klik link<table><tr><th>Tanggal</th><th>Lihat</th><th>Klik</th></tr>${rows}</table>`:'<span class="muted">Statistik tampil setelah masuk sebagai admin.</span>'}</div>`;

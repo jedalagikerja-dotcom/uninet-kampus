@@ -32,9 +32,9 @@ const _proyek=proyek;proyek=function(){_proyek();balihos()};
 function bday(){const d=new Date(Date.now()+7*3600e3);return d.toISOString().slice(0,10).replace(/-/g,'')}
 async function bstat(slot,k){if(!NET.on||!NET.F||!NET.F.runTransaction)return;try{await NET.F.runTransaction(NET.F.ref(NET.db,`bstats/${slot}/${bday()}/${k}`),v=>(v||0)+1)}catch(e){console.warn('bstat',e&&e.code)}}
 function openBrand(slot){const b=brandOf(slot),isW=slot.startsWith('warung');
- if(!b){showCard(`<h2>${isW?'Warung '+slot.slice(-1)+' masih kosong':'Slot baliho tersedia'}</h2><p>${isW?'Warung ini bisa jadi milik brand kamu: nama, warna, menu, dan kode promo tampil di Kantin UNINET dan bisa dikunjungi semua mahasiswa.':'Baliho ini terlihat dari seluruh kampus. Pasang brand kamu di depan ribuan mahasiswa UNINET.'}</p><div class="row"><a class="btn" href="https://www.instagram.com/uninet.id/" target="_blank" rel="noopener">DM @uninet.id</a></div>`);return}
+ if(!b){showCard(isW?`<h2>Warung ${slot.slice(-1)}: sedang divoting</h2><p>Nama dan menu warung ini ditentukan mahasiswa. Tulis usulan nama warung dan menu andalannya di kolom komentar video Kantin UNINET. Usulan dengan like terbanyak jadi warung resmi di sini.</p><div class="row"><a class="btn" href="https://www.instagram.com/uninet.id/" target="_blank" rel="noopener">Usulkan di Instagram</a></div>`:`<h2>Slot baliho tersedia</h2><p>Baliho ini terlihat dari seluruh kampus. Pasang brand kamu di depan mahasiswa UNINET.</p><div class="row"><a class="btn" href="https://www.instagram.com/uninet.id/" target="_blank" rel="noopener">DM @uninet.id</a></div>`);return}
  const link=safeLink(b.link);
- showCard(`<h2>${esc(String(b.nama))}</h2><p style="margin-top:-2px;color:#8a7560;font-size:13px">${isW?'Warung resmi Kantin UNINET':'Mitra resmi Kampus UNINET'}</p>${b.tagline?`<p>${esc(String(b.tagline))}</p>`:''}
+ showCard(`<h2>${esc(String(b.nama))}</h2><p style="margin-top:-2px;color:#8a7560;font-size:13px">${isW?'Warung resmi Kantin UNINET'+(b.pengusul?' · usulan @'+esc(String(b.pengusul).replace(/^@+/,'')):''):'Mitra resmi Kampus UNINET'}</p>${b.tagline?`<p>${esc(String(b.tagline))}</p>`:''}
   ${b.promo?`<div style="display:flex;align-items:center;gap:8px;margin:0 0 10px;padding:8px 10px;border:3px dashed var(--ink);border-radius:12px;background:#fff"><span style="flex:1;font:900 18px var(--body);letter-spacing:1px">${esc(String(b.promo))}</span><button class="btn" id="bCopy" type="button">Salin kode</button></div>`:''}
   <div class="row">${link?`<a class="btn dark" id="bGo" href="${esc(link)}" target="_blank" rel="noopener">${esc(String(b.tombol||'Kunjungi'))}</a>`:''}</div>`);
  if(!BR.seen.has(slot)){BR.seen.add(slot);bstat(slot,'v')}
@@ -45,7 +45,7 @@ const _nearPlace=nearPlace;nearPlace=function(){let best=null;
  for(let i=0;i<5;i++){const p=KPT([KX-5.6+i*2.8,0,KBZ+.4]);const d=Math.hypot(p[0]-PL1.x,p[2]-PL1.z);if(d<1.9&&Math.abs(PL1.y-.4)<1&&(!best||d<best.d))best={slot:'warung'+(i+1),d}}
  for(const B of BALIHO){const p=balihoPos(B);const d=Math.hypot(p.x-PL1.x,p.z-PL1.z);if(d<6&&(!best||d<best.d))best={slot:B.slot,d}}
  if(!best){_nearPlace();return}const id='brand:'+best.slot,b=document.getElementById('wNear');
- if(id!==NEAR){NEAR=id;const bb=brandOf(best.slot);b.textContent=bb?'Lihat: '+String(bb.nama).slice(0,24):(best.slot.startsWith('warung')?'Lihat: Warung kosong':'Lihat: Baliho');b.hidden=false}};
+ if(id!==NEAR){NEAR=id;const bb=brandOf(best.slot);b.textContent=bb?'Lihat: '+String(bb.nama).slice(0,24):(best.slot.startsWith('warung')?'Lihat: Warung (voting)':'Lihat: Baliho');b.hidden=false}};
 document.getElementById('wNear').onclick=()=>{if(!NEAR)return;if(NEAR.startsWith('brand:'))openBrand(NEAR.slice(6));else openPlace(NEAR)};
 // ketuk baliho dari jauh
 const _tap=tap;tap=function(x,y){if(VPm){const r=cv.getBoundingClientRect(),nx=((x-r.left)/r.width)*2-1,ny=1-((y-r.top)/r.height)*2,eye=VPm.eye,fwd=norm(sub(cam.tgt,eye)),right=norm(cross(fwd,[0,1,0])),upv=cross(right,fwd),th=Math.tan(cam.fov*Math.PI/360),asp=r.width/r.height;
