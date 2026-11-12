@@ -1,29 +1,34 @@
 <!doctype html>
 <html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>Admin Kampus · UNINET</title><meta name="robots" content="noindex">
+<title>Kelola Warung &amp; Baliho · UNINET</title><meta name="robots" content="noindex">
 <style>
 :root{--ink:#2b1a0e;--cream:#fff8e6;--yellow:#ffd23f;--red:#e3342f;--bg:#f3e8d2}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:600 16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
 header{position:sticky;top:0;z-index:2;background:var(--ink);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-header h1{font-size:19px;margin:0;flex:1}header b{color:var(--yellow)}
-main{max-width:860px;margin:0 auto;padding:16px}
+header h1{font-size:19px;margin:0;flex:1}header b{color:var(--yellow)}#who{color:#ddd;font-size:14px}
+main{max-width:880px;margin:0 auto;padding:16px}
 .btn{font:800 16px system-ui,sans-serif;border:3px solid var(--ink);border-radius:12px;background:var(--yellow);color:var(--ink);padding:8px 14px;cursor:pointer}
-.btn.dark{background:var(--ink);color:#fff;border-color:#fff}.btn:disabled{opacity:.5}
-.card{background:var(--cream);border:3px solid var(--ink);border-radius:16px;padding:14px 16px;margin:0 0 14px;box-shadow:0 4px 0 var(--ink)}
-.card h2{margin:0 0 8px;font-size:19px;display:flex;align-items:center;gap:8px}.pill{font-size:12px;border:2px solid var(--ink);border-radius:999px;padding:1px 8px;background:#fff}.pill.on{background:#2fbf71;color:#fff}
+.btn.light{background:#fff}.btn.dark{background:var(--ink);color:#fff;border-color:#fff}.btn:disabled{opacity:.5}
+.card{background:var(--cream);border:3px solid var(--ink);border-radius:16px;padding:14px 16px;margin:0 0 16px;box-shadow:0 4px 0 var(--ink)}
+.card h2{margin:0 0 8px;font-size:19px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.pill{font-size:12px;border:2px solid var(--ink);border-radius:999px;padding:1px 8px;background:#fff}.pill.on{background:#2fbf71;color:#fff}
+h3{font-size:15px;margin:14px 0 4px;border-top:2px dashed #dccab0;padding-top:10px}
 label{display:block;font-size:13px;color:#6b5440;margin:8px 0 3px}
-input[type=text],input[type=url]{width:100%;font:700 16px system-ui,sans-serif;border:2px solid var(--ink);border-radius:10px;padding:8px 10px;background:#fff}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}@media(max-width:560px){.grid{grid-template-columns:1fr}}
+input[type=text],input[type=url],input[type=email]{width:100%;font:700 16px system-ui,sans-serif;border:2px solid var(--ink);border-radius:10px;padding:8px 10px;background:#fff}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}@media(max-width:600px){.grid{grid-template-columns:1fr}}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
-.stats{font-size:14px;color:#4a3524;margin-top:10px;border-top:2px dashed #dccab0;padding-top:8px}
-.stats table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}.stats td,.stats th{padding:2px 6px;text-align:right}.stats th:first-child,.stats td:first-child{text-align:left}
-#msg{margin:0 0 14px;padding:10px 14px;border-radius:12px;background:#fff;border:2px solid var(--ink);display:none}
-.muted{color:#7a6450;font-size:14px}
+.prods{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.prod{background:#fff;border:2px solid var(--ink);border-radius:12px;padding:8px}
+.ph{aspect-ratio:4/3;border-radius:8px;background:#f1e4c8 center/cover no-repeat;display:grid;place-items:center;color:#8a7560;font-size:13px;cursor:pointer;border:2px dashed #cdb894;margin-bottom:6px}
+.logo{height:110px;border-radius:10px;background:#f1e4c8 center/contain no-repeat;display:grid;place-items:center;color:#8a7560;font-size:13px;cursor:pointer;border:2px dashed #cdb894}
+.stats{font-size:14px;color:#4a3524}.stats table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}.stats td,.stats th{padding:2px 6px;text-align:right}.stats th:first-child,.stats td:first-child{text-align:left}
+#msg{position:sticky;top:60px;z-index:2;margin:0 0 14px;padding:10px 14px;border-radius:12px;background:#fff;border:3px solid var(--ink);display:none}
+.muted{color:#7a6450;font-size:14px}.owner{background:#efe2c4;border-radius:10px;padding:8px 10px;margin:8px 0}
 </style></head><body>
-<header><h1>UNINET <b>Admin Kampus</b></h1><span id="who" class="muted" style="color:#ddd"></span><button class="btn" id="login">Masuk dengan Google</button></header>
+<header><h1>UNINET <b>Kelola Warung &amp; Baliho</b></h1><span id="who"></span><button class="btn" id="login">Masuk dengan Google</button></header>
 <main>
-<div id="msg"></div>
-<p class="muted"><b>Warung kantin</b> diisi dengan hasil voting mahasiswa (nama warung, menu, dan pengusulnya). <b>Baliho</b> untuk brand mitra. Perubahan langsung tampil untuk semua mahasiswa, tanpa upload ulang. Kosongkan nama atau matikan "Tampilkan" untuk mengosongkan slot.</p>
+<div id="msg" role="status"></div>
+<div id="intro" class="card"><p style="margin:0">Halaman ini untuk <b>admin UNINET</b> dan <b>mitra brand</b>. Masuk dengan akun Google yang didaftarkan. Mitra hanya bisa mengubah warung atau baliho miliknya. Semua perubahan langsung tampil di Kampus Mini.</p>
+<p class="muted" style="margin:8px 0 0">Kalau login tidak muncul, buka halaman ini di Safari atau Chrome (bukan dari browser Instagram).</p></div>
 <div id="slots"></div>
 </main>
 <script type="module">
@@ -31,35 +36,58 @@ const V='10.14.1',U=n=>`https://www.gstatic.com/firebasejs/${V}/firebase-${n}.js
 const [{initializeApp},A,D]=await Promise.all([import(U('app')),import(U('auth')),import(U('database'))]);
 const app=initializeApp({apiKey:"AIzaSyBq2b8RFiq0j47Hek0OghBABHv982ikuCw",authDomain:"uninet-kampus.firebaseapp.com",databaseURL:"https://uninet-kampus-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"uninet-kampus",storageBucket:"uninet-kampus.firebasestorage.app",messagingSenderId:"918457767424",appId:"1:918457767424:web:e42e5e58eed798ce296ae5"});
 const auth=A.getAuth(app),db=D.getDatabase(app);
-const SL=[['baliho1','Baliho 1 · brand mitra (luar pagar, kiri gerbang)'],['baliho2','Baliho 2 · brand mitra (luar pagar, kanan gerbang)'],['warung1','Warung 1 · hasil voting (paling kiri)'],['warung2','Warung 2 · hasil voting'],['warung3','Warung 3 · hasil voting (tengah)'],['warung4','Warung 4 · hasil voting'],['warung5','Warung 5 · hasil voting (paling kanan)']];
+const SL=[['warung1','Warung 1 (kantin, paling kiri)'],['warung2','Warung 2 (kantin)'],['warung3','Warung 3 (kantin, tengah)'],['warung4','Warung 4 (kantin)'],['warung5','Warung 5 (kantin, paling kanan)'],['baliho1','Baliho 1 (luar pagar, kiri gerbang)'],['baliho2','Baliho 2 (luar pagar, kanan gerbang)']];
 const DEFC={warung1:'#ffd23f',warung2:'#6cc3f5',warung3:'#8bd17c',warung4:'#ff9fb8',warung5:'#f7a440',baliho1:'#3a6ea5',baliho2:'#e3342f'};
-const msg=(t,bad)=>{const m=document.getElementById('msg');m.textContent=t;m.style.display=t?'block':'none';m.style.borderColor=bad?'#e3342f':'#2b1a0e'};
+const $=s=>document.querySelector(s);let mt=0;
+const msg=(t,bad)=>{const m=$('#msg');m.textContent=t;m.style.display=t?'block':'none';m.style.borderColor=bad?'#e3342f':'#2b1a0e';clearTimeout(mt);if(t&&!bad)mt=setTimeout(()=>m.style.display='none',4000)};
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-let isAdmin=false;
 function day(off){const d=new Date(Date.now()+7*3600e3-off*864e5);return d.toISOString().slice(0,10).replace(/-/g,'')}
-function render(data,stats){const box=document.getElementById('slots');box.innerHTML='';
- SL.forEach(([id,label],i)=>{const b=data[id]||{},st=stats[id]||{};let tv=0,tc=0;for(const k in st){tv+=st[k].v||0;tc+=st[k].c||0}
-  const rows=[0,1,2,3,4,5,6].map(o=>{const k=day(o),x=st[k]||{};return `<tr><td>${k.slice(6)}/${k.slice(4,6)}</td><td>${x.v||0}</td><td>${x.c||0}</td></tr>`}).join('');
-  const c=document.createElement('div');c.className='card';c.innerHTML=`<h2>${esc(label)} <span class="pill ${b.aktif&&b.nama?'on':''}">${b.aktif&&b.nama?'tayang':'kosong'}</span></h2>
-  <div class="grid"><div><label>${id.startsWith('warung')?'Nama warung (pemenang voting)':'Nama brand'}</label><input type="text" maxlength="28" data-k="nama" value="${esc(b.nama)}"></div>
-  ${id.startsWith('warung')?`<div><label>Pengusul (username IG pemenang)</label><input type="text" maxlength="30" data-k="pengusul" placeholder="@username" value="${esc(b.pengusul)}"></div>`:''}<div><label>${id.startsWith('warung')?'Menu andalan':'Tagline'}</label><input type="text" maxlength="60" data-k="tagline" value="${esc(b.tagline)}"></div>
-  <div><label>Link${id.startsWith('warung')?' (opsional)':' (toko, IG, WA, dsb)'}</label><input type="url" maxlength="200" data-k="link" placeholder="https://" value="${esc(b.link)}"></div>
-  <div><label>Teks tombol link</label><input type="text" maxlength="20" data-k="tombol" placeholder="Kunjungi" value="${esc(b.tombol)}"></div>
-  <div><label>Kode promo (opsional)</label><input type="text" maxlength="20" data-k="promo" value="${esc(b.promo)}"></div>
-  <div><label>Warna brand</label><input type="color" data-k="warna" value="${/^#[0-9a-f]{6}$/i.test(b.warna||'')?b.warna:DEFC[id]}" style="width:100%;height:42px;border:2px solid #2b1a0e;border-radius:10px;padding:2px"></div></div>
-  <div class="row"><label style="margin:0;display:flex;gap:6px;align-items:center;font-size:15px;color:#2b1a0e"><input type="checkbox" data-k="aktif" ${b.aktif?'checked':''} style="width:20px;height:20px"> Tampilkan</label>
-  <button class="btn" data-save ${isAdmin?'':'disabled'}>Simpan</button><button class="btn" data-clear style="background:#fff" ${isAdmin?'':'disabled'}>Kosongkan</button></div>
-  <div class="stats">${isAdmin?`<b>Statistik</b> · total ${tv} lihat, ${tc} klik link<table><tr><th>Tanggal</th><th>Lihat</th><th>Klik</th></tr>${rows}</table>`:'<span class="muted">Statistik tampil setelah masuk sebagai admin.</span>'}</div>`;
-  c.querySelector('[data-save]').onclick=async()=>{const o={};c.querySelectorAll('[data-k]').forEach(el=>{o[el.dataset.k]=el.type==='checkbox'?el.checked:el.value.trim()});
-   if(o.link&&!/^https?:\/\//i.test(o.link))o.link='https://'+o.link;o.t=D.serverTimestamp();
-   try{await D.set(D.ref(db,'brands/'+id),o);msg('Tersimpan: '+label+'. Sudah tampil di Kampus Mini.')}catch(e){msg('Gagal menyimpan ('+(e.code||e.message)+'). Pastikan kamu masuk dengan akun admin.',true)}};
-  c.querySelector('[data-clear]').onclick=async()=>{try{await D.set(D.ref(db,'brands/'+id),null);msg(label+' dikosongkan.')}catch(e){msg('Gagal mengosongkan.',true)}};
-  box.appendChild(c)})}
-let DATA={},STATS={};
-D.onValue(D.ref(db,'brands'),s=>{DATA=s.val()||{};render(DATA,STATS)},e=>msg('Tidak bisa membaca data brand: '+e.code,true));
-A.onAuthStateChanged(auth,async u=>{const w=document.getElementById('who'),lb=document.getElementById('login');
- if(u&&!u.isAnonymous){w.textContent=u.email||'';lb.textContent='Keluar';lb.onclick=()=>A.signOut(auth);
-  try{const s=await D.get(D.ref(db,'bstats'));STATS=s.val()||{};isAdmin=true;msg('')}catch(e){isAdmin=false;msg('Akun '+(u.email||'')+' bukan admin. Masuk dengan akun Google admin UNINET.',true)}}
- else{w.textContent='';isAdmin=false;lb.textContent='Masuk dengan Google';lb.onclick=async()=>{try{await A.signInWithPopup(auth,new A.GoogleAuthProvider())}catch(e){msg('Login gagal: '+(e.code||e.message)+'. Buka halaman ini di Safari/Chrome.',true)}}}
- render(DATA,STATS)});
+// kecilkan foto dari galeri jadi JPEG ringan
+function shrink(file,maxW,maxH){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,maxW/im.width,maxH/im.height),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+  const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);let q=.82,u=c.toDataURL('image/jpeg',q);while(u.length>110000&&q>.35){q-=.1;u=c.toDataURL('image/jpeg',q)}u.length>118000?rej(new Error('besar')):res(u)};im.onerror=rej;im.src=r.result};r.onerror=rej;r.readAsDataURL(file)})}
+function pick(){return new Promise(res=>{const i=document.createElement('input');i.type='file';i.accept='image/*';i.onchange=()=>res(i.files[0]||null);i.click()})}
+let ME=null,ADMIN=false,MINE=[];
+async function load(){const box=$('#slots');box.innerHTML='<p class="muted">Memuat…</p>';
+ // cek peran: admin bisa membaca daftar pemilik
+ let owners={};ADMIN=false;try{const o=await D.get(D.ref(db,'owners'));owners=o.val()||{};ADMIN=true}catch(e){}
+ MINE=[];if(ADMIN)MINE=SL.map(s=>s[0]);else for(const [id] of SL){try{const o=await D.get(D.ref(db,'owners/'+id));if(o.val()===ME.email){MINE.push(id);owners[id]=o.val()}}catch(e){}}
+ if(!MINE.length){box.innerHTML=`<div class="card"><h2>Belum ada slot untuk akun ini</h2><p>Akun <b>${esc(ME.email)}</b> belum terdaftar sebagai mitra. Hubungi @uninet.id di Instagram dan kirim email ini supaya didaftarkan ke warung atau baliho.</p></div>`;return}
+ const [b,lg]=await Promise.all([D.get(D.ref(db,'brands')),D.get(D.ref(db,'blogo'))]);const BR=b.val()||{},LG=lg.val()||{};
+ box.innerHTML='';for(const [id,label] of SL)if(MINE.includes(id))box.appendChild(await slotCard(id,label,BR[id]||{},LG[id]||'',owners[id]||''))}
+async function slotCard(id,label,b,logo,owner){const isW=id.startsWith('warung'),c=document.createElement('div');c.className='card';
+ let foto={};if(isW){try{foto=(await D.get(D.ref(db,'bfoto/'+id))).val()||{}}catch(e){}}
+ let st={};try{st=(await D.get(D.ref(db,'bstats/'+id))).val()||{}}catch(e){}
+ let tv=0,tc=0;for(const k in st){tv+=st[k].v||0;tc+=st[k].c||0}
+ const prod=Array.isArray(b.produk)?b.produk:[];
+ c.innerHTML=`<h2>${esc(label)} <span class="pill ${b.aktif&&b.nama?'on':''}">${b.aktif&&b.nama?'tayang':'tidak tayang'}</span></h2>
+ ${ADMIN?`<div class="owner"><label style="margin-top:0">Email Google mitra pemilik slot ini (kosongkan kalau belum ada mitra)</label><div class="row" style="margin-top:0"><input type="email" data-owner value="${esc(owner)}" placeholder="brand@gmail.com" style="flex:1;min-width:0"><button class="btn light" data-saveowner>Simpan pemilik</button></div></div>`:''}
+ <div class="grid"><div><label>${isW?'Nama warung / brand':'Nama brand'}</label><input type="text" maxlength="28" data-k="nama" value="${esc(b.nama)}"></div>
+ <div><label>${isW?'Menu andalan / tagline':'Tagline'}</label><input type="text" maxlength="60" data-k="tagline" value="${esc(b.tagline)}"></div>
+ ${isW?`<div><label>Pengusul (kalau hasil voting mahasiswa)</label><input type="text" maxlength="30" data-k="pengusul" placeholder="@username, kosongkan kalau brand" value="${esc(b.pengusul)}"></div>`:''}
+ <div><label>Link (toko online, IG, WhatsApp)</label><input type="url" maxlength="200" data-k="link" placeholder="https://" value="${esc(b.link)}"></div>
+ <div><label>Teks tombol link</label><input type="text" maxlength="20" data-k="tombol" placeholder="Kunjungi" value="${esc(b.tombol)}"></div>
+ <div><label>Kode promo (opsional)</label><input type="text" maxlength="20" data-k="promo" value="${esc(b.promo)}"></div>
+ <div><label>Warna brand</label><input type="color" data-k="warna" value="${/^#[0-9a-f]{6}$/i.test(b.warna||'')?b.warna:DEFC[id]}" style="width:100%;height:42px;border:2px solid #2b1a0e;border-radius:10px;padding:2px"></div></div>
+ <h3>${isW?'Papan nama / banner warung':'Gambar baliho'}</h3><p class="muted" style="margin:0 0 6px">${isW?'Gambar lebar (rasio sekitar 3:1), misalnya logo atau spanduk warung. Kosong = nama ditulis otomatis.':'Gambar lebar (rasio sekitar 2,3:1). Kosong = baliho dibuat otomatis dari nama, tagline, dan kode promo.'}</p>
+ <div class="logo" data-logo style="${logo?`background-image:url('${logo}')`:''}">${logo?'':'Ketuk untuk pilih gambar'}</div><div class="row"><button class="btn light" data-dellogo ${logo?'':'hidden'}>Hapus gambar</button></div>
+ ${isW?`<h3>Produk yang dijual (maks. 4)</h3><div class="prods">${[0,1,2,3].map(k=>{const p=prod[k]||{},f=foto['p'+k]||'';return `<div class="prod" data-pi="${k}"><div class="ph" data-ph style="${f?`background-image:url('${f}');border-style:solid`:''}">${f?'':'Ketuk untuk foto'}</div><input type="text" maxlength="40" data-pn placeholder="Nama produk" value="${esc(p.nama)}"><input type="text" maxlength="20" data-pp placeholder="Harga, mis. Rp15.000" value="${esc(p.harga)}" style="margin-top:6px"><div class="row" style="margin-top:6px"><button class="btn light" data-delph style="padding:4px 10px;font-size:13px" ${f?'':'hidden'}>Hapus foto</button></div></div>`}).join('')}</div>`:''}
+ <div class="row"><label style="margin:0;display:flex;gap:6px;align-items:center;font-size:15px;color:#2b1a0e"><input type="checkbox" data-k="aktif" ${b.aktif?'checked':''} style="width:20px;height:20px"> Tampilkan di kampus</label>
+ <button class="btn" data-save>Simpan</button>${ADMIN?'<button class="btn light" data-clear>Kosongkan slot</button>':''}</div>
+ <h3>Statistik</h3><div class="stats">Total <b>${tv}</b> kali dilihat, <b>${tc}</b> klik link.<table><tr><th>Tanggal</th><th>Dilihat</th><th>Klik link</th></tr>${[0,1,2,3,4,5,6].map(o=>{const k=day(o),x=st[k]||{};return `<tr><td>${k.slice(6)}/${k.slice(4,6)}</td><td>${x.v||0}</td><td>${x.c||0}</td></tr>`}).join('')}</table></div>`;
+ const q=s=>c.querySelector(s);
+ c.querySelector('[data-save]').onclick=async()=>{const o={};c.querySelectorAll('[data-k]').forEach(el=>{o[el.dataset.k]=el.type==='checkbox'?el.checked:el.value.trim()});
+  if(o.link&&!/^https?:\/\//i.test(o.link))o.link='https://'+o.link;if(o.pengusul)o.pengusul=o.pengusul.replace(/^@+/,'');
+  if(isW)o.produk=[...c.querySelectorAll('[data-pi]')].map(el=>({nama:el.querySelector('[data-pn]').value.trim(),harga:el.querySelector('[data-pp]').value.trim()}));o.t=D.serverTimestamp();
+  try{await D.set(D.ref(db,'brands/'+id),o);msg('Tersimpan: '+label+'. Sudah tampil di Kampus Mini.');q('.pill').textContent=o.aktif&&o.nama?'tayang':'tidak tayang';q('.pill').classList.toggle('on',!!(o.aktif&&o.nama))}catch(e){msg('Gagal menyimpan ('+(e.code||e.message)+').',true)}};
+ const lg=q('[data-logo]');lg.onclick=async()=>{const f=await pick();if(!f)return;msg('Mengunggah gambar…');try{const u=await shrink(f,1024,448);await D.set(D.ref(db,'blogo/'+id),u);lg.style.backgroundImage=`url('${u}')`;lg.textContent='';q('[data-dellogo]').hidden=false;msg('Gambar tersimpan.')}catch(e){msg('Gagal mengunggah gambar. Coba gambar lain.',true)}};
+ q('[data-dellogo]').onclick=async()=>{try{await D.set(D.ref(db,'blogo/'+id),null);lg.style.backgroundImage='';lg.textContent='Ketuk untuk pilih gambar';q('[data-dellogo]').hidden=true;msg('Gambar dihapus.')}catch(e){msg('Gagal menghapus.',true)}};
+ c.querySelectorAll('[data-pi]').forEach(el=>{const k=el.dataset.pi,ph=el.querySelector('[data-ph]'),del=el.querySelector('[data-delph]');
+  ph.onclick=async()=>{const f=await pick();if(!f)return;msg('Mengunggah foto…');try{const u=await shrink(f,640,480);await D.set(D.ref(db,`bfoto/${id}/p${k}`),u);ph.style.backgroundImage=`url('${u}')`;ph.style.borderStyle='solid';ph.textContent='';del.hidden=false;msg('Foto tersimpan. Jangan lupa isi nama produk lalu Simpan.')}catch(e){msg('Gagal mengunggah foto.',true)}};
+  del.onclick=async()=>{try{await D.set(D.ref(db,`bfoto/${id}/p${k}`),null);ph.style.backgroundImage='';ph.style.borderStyle='dashed';ph.textContent='Ketuk untuk foto';del.hidden=true}catch(e){msg('Gagal menghapus foto.',true)}}});
+ if(ADMIN){q('[data-saveowner]').onclick=async()=>{const v=q('[data-owner]').value.trim().toLowerCase();try{await D.set(D.ref(db,'owners/'+id),v||null);msg(v?label+' sekarang dikelola '+v+'.':'Pemilik '+label+' dihapus.')}catch(e){msg('Gagal menyimpan pemilik.',true)}};
+  q('[data-clear]').onclick=async()=>{if(!confirm('Kosongkan '+label+'? Nama, produk, foto, dan gambar akan dihapus.'))return;try{await Promise.all([D.set(D.ref(db,'brands/'+id),null),D.set(D.ref(db,'blogo/'+id),null),D.set(D.ref(db,'bfoto/'+id),null)]);msg(label+' dikosongkan.');load()}catch(e){msg('Gagal mengosongkan.',true)}}}
+ return c}
+A.onAuthStateChanged(auth,u=>{const lb=$('#login');
+ if(u&&!u.isAnonymous&&u.email){ME=u;$('#who').textContent=u.email;lb.textContent='Keluar';lb.onclick=()=>A.signOut(auth);$('#intro').style.display='none';load()}
+ else{ME=null;$('#who').textContent='';$('#intro').style.display='';$('#slots').innerHTML='';lb.textContent='Masuk dengan Google';lb.onclick=async()=>{try{await A.signInWithPopup(auth,new A.GoogleAuthProvider())}catch(e){if(e.code!=='auth/popup-closed-by-user')msg('Login gagal: '+(e.code||e.message)+'. Buka halaman ini di Safari/Chrome.',true)}}}});
 </script></body></html>
