@@ -689,6 +689,10 @@ document.getElementById('chatForm').addEventListener('submit',async e=>{e.preven
  catch(err){logLine('','Pesan gagal terkirim. Tunggu 3 detik lalu coba lagi.','sys')}});
 chatIn.addEventListener('keydown',e=>e.stopPropagation());
 netStart();
+// iPad/iPhone: setelah keyboard tertutup, kembalikan halaman ke posisi semula supaya UI tidak hilang
+(function(){const reset=()=>{if(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;window.scrollTo(0,0);document.documentElement.scrollTop=0;document.body.scrollTop=0};
+ document.addEventListener('focusout',()=>setTimeout(reset,60));if(window.visualViewport)visualViewport.addEventListener('resize',()=>setTimeout(reset,60));addEventListener('orientationchange',()=>setTimeout(reset,300));
+ document.head.insertAdjacentHTML('beforeend','<style>html,body{position:fixed;inset:0;width:100%}</style>')})();
 
 // ---------- start ----------
 (document.fonts&&document.fonts.load?Promise.all([document.fonts.load(FD(40)),document.fonts.load('600 16px Nunito'),document.fonts.load('900 16px Nunito')]).catch(()=>{}):Promise.resolve()).then(()=>{
