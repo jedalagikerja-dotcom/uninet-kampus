@@ -127,7 +127,7 @@ uniform vec3 col,sunDir,sunCol,skyCol,gndCol,fogCol,eye; uniform float fogN,fogF
 float shadow(){vec3 c=vL.xyz/vL.w*.5+.5; if(c.x<0.||c.x>1.||c.y<0.||c.y>1.||c.z>1.) return 1.; float s=0.; vec2 ts=vec2(1./1536.);
  for(int i=-1;i<=1;i++)for(int j=-1;j<=1;j++){float d=texture(shm,c.xy+vec2(i,j)*ts*1.5).r; s+=c.z-.0018>d?0.:1.;} return s/9.;}
 void main(){vec3 N=normalize(cross(dFdx(vW),dFdy(vW))); vec3 base=col; float a=alpha;
- float winA=0.; if(useTex>1.5){vec4 tx=texture(tex,vUV); vec3 lit=mix(vec3(1.,.8,.42),vec3(1.,.95,.78),clamp((tx.b-.62)*6.,0.,1.)); base=mix(col,mix(tx.rgb,lit,glow),tx.a); winA=tx.a;} else if(useTex>0.){vec4 tx=texture(tex,vUV); base=mix(col,tx.rgb,tx.a);}
+ float winA=0.; if(useTex>1.5){vec4 tx=texture(tex,vUV); vec3 lit=mix(vec3(1.,.8,.42),vec3(1.,.95,.78),clamp((tx.b-.62)*6.,0.,1.)); base=mix(col,mix(tx.rgb,lit,glow),tx.a); winA=tx.a;} else if(useTex>0.){vec4 tx=texture(tex,vUV); if(tx.a<.04)discard; base=mix(col,tx.rgb,tx.a);}
  float ndl=max(dot(N,sunDir),0.); float s=recv>0.?shadow():1.;
  vec3 hemi=mix(gndCol,skyCol,N.y*.5+.5); vec3 c=base*(hemi*.56+sunCol*(ndl*s)*.58+.04);
  c=mix(c,base,max(emis,winA*glow)); float d=length(vW-eye); c=mix(c,fogCol,smoothstep(fogN,fogF,d)*(1.-emis*.6)); o=vec4(c,a);}`);

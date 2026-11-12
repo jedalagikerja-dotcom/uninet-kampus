@@ -127,7 +127,7 @@ uniform vec3 col,sunDir,sunCol,skyCol,gndCol,fogCol,eye; uniform float fogN,fogF
 float shadow(){vec3 c=vL.xyz/vL.w*.5+.5; if(c.x<0.||c.x>1.||c.y<0.||c.y>1.||c.z>1.) return 1.; float s=0.; vec2 ts=vec2(1./1536.);
  for(int i=-1;i<=1;i++)for(int j=-1;j<=1;j++){float d=texture(shm,c.xy+vec2(i,j)*ts*1.5).r; s+=c.z-.0018>d?0.:1.;} return s/9.;}
 void main(){vec3 N=normalize(cross(dFdx(vW),dFdy(vW))); vec3 base=col; float a=alpha;
- float winA=0.; if(useTex>1.5){vec4 tx=texture(tex,vUV); vec3 lit=mix(vec3(1.,.8,.42),vec3(1.,.95,.78),clamp((tx.b-.62)*6.,0.,1.)); base=mix(col,mix(tx.rgb,lit,glow),tx.a); winA=tx.a;} else if(useTex>0.){vec4 tx=texture(tex,vUV); base=mix(col,tx.rgb,tx.a);}
+ float winA=0.; if(useTex>1.5){vec4 tx=texture(tex,vUV); vec3 lit=mix(vec3(1.,.8,.42),vec3(1.,.95,.78),clamp((tx.b-.62)*6.,0.,1.)); base=mix(col,mix(tx.rgb,lit,glow),tx.a); winA=tx.a;} else if(useTex>0.){vec4 tx=texture(tex,vUV); if(tx.a<.04)discard; base=mix(col,tx.rgb,tx.a);}
  float ndl=max(dot(N,sunDir),0.); float s=recv>0.?shadow():1.;
  vec3 hemi=mix(gndCol,skyCol,N.y*.5+.5); vec3 c=base*(hemi*.56+sunCol*(ndl*s)*.58+.04);
  c=mix(c,base,max(emis,winA*glow)); float d=length(vW-eye); c=mix(c,fogCol,smoothstep(fogN,fogF,d)*(1.-emis*.6)); o=vec4(c,a);}`);
@@ -602,7 +602,93 @@ function loop(now){TIME=(now-t0)/1000;const dt=lastT?Math.min(.05,(now-lastT)/10
  if(fly){const k=eio((now-fly.t0)/fly.dur);const f=fly.from,t=fly.to;cam.tgt=[0,1,2].map(i=>lerp(f.tgt[i],t.tgt[i],k));cam.dist=lerp(f.dist,t.dist,k);cam.yaw=lerp(f.yaw,t.yaw,k);cam.pitch=lerp(f.pitch,t.pitch,k);if(k>=1)fly=null}
  else if(!WALK&&!dragging&&!HL&&idle()>6)cam.yaw+=.0012;
  if(!WALK&&!fly){const pmin=cam.dist>38?.04+(cam.dist-38)*.008:.04;if(cam.pitch<pmin)cam.pitch=lerp(cam.pitch,pmin,.15)}
- EYE=camEye();DL=[];const hs=HL;if(!HL&&MARK)HL=MARK;world();HL=hs;if(WALK||HL)player();render();requestAnimationFrame(loop)}
+ EYE=camEye();DL=[];const hs=HL;if(!HL&&MARK)HL=MARK;world();HL=hs;if(WALK||HL)player();if(NET.on)drawOthers(dt);if(WALK)sendPos();render();requestAnimationFrame(loop)}
+
+// ================= ONLINE: mahasiswa lain + chat (Firebase) =================
+const FB_CFG={apiKey:"AIzaSyBq2b8RFiq0j47Hek0OghBABHv982ikuCw",authDomain:"uninet-kampus.firebaseapp.com",databaseURL:"https://uninet-kampus-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"uninet-kampus",storageBucket:"uninet-kampus.firebasestorage.app",messagingSenderId:"918457767424",appId:"1:918457767424:web:e42e5e58eed798ce296ae5"};
+const FBV='10.14.1',FBU=n=>`https://www.gstatic.com/firebasejs/${FBV}/firebase-${n}.js`;
+const NET={on:false,uid:null,db:null,F:null,me:null,others:new Map(),last:{x:0,z:0,yaw:0,t:0},bubbles:new Map(),idleOff:false};
+const BADW=["anjing","anjg","babi","kontol","kntl","memek","mmk","ngentot","ngewe","bangsat","bajingan","goblok","tolol","kampret","jancok","jancuk","pepek","lonte","pelacur","fuck","shit","bitch","porn","bokep","judi","slot","gacor","togel","casino","maxwin"];
+function cleanText(s){let o=String(s||'').replace(/[\u0000-\u001f<>]/g,'').trim();for(const w of BADW){o=o.replace(new RegExp(w,'gi'),m=>m[0]+'*'.repeat(m.length-1))}return o}
+function badName(s){const f=s.toLowerCase().replace(/[^a-z]/g,'');return BADW.some(w=>f.includes(w))}
+function hashN(s){let h=0;for(const ch of s)h=(h*31+ch.charCodeAt(0))|0;return Math.abs(h)}
+function myName(){let n='';try{n=localStorage.getItem('uninet_nama')||''}catch(e){}return n||('Tamu '+(NET.uid||'xxxx').slice(0,4).toUpperCase())}
+// ---- UI ----
+document.head.insertAdjacentHTML('beforeend',`<style>
+#onl{font-family:var(--display);font-size:14px;border:3px solid var(--ink);border-radius:999px;padding:5px 11px;background:var(--cream);color:var(--ink);box-shadow:0 3px 0 var(--ink);display:flex;align-items:center;gap:6px;white-space:nowrap}
+#onl i{width:9px;height:9px;border-radius:50%;background:#9aa1a8;display:inline-block}#onl.live i{background:#2fbf71}
+#chatBtn{position:fixed;z-index:5;left:max(14px,env(safe-area-inset-left,0px));top:50%;transform:translateY(-50%);font-family:var(--display);font-size:14px;border:3px solid var(--ink);border-radius:16px;padding:10px 10px;background:var(--cream);color:var(--ink);box-shadow:0 3px 0 var(--ink);cursor:pointer}
+#chatBtn b{display:block;font-size:11px;background:var(--red);color:#fff;border-radius:999px;padding:1px 6px;margin-top:4px}
+#chat{position:fixed;z-index:6;left:max(12px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 110px);width:min(360px,calc(100% - 24px));max-height:min(46vh,380px);display:none;flex-direction:column;background:rgba(255,248,230,.96);border:3px solid var(--ink);border-radius:18px;box-shadow:0 5px 0 var(--ink);overflow:hidden}
+#chat.open{display:flex}#chat header{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;font-family:var(--display);font-size:17px;border-bottom:2px solid #e2d6bf}
+#chat header button{border:2px solid var(--ink);background:#fff;border-radius:10px;font:900 14px var(--body);width:30px;height:30px;cursor:pointer}
+#chatLog{flex:1;overflow-y:auto;padding:8px 12px;font:600 14px/1.4 var(--body);color:#3b2a1c}
+#chatLog p{margin:0 0 6px;word-wrap:break-word}#chatLog b{color:var(--ink)}#chatLog .me b{color:#3a6ea5}#chatLog .sys{color:#8a7560;font-style:italic}
+#chatForm{display:flex;gap:6px;padding:8px;border-top:2px solid #e2d6bf}#chatIn{flex:1;min-width:0;border:2px solid var(--ink);border-radius:12px;padding:8px 10px;font:700 15px var(--body);background:#fff}
+#chatForm .btn{padding:6px 12px}
+body:not(.walk) #chatBtn{display:none}
+@media (max-width:620px){#chat{top:calc(env(safe-area-inset-top,0px) + 112px)}}
+</style>`);
+document.getElementById('mode').insertAdjacentHTML('afterbegin','<div id="onl" title="Mahasiswa online"><i></i><span>offline</span></div>');
+document.getElementById('mode').insertAdjacentHTML('beforeend','<button id="mName">Nama</button>');
+document.body.insertAdjacentHTML('beforeend',`<button id="chatBtn" aria-label="Buka chat kampus">CHAT</button>
+<div id="chat" role="dialog" aria-label="Chat kampus"><header>Chat Kampus<button id="chatX" aria-label="Tutup chat">✕</button></header><div id="chatLog" aria-live="polite"></div>
+<form id="chatForm" autocomplete="off"><input id="chatIn" maxlength="120" placeholder="Tulis pesan…" enterkeyhint="send"><button class="btn" type="submit">Kirim</button></form></div>`);
+const chatEl=document.getElementById('chat'),chatLog=document.getElementById('chatLog'),chatIn=document.getElementById('chatIn'),chatBtn=document.getElementById('chatBtn');let unread=0;
+function setUnread(n){unread=n;chatBtn.innerHTML='CHAT'+(n?`<b>${n>9?'9+':n}</b>`:'')}
+function openChat(on){chatEl.classList.toggle('open',on);if(on){setUnread(0);chatLog.scrollTop=chatLog.scrollHeight;setTimeout(()=>chatIn.focus(),50)}}
+chatBtn.onclick=()=>openChat(!chatEl.classList.contains('open'));document.getElementById('chatX').onclick=()=>openChat(false);
+function logLine(name,msg,cls){const p=document.createElement('p');if(cls)p.className=cls;if(name){const b=document.createElement('b');b.textContent=name+': ';p.appendChild(b)}p.appendChild(document.createTextNode(msg));chatLog.appendChild(p);while(chatLog.children.length>60)chatLog.firstChild.remove();
+ if(chatEl.classList.contains('open'))chatLog.scrollTop=chatLog.scrollHeight}
+function setOnl(n,live){const e=document.getElementById('onl');e.classList.toggle('live',!!live);e.lastChild.textContent=live?(n+' online'):'offline'}
+// nama
+document.getElementById('mName').onclick=()=>{showCard(`<h2>Namamu di kampus</h2><p>Nama ini muncul di atas kepala karaktermu dan di chat. Boleh username Instagram.</p><form id="nmF" class="row" autocomplete="off"><input id="nmI" maxlength="20" style="flex:1;min-width:0;border:3px solid var(--ink);border-radius:12px;padding:8px 10px;font:800 16px var(--body)" value=""><button class="btn" type="submit">Simpan</button></form><p id="nmE" style="color:#b0302b;margin-top:8px"></p>`);
+ const i=document.getElementById('nmI');i.value=myName().startsWith('Tamu ')?'':myName();i.focus();
+ document.getElementById('nmF').onsubmit=e=>{e.preventDefault();const v=i.value.trim().replace(/^@+/,'');if(!/^[A-Za-z0-9 ._]{2,20}$/.test(v)){document.getElementById('nmE').textContent='Pakai 2–20 huruf, angka, spasi, titik, atau garis bawah.';return}
+  if(badName(v)){document.getElementById('nmE').textContent='Nama ini tidak bisa dipakai.';return}try{localStorage.setItem('uninet_nama',v)}catch(e){}closeCard();sendPos(true);logLine('', 'Namamu sekarang '+v,'sys')}};
+// ---- tekstur nama & gelembung ----
+function nameTagTex(n){return ctex('nt_'+n,320,72,(x,w,h)=>{x.font=FD(38);const tw=Math.min(w-12,x.measureText(n).width+36);x.fillStyle='rgba(255,248,230,.95)';x.strokeStyle='#2b1a0e';x.lineWidth=5;x.beginPath();x.roundRect((w-tw)/2,6,tw,h-12,28);x.fill();x.stroke();x.fillStyle='#2b1a0e';x.textAlign='center';x.textBaseline='middle';let s=n;while(x.measureText(s).width>w-50&&s.length>3)s=s.slice(0,-1);x.fillText(s===n?n:s+'…',w/2,h/2+2)})}
+function bubbleTex(key,msg){return ctex('bb_'+key,512,170,(x,w,h)=>{x.font='800 30px Nunito, sans-serif';const words=msg.split(' ');const lines=[];let cur='';for(const wd of words){const t=cur?cur+' '+wd:wd;if(x.measureText(t).width>w-60&&cur){lines.push(cur);cur=wd}else cur=t}if(cur)lines.push(cur);const L=lines.slice(0,3);if(lines.length>3)L[2]=L[2].slice(0,-1)+'…';
+ const bh=24+L.length*36,bw=Math.min(w-8,Math.max(...L.map(l=>x.measureText(l).width))+44),y0=h-bh-22;x.fillStyle='#fff';x.strokeStyle='#2b1a0e';x.lineWidth=5;x.beginPath();x.roundRect((w-bw)/2,y0,bw,bh,22);x.fill();x.stroke();
+ x.beginPath();x.moveTo(w/2-12,y0+bh-2);x.lineTo(w/2,h-4);x.lineTo(w/2+12,y0+bh-2);x.fill();x.stroke();x.fillStyle='#fff';x.fillRect(w/2-10,y0+bh-6,20,6);x.fillStyle='#2b1a0e';x.textAlign='center';x.textBaseline='top';L.forEach((l,i)=>x.fillText(l,w/2,y0+14+i*36))})}
+function dropTex(key){if(TX[key]){gl.deleteTexture(TX[key]);delete TX[key]}}
+// ---- gambar mahasiswa online lain ----
+const SHIRT=['#ff8a5c','#6cc3f5','#ffd166','#8bd17c','#c79bf2','#ff9fb8','#5fd0c5','#f7a440','#e3342f','#2f8f6a'];
+function drawOthers(dt){const now=Date.now();let k=Math.min(1,dt*6);for(const [id,o] of NET.others){if(now-o.seen>90000)continue;
+  const dx=o.tx-o.x,dz=o.tz-o.z,d=Math.hypot(dx,dz);o.x+=dx*k;o.z+=dz*k;let dy=o.tyaw-o.yaw;while(dy>Math.PI)dy-=2*Math.PI;while(dy<-Math.PI)dy+=2*Math.PI;o.yaw+=dy*k;o.mv=d>.05;if(o.mv)o.ph=(o.ph||0)+dt*10;
+  const h=o.mv?Math.abs(Math.sin(o.ph))*.1:0;person(o.x,o.z,o.c,o.yaw,(o.y||0)+h,{col:SHIRT[o.c%SHIRT.length],swing:o.mv?Math.sin(o.ph)*.9:0});
+  const far=(o.x-EYE[0])**2+(o.z-EYE[2])**2;if(far<1600)textPlane(nameTagTex(o.n),o.x,(o.y||0)+2.1,o.z,1.7,.38,cam.yaw,{emis:1,recv:0});
+  const b=NET.bubbles.get(id);if(b&&now<b.until&&far<2500)textPlane(bubbleTex(b.key,b.m),o.x,(o.y||0)+2.95,o.z,2.5,.83,cam.yaw,{emis:1,recv:0})}
+ const mb=NET.bubbles.get(NET.uid);if(WALK&&mb&&now<mb.until)textPlane(bubbleTex(mb.key,mb.m),PL1.x,PL1.y+2.95,PL1.z,2.5,.83,cam.yaw,{emis:1,recv:0});
+ for(const [id,b] of NET.bubbles)if(now>b.until+500){dropTex('bb_'+b.key);NET.bubbles.delete(id)}}
+// ---- kirim posisi ----
+let lastInput=Date.now();['touchstart','keydown','mousedown'].forEach(ev=>addEventListener(ev,()=>{lastInput=Date.now();if(NET.idleOff&&NET.F){NET.idleOff=false;NET.F.goOnline(NET.db);setTimeout(()=>sendPos(true),300)}},{passive:true}));
+function sendPos(force){if(!NET.on||!NET.uid||NET.idleOff)return;const now=Date.now(),L=NET.last,moved=Math.hypot(PL1.x-L.x,PL1.z-L.z)>.25||Math.abs(PL1.yaw-L.yaw)>.4;
+ if(!force&&!(moved&&now-L.t>1200)&&now-L.t<25000)return;NET.last={x:PL1.x,z:PL1.z,yaw:PL1.yaw,t:now};
+ const F=NET.F;F.set(NET.me,{n:myName(),x:+PL1.x.toFixed(2),z:+PL1.z.toFixed(2),y:+PL1.y.toFixed(2),yaw:+PL1.yaw.toFixed(2),c:hashN(NET.uid)%SHIRT.length,t:F.serverTimestamp()}).catch(e=>console.warn('pos',e&&e.code))}
+function countOnline(){const now=Date.now();let n=1;for(const o of NET.others.values())if(now-o.seen<90000)n++;setOnl(n,true)}
+// ---- sambung ke Firebase ----
+async function netStart(){try{
+  const [A,AU,D]=await Promise.all([import(FBU('app')),import(FBU('auth')),import(FBU('database'))]);
+  const app=A.initializeApp(FB_CFG),auth=AU.getAuth(app),db=D.getDatabase(app);NET.db=db;NET.F=D;
+  const cred=await AU.signInAnonymously(auth);NET.uid=cred.user.uid;NET.me=D.ref(db,'online/'+NET.uid);NET.on=true;
+  D.onDisconnect(NET.me).remove();sendPos(true);
+  const R=D.ref(db,'online');const up=s=>{if(s.key===NET.uid)return;const v=s.val()||{};if(typeof v.x!=='number')return;let o=NET.others.get(s.key);
+   if(!o){o={x:v.x,z:v.z,yaw:v.yaw||0};NET.others.set(s.key,o)}Object.assign(o,{tx:v.x,tz:v.z,tyaw:v.yaw||0,y:v.y||0,n:cleanText(v.n||'Tamu').slice(0,20)||'Tamu',c:v.c||0,seen:Date.now()});countOnline()};
+  D.onChildAdded(R,up);D.onChildChanged(R,up);D.onChildRemoved(R,s=>{NET.others.delete(s.key);dropTex('nt_'+s.key);countOnline()});
+  const Q=D.query(D.ref(db,'chat'),D.orderByChild('t'),D.limitToLast(30));let first=true;setTimeout(()=>first=false,2500);
+  D.onChildAdded(Q,s=>{const v=s.val()||{};const m=cleanText(v.m).slice(0,120),n=cleanText(v.n).slice(0,20)||'Tamu';if(!m)return;logLine(n,m,v.u===NET.uid?'me':'');
+   if(Date.now()-(v.t||0)<15000)NET.bubbles.set(v.u,{key:s.key,m,until:Date.now()+6000});if(!first&&!chatEl.classList.contains('open'))setUnread(unread+1)});
+  logLine('','Kamu masuk sebagai '+myName()+'. Ketuk Nama untuk mengganti.','sys');countOnline();
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){D.goOffline(db)}else{D.goOnline(db);setTimeout(()=>sendPos(true),400)}});
+  setInterval(()=>{if(NET.on&&!NET.idleOff&&Date.now()-lastInput>240000){NET.idleOff=true;D.goOffline(db);setOnl(0,false)}else if(!NET.idleOff)countOnline()},15000);
+ }catch(e){console.warn('online gagal',e);setOnl(0,false);logLine('','Mode online sedang tidak tersedia. Kamu tetap bisa jalan-jalan sendiri.','sys')}}
+document.getElementById('chatForm').addEventListener('submit',async e=>{e.preventDefault();const m=cleanText(chatIn.value).slice(0,120);if(!m)return;
+ if(!NET.on){logLine('','Chat belum tersambung.','sys');return}const F=NET.F,key=F.push(F.ref(NET.db,'chat')).key;
+ try{await F.update(F.ref(NET.db),{['chat/'+key]:{u:NET.uid,n:myName(),m,t:F.serverTimestamp()},['rate/'+NET.uid]:F.serverTimestamp()});chatIn.value=''}
+ catch(err){logLine('','Pesan gagal terkirim. Tunggu 3 detik lalu coba lagi.','sys')}});
+chatIn.addEventListener('keydown',e=>e.stopPropagation());
+netStart();
 
 // ---------- start ----------
 (document.fonts&&document.fonts.load?Promise.all([document.fonts.load(FD(40)),document.fonts.load('600 16px Nunito'),document.fonts.load('900 16px Nunito')]).catch(()=>{}):Promise.resolve()).then(()=>{
