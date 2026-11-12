@@ -788,7 +788,7 @@ netStart();
  setInterval(reset,2000)})();
 
 // ================= MITRA BRAND: slot warung kantin + baliho =================
-const BR={data:{},seen:new Set()};
+const BR={data:{},seen:new Set(),logo:{},logoSrc:{}};
 const BSLOTS=['warung1','warung2','warung3','warung4','warung5','baliho1','baliho2'];
 const DEFC=['#ffd23f','#6cc3f5','#8bd17c','#ff9fb8','#f7a440'];
 function brandOf(slot){const b=BR.data[slot];return b&&b.aktif&&b.nama?b:null}
@@ -796,7 +796,9 @@ function safeColor(c,d){return /^#[0-9a-f]{6}$/i.test(c||'')?c:d}
 function safeLink(u){try{const x=new URL(u);return /^https?:$/.test(x.protocol)?x.href:''}catch(e){return ''}}
 // papan nama warung: brand atau "?"
 const _stallTex=stallTex;
-function brandStallTex(i){const b=brandOf('warung'+(i+1));if(!b)return _stallTex(i,'?');const n=String(b.nama).slice(0,24),c=safeColor(b.warna,DEFC[i]);
+function drawCover(x,img,w,h,bg){x.fillStyle=bg;x.fillRect(0,0,w,h);const r=Math.min(w/img.width,h/img.height);const iw=img.width*r,ih=img.height*r;x.drawImage(img,(w-iw)/2,(h-ih)/2,iw,ih)}
+function brandStallTex(i){const slot='warung'+(i+1),b=brandOf(slot);if(!b)return _stallTex(i,'?');const n=String(b.nama).slice(0,24),c=safeColor(b.warna,DEFC[i]),L=BR.logo[slot];
+ if(L)return ctex('bstL'+slot+BR.logoSrc[slot].length+c,512,160,(x,w,h)=>{drawCover(x,L,w,h,c);x.strokeStyle='#2b1a0e';x.lineWidth=10;x.strokeRect(5,5,w-10,h-10)});
  return ctex('bst'+i+n+c,512,160,(x,w,h)=>{x.fillStyle=c;x.fillRect(0,0,w,h);x.strokeStyle='#2b1a0e';x.lineWidth=10;x.strokeRect(5,5,w-10,h-10);x.fillStyle='#fff8e6';x.strokeStyle='#2b1a0e';x.lineWidth=8;x.textAlign='center';x.textBaseline='middle';
   let fs=72;x.font=FD(fs);while(x.measureText(n).width>w-48&&fs>26){fs-=4;x.font=FD(fs)}x.strokeText(n,w/2,h/2+4);x.fillText(n,w/2,h/2+4)})}
 function kiosk2(x,z,i){const nt=ENV.night>.5,b=brandOf('warung'+(i+1)),c=b?safeColor(b.warna,DEFC[i]):DEFC[i];
@@ -807,7 +809,8 @@ function kiosk2(x,z,i){const nt=ENV.night>.5,b=brandOf('warung'+(i+1)),c=b?safeC
 // baliho di luar pagar, menghadap kampus
 const BALIHO=[{slot:'baliho1',a:-.62},{slot:'baliho2',a:.62}];
 function balihoPos(B){const r=34.6;return {x:Math.sin(B.a)*r,z:Math.cos(B.a)*r,ry:B.a+Math.PI}}
-function balihoTex(slot){const b=brandOf(slot);const key=b?('bh'+slot+b.nama+(b.tagline||'')+b.warna):'bh_kosong';
+function balihoTex(slot){const b=brandOf(slot),L=b&&BR.logo[slot];if(L)return ctex('bhL'+slot+BR.logoSrc[slot].length+b.warna,1024,448,(x,w,h)=>drawCover(x,L,w,h,safeColor(b.warna,'#3a6ea5')));
+ const key=b?('bh'+slot+b.nama+(b.tagline||'')+b.warna):'bh_kosong';
  return ctex(key,1024,448,(x,w,h)=>{if(!b){x.fillStyle='#fff8e6';x.fillRect(0,0,w,h);x.fillStyle='#2b1a0e';x.fillRect(0,0,w,92);x.fillStyle='#ffd23f';x.font=FD(52);x.textAlign='center';x.textBaseline='middle';x.fillText('SLOT IKLAN TERSEDIA',w/2,48);
    x.fillStyle='#2b1a0e';x.font=FD(84);x.fillText('PASANG BRANDMU',w/2,200);x.fillText('DI KAMPUS UNINET',w/2,296);x.fillStyle='#b8261f';x.font=FD(46);x.fillText('DM @uninet.id',w/2,388);return}
   const c=safeColor(b.warna,'#3a6ea5');x.fillStyle=c;x.fillRect(0,0,w,h);x.fillStyle='rgba(0,0,0,.18)';x.fillRect(0,h-110,w,110);x.textAlign='center';x.textBaseline='middle';
@@ -824,8 +827,11 @@ function openBrand(slot){const b=brandOf(slot),isW=slot.startsWith('warung');
  if(!b){showCard(isW?`<h2>Warung ${slot.slice(-1)}: sedang divoting</h2><p>Nama dan menu warung ini ditentukan mahasiswa. Tulis usulan nama warung dan menu andalannya di kolom komentar video Kantin UNINET. Usulan dengan like terbanyak jadi warung resmi di sini.</p><div class="row"><a class="btn" href="https://www.instagram.com/uninet.id/" target="_blank" rel="noopener">Usulkan di Instagram</a></div>`:`<h2>Slot baliho tersedia</h2><p>Baliho ini terlihat dari seluruh kampus. Pasang brand kamu di depan mahasiswa UNINET.</p><div class="row"><a class="btn" href="https://www.instagram.com/uninet.id/" target="_blank" rel="noopener">DM @uninet.id</a></div>`);return}
  const link=safeLink(b.link);
  showCard(`<h2>${esc(String(b.nama))}</h2><p style="margin-top:-2px;color:#8a7560;font-size:13px">${isW?'Warung resmi Kantin UNINET'+(b.pengusul?' · usulan @'+esc(String(b.pengusul).replace(/^@+/,'')):''):'Mitra resmi Kampus UNINET'}</p>${b.tagline?`<p>${esc(String(b.tagline))}</p>`:''}
+  <div id="bLogo"></div>${Array.isArray(b.produk)&&b.produk.filter(p=>p&&p.nama).length?`<div id="bProd" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin:0 0 10px;max-height:34vh;overflow-y:auto;touch-action:pan-y">${b.produk.map((p,k)=>p&&p.nama?`<div style="background:#fff;border:2px solid var(--ink);border-radius:12px;overflow:hidden"><div data-p="${k}" style="aspect-ratio:4/3;background:#f1e4c8"></div><div style="padding:6px 8px;font:800 14px/1.25 var(--body)">${esc(String(p.nama).slice(0,40))}${p.harga?`<br><span style="color:#b8261f">${esc(String(p.harga).slice(0,20))}</span>`:''}</div></div>`:'').join('')}</div>`:''}
   ${b.promo?`<div style="display:flex;align-items:center;gap:8px;margin:0 0 10px;padding:8px 10px;border:3px dashed var(--ink);border-radius:12px;background:#fff"><span style="flex:1;font:900 18px var(--body);letter-spacing:1px">${esc(String(b.promo))}</span><button class="btn" id="bCopy" type="button">Salin kode</button></div>`:''}
   <div class="row">${link?`<a class="btn dark" id="bGo" href="${esc(link)}" target="_blank" rel="noopener">${esc(String(b.tombol||'Kunjungi'))}</a>`:''}</div>`);
+ if(BR.logoSrc[slot]){const im=new Image();im.src=BR.logoSrc[slot];im.alt='Banner '+String(b.nama);im.style.cssText='width:100%;max-height:150px;object-fit:contain;border-radius:12px;border:2px solid var(--ink);margin:0 0 10px;background:'+safeColor(b.warna,'#fff');document.getElementById('bLogo').appendChild(im)}
+ if(document.getElementById('bProd')&&NET.on)NET.F.get(NET.F.ref(NET.db,'bfoto/'+slot)).then(sn=>{const f=sn.val()||{};document.querySelectorAll('#bProd [data-p]').forEach(el=>{const u=f['p'+el.dataset.p];if(typeof u==='string'&&u.startsWith('data:image/')){el.innerHTML='';const im=new Image();im.src=u;im.alt='';im.style.cssText='width:100%;height:100%;object-fit:cover;display:block';el.appendChild(im)}})}).catch(()=>{});
  if(!BR.seen.has(slot)){BR.seen.add(slot);bstat(slot,'v')}
  const g=document.getElementById('bGo');if(g)g.onclick=()=>bstat(slot,'c');
  const cp=document.getElementById('bCopy');if(cp)cp.onclick=async()=>{try{await navigator.clipboard.writeText(String(b.promo));cp.textContent='Tersalin!'}catch(e){cp.textContent='Tekan lama kodenya'}}}
@@ -840,7 +846,9 @@ document.getElementById('wNear').onclick=()=>{if(!NEAR)return;if(NEAR.startsWith
 const _tap=tap;tap=function(x,y){if(VPm){const r=cv.getBoundingClientRect(),nx=((x-r.left)/r.width)*2-1,ny=1-((y-r.top)/r.height)*2,eye=VPm.eye,fwd=norm(sub(cam.tgt,eye)),right=norm(cross(fwd,[0,1,0])),upv=cross(right,fwd),th=Math.tan(cam.fov*Math.PI/360),asp=r.width/r.height;
   const dir=norm([fwd[0]+right[0]*nx*th*asp+upv[0]*ny*th,fwd[1]+right[1]*nx*th*asp+upv[1]*ny*th,fwd[2]+right[2]*nx*th*asp+upv[2]*ny*th]);
   for(const B of BALIHO){const p=balihoPos(B),oc=sub([p.x,6.6,p.z],eye),t=dot(oc,dir);if(t>0&&dot(oc,oc)-t*t<3.6*3.6){openBrand(B.slot);return}}}_tap(x,y)};
-function brandStart(){const F=NET.F;F.onValue(F.ref(NET.db,'brands'),s=>{BR.data=s.val()||{};NEAR=null;for(const k of Object.keys(TX))if(/^(bst|bh)/.test(k)){gl.deleteTexture(TX[k]);delete TX[k]}},e=>console.warn('brands',e&&e.code))}
+function clearBrandTex(){for(const k of Object.keys(TX))if(/^(bst|bh)/.test(k)){gl.deleteTexture(TX[k]);delete TX[k]}}
+function brandStart(){const F=NET.F;F.onValue(F.ref(NET.db,'brands'),s=>{BR.data=s.val()||{};NEAR=null;clearBrandTex()},e=>console.warn('brands',e&&e.code));
+ F.onValue(F.ref(NET.db,'blogo'),s=>{const v=s.val()||{};for(const slot of BSLOTS){const u=v[slot];if(typeof u==='string'&&u.startsWith('data:image/')){if(BR.logoSrc[slot]===u)continue;const im=new Image();im.onload=()=>{BR.logo[slot]=im;BR.logoSrc[slot]=u;clearBrandTex()};im.src=u}else if(BR.logo[slot]){delete BR.logo[slot];delete BR.logoSrc[slot];clearBrandTex()}}},e=>console.warn('blogo',e&&e.code))}
 
 // ---------- start ----------
 (document.fonts&&document.fonts.load?Promise.all([document.fonts.load(FD(40)),document.fonts.load('600 16px Nunito'),document.fonts.load('900 16px Nunito')]).catch(()=>{}):Promise.resolve()).then(()=>{
