@@ -81,12 +81,28 @@ function collide(p){for(const b of SOL){if(p.y>b.h-.05||p.y+1.5<b.y0)continue;if
 const PL1={x:0,z:26,y:0,vy:0,yaw:Math.PI,side:-1,moving:0,run:0,phase:0};
 let WALK=true;const KEYS={};const JOY={x:0,y:0};
 const WCAM={yaw:0,pitch:.32,dist:7.5};
+// ---- karakter spesial: Rektor UNINET (akun @uninet.id) ----
+const SPECIAL={'uninet.id':{title:'REKTOR UNINET'}};
+function rektor(x,z,yaw,h,sw,g){const P=M4.trs([x,h,z],[0,yaw,0],[1,1,1]),NV='#1d2742',GD='#f2b630';
+ DM(PCYL,NV,P,[0,0,0],0,[.36,.8,.36]);DM(ICO2,NV,P,[0,.8,0],0,[.31,.12,.31]);
+ DM(BOX,GD,P,[0,.48,.27],[0,0,.62],[.11,.98,.04],{emis:.15});DM(RCYL,'#b8261f',P,[0,.3,0],0,[.345,.07,.345],{cast:0});
+ for(const s of[-1,1]){DM(RCYL,NV,P,[s*.38,.22-sw*0,s*0+sw*s*.06],0,[.1,.52,.1]);DM(RCYL,GD,P,[s*.38,.2,sw*s*.06],0,[.105,.06,.105],{cast:0});DM(ICO2,'#ffd9b8',P,[s*.38,.18,sw*s*.1],0,[.09,.09,.09],{cast:0})}
+ DM(ICO2,'#ffd9b8',P,[0,1.14,0],0,[.32,.32,.32]);DM(ICO2,'#2b1a0e',P,[0,1.25,-.1],0,[.335,.22,.335]);
+ for(const s of[-1,1])DM(ICO0,'#2b1a0e',P,[s*.11,1.15,.3],0,[.04,.055,.04],{cast:0});
+ DM(CYL,'#151515',P,[0,1.34,0],0,[.29,.14,.29]);DM(BOX,'#151515',P,[0,1.5,0],[0,Math.PI/4,0],[.66,.05,.66]);
+ const tw=Math.sin(TIME*3)*.04;DM(ICO0,GD,P,[0,1.54,0],0,[.05,.04,.05],{emis:.4});DM(BOX,GD,P,[.24,1.53,0],0,[.48,.02,.02]);DM(BOX,GD,P,[.47,1.37,tw],0,[.03,.3,.03],{emis:.3});DM(ICO0,GD,P,[.47,1.21,tw],0,[.06,.08,.06],{emis:.4});
+ const pu=.75+.25*Math.sin(TIME*3);D(DISC,'#ffd23f',[x,(g||0)+.03,z],0,[.95*pu+.3,.01,.95*pu+.3],{alpha:.32,emis:1,cast:0,recv:0});
+ for(let i=0;i<3;i++){const a=TIME*1.6+i*2.094;D(ICO0,'#fff3a0',[x+Math.cos(a)*.75,h+.5+Math.sin(TIME*2+i)*.35,z+Math.sin(a)*.75],[TIME*3,TIME*2,0],[.06,.06,.06],{emis:1,cast:0})}}
+function specialTag(n){const t=SPECIAL[n].title;return ctex('sp_'+n,360,112,(x,w,h)=>{x.fillStyle='#ffd23f';x.strokeStyle='#2b1a0e';x.lineWidth=6;x.beginPath();x.roundRect(6,6,w-12,h-12,26);x.fill();x.stroke();
+ x.fillStyle='#2b1a0e';x.textAlign='center';x.textBaseline='middle';x.font=FD(38);x.fillText('@'+n,w/2,h/2-14);x.fillStyle='#b8261f';x.font=FD(24);x.fillText('★ '+t+' ★',w/2,h/2+22)})}
 function myTag(){return (typeof NET!=='undefined'&&NET.ig)?'@'+NET.ig:'KAMU'}
 function nameTex(){const L=myTag();return ctex('ptag_'+L,320,80,(x,w,h)=>{x.font=FD(L==='KAMU'?46:34);const tw=Math.min(w-8,x.measureText(L).width+40);x.fillStyle='#2b1a0e';x.beginPath();x.roundRect((w-tw)/2,4,tw,h-8,30);x.fill();x.fillStyle='#ffd23f';x.textAlign='center';x.textBaseline='middle';let t=L;while(x.measureText(t).width>w-40&&t.length>3)t=t.slice(0,-1);x.fillText(t===L?L:t+'…',w/2,h/2+3)})}
 function player(){const h=PL1.y+(PL1.moving&&PL1.y<=groundAt(PL1.x,PL1.z)+.01?Math.abs(Math.sin(PL1.phase))*.1:0);
- person(PL1.x,PL1.z,0,PL1.yaw,h,{col:'#3a6ea5',hair:'#2b1a0e',swing:PL1.moving?Math.sin(PL1.phase)*.9:0});
- const fx=Math.sin(PL1.yaw),fz=Math.cos(PL1.yaw);DM(ICO2,'#ffd23f',M4.trs([PL1.x,h+1.27,PL1.z],[0,PL1.yaw,0],[1,1,1]),[0,0,0],0,[.35,.15,.35]);DM(BOX,'#ffd23f',M4.trs([PL1.x,h+1.27,PL1.z],[0,PL1.yaw,0],[1,1,1]),[0,0,.34],0,[.42,.05,.3]);
- textPlane(nameTex(),PL1.x,h+2,PL1.z,1.15,.29,WCAM.yaw,{emis:1,recv:0});
+ const sp=typeof NET!=='undefined'&&NET.ig&&SPECIAL[NET.ig];
+ if(sp){rektor(PL1.x,PL1.z,PL1.yaw,h,PL1.moving?Math.sin(PL1.phase)*.9:0,groundAt(PL1.x,PL1.z));textPlane(specialTag(NET.ig),PL1.x,h+2.35,PL1.z,1.35,.42,WCAM.yaw,{emis:1,recv:0})}
+ else{person(PL1.x,PL1.z,0,PL1.yaw,h,{col:'#3a6ea5',hair:'#2b1a0e',swing:PL1.moving?Math.sin(PL1.phase)*.9:0});
+ DM(ICO2,'#ffd23f',M4.trs([PL1.x,h+1.27,PL1.z],[0,PL1.yaw,0],[1,1,1]),[0,0,0],0,[.35,.15,.35]);DM(BOX,'#ffd23f',M4.trs([PL1.x,h+1.27,PL1.z],[0,PL1.yaw,0],[1,1,1]),[0,0,.34],0,[.42,.05,.3]);
+ textPlane(nameTex(),PL1.x,h+2,PL1.z,1.15,.29,WCAM.yaw,{emis:1,recv:0})}
  D(DISC,'#000000',[PL1.x,groundAt(PL1.x,PL1.z)+.02,PL1.z],0,[.4,.01,.4],{alpha:.18,cast:0,recv:0})}
 function stepPlayer(dt){let ix=JOY.x,iy=JOY.y;if(KEYS.KeyW||KEYS.ArrowUp)iy-=1;if(KEYS.KeyS||KEYS.ArrowDown)iy+=1;if(KEYS.KeyA||KEYS.ArrowLeft)ix-=1;if(KEYS.KeyD||KEYS.ArrowRight)ix+=1;
  const m=Math.hypot(ix,iy);if(m>1){ix/=m;iy/=m}

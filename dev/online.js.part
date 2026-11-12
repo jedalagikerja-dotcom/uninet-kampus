@@ -27,7 +27,7 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 #chatForm .btn{padding:6px 12px}
 #chatLog p.msg{cursor:pointer;border-radius:10px;padding:3px 6px;margin:0 -6px 4px}#chatLog p.msg:active{background:#f1e4c8}
 #chatLog p.ment{background:#fff1b8;box-shadow:inset 3px 0 0 #f2b630}#chatLog .q{display:block;font-size:12px;color:#8a7560;border-left:3px solid #d8c7a5;padding-left:6px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#chatLog .at{color:#3a6ea5;font-weight:900}#chatLog .at.mine{background:#ffd23f;color:#2b1a0e;border-radius:6px;padding:0 3px}
+#chatLog .at{color:#3a6ea5;font-weight:900}#chatLog b.rk{color:#b8860b}#chatLog b.rk i{font-style:normal;font-size:10px;background:#ffd23f;color:#2b1a0e;border:1.5px solid #2b1a0e;border-radius:6px;padding:0 4px;vertical-align:2px}#chatLog .at.mine{background:#ffd23f;color:#2b1a0e;border-radius:6px;padding:0 3px}
 #replyBar{display:none;align-items:center;gap:8px;padding:6px 10px;background:#f6ecd6;border-top:2px solid #e2d6bf;font:700 13px var(--body);color:#5a4330}#replyBar.on{display:flex}#replyBar span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #replyBar button{border:2px solid var(--ink);background:#fff;border-radius:8px;width:26px;height:26px;font:900 12px var(--body);cursor:pointer}
 #mentList{display:none;flex-wrap:wrap;gap:6px;padding:6px 8px 0}#mentList.on{display:flex}#mentList button{font:800 13px var(--body);border:2px solid var(--ink);border-radius:999px;background:#fff;padding:4px 10px;cursor:pointer}
@@ -52,7 +52,7 @@ function esc(t){return t.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;
 function fmtMsg(m){return esc(m).replace(/@([a-z0-9._]{1,30})/gi,(a,u)=>`<span class="at${NET.ig&&u.toLowerCase()===NET.ig?' mine':''}">@${u}</span>`)}
 function msgLine(key,v){const p=document.createElement('p');p.className='msg'+(v.u===NET.uid?' me':'')+(v.ment?' ment':'');p.dataset.k=key;
  let q='';if(v.r){const o=MSG.get(v.r);q=`<span class="q">↪ ${o?esc(shown(o.n))+': '+esc(o.m.slice(0,60)):'membalas pesan sebelumnya'}</span>`}
- p.innerHTML=q+`<b>${esc(shown(v.n))}:</b> `+fmtMsg(v.m);p.onclick=()=>setReply(key);chatLog.appendChild(p);while(chatLog.children.length>60)chatLog.firstChild.remove();
+ p.innerHTML=q+(SPECIAL[v.n]?`<b class="rk">${esc(shown(v.n))} <i>REKTOR</i>:</b> `:`<b>${esc(shown(v.n))}:</b> `)+fmtMsg(v.m);p.onclick=()=>setReply(key);chatLog.appendChild(p);while(chatLog.children.length>60)chatLog.firstChild.remove();
  if(chatEl.classList.contains('open'))chatLog.scrollTop=chatLog.scrollHeight}
 function setReply(key){const o=key&&MSG.get(key);REPLY=o?key:null;const bar=document.getElementById('replyBar');bar.classList.toggle('on',!!o);
  if(o){bar.firstChild.textContent='Membalas '+shown(o.n)+': '+o.m.slice(0,50);if(!/^Tamu /.test(o.n)&&o.u!==NET.uid&&!chatIn.value.includes('@'+o.n))chatIn.value='@'+o.n+' '+chatIn.value;chatIn.focus()}}
@@ -109,8 +109,9 @@ const SHIRT=['#ff8a5c','#6cc3f5','#ffd166','#8bd17c','#c79bf2','#ff9fb8','#5fd0c
 function srvNow(){return Date.now()+NET.off}
 function drawOthers(dt){const now=srvNow();let k=Math.min(1,dt*6);for(const [id,o] of NET.others){if(now-o.seen>70000)continue;
   const dx=o.tx-o.x,dz=o.tz-o.z,d=Math.hypot(dx,dz);o.x+=dx*k;o.z+=dz*k;let dy=o.tyaw-o.yaw;while(dy>Math.PI)dy-=2*Math.PI;while(dy<-Math.PI)dy+=2*Math.PI;o.yaw+=dy*k;o.mv=d>.05;if(o.mv)o.ph=(o.ph||0)+dt*10;
-  const h=o.mv?Math.abs(Math.sin(o.ph))*.1:0;person(o.x,o.z,o.c,o.yaw,(o.y||0)+h,{col:SHIRT[o.c%SHIRT.length],swing:o.mv?Math.sin(o.ph)*.9:0});
-  const far=(o.x-EYE[0])**2+(o.z-EYE[2])**2;if(far<1600)textPlane(nameTagTex(shown(o.n)),o.x,(o.y||0)+2.1,o.z,1.7,.38,cam.yaw,{emis:1,recv:0});
+  const h=o.mv?Math.abs(Math.sin(o.ph))*.1:0,far=(o.x-EYE[0])**2+(o.z-EYE[2])**2;
+  if(SPECIAL[o.n]){rektor(o.x,o.z,o.yaw,(o.y||0)+h,o.mv?Math.sin(o.ph)*.9:0,o.y||0);if(far<3600)textPlane(specialTag(o.n),o.x,(o.y||0)+2.35,o.z,1.35,.42,cam.yaw,{emis:1,recv:0})}
+  else{person(o.x,o.z,o.c,o.yaw,(o.y||0)+h,{col:SHIRT[o.c%SHIRT.length],swing:o.mv?Math.sin(o.ph)*.9:0});if(far<1600)textPlane(nameTagTex(shown(o.n)),o.x,(o.y||0)+2.1,o.z,1.7,.38,cam.yaw,{emis:1,recv:0})}
   const b=NET.bubbles.get(id);if(b&&now<b.until&&far<2500)textPlane(bubbleTex(b.key,b.m),o.x,(o.y||0)+2.95,o.z,2.5,.83,cam.yaw,{emis:1,recv:0})}
  const mb=NET.bubbles.get(NET.uid);if(WALK&&mb&&now<mb.until)textPlane(bubbleTex(mb.key,mb.m),PL1.x,PL1.y+2.95,PL1.z,2.5,.83,cam.yaw,{emis:1,recv:0});
  for(const [id,b] of NET.bubbles)if(now>b.until+500){dropTex('bb_'+b.key);NET.bubbles.delete(id)}}
