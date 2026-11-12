@@ -1,4 +1,4 @@
-<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body><title>Jalan-jalan · Kampus Mini UNINET</title>
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"></head><body><title>Jalan-jalan · Kampus Mini UNINET</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800;900&display=swap">
@@ -630,7 +630,7 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 #chat header button{border:2px solid var(--ink);background:#fff;border-radius:10px;font:900 14px var(--body);width:30px;height:30px;cursor:pointer}
 #chatLog{flex:1;overflow-y:auto;padding:8px 12px;font:600 14px/1.4 var(--body);color:#3b2a1c}
 #chatLog p{margin:0 0 6px;word-wrap:break-word}#chatLog b{color:var(--ink)}#chatLog .me b{color:#3a6ea5}#chatLog .sys{color:#8a7560;font-style:italic}
-#chatForm{display:flex;gap:6px;padding:8px;border-top:2px solid #e2d6bf}#chatIn{flex:1;min-width:0;border:2px solid var(--ink);border-radius:12px;padding:8px 10px;font:700 15px var(--body);background:#fff}
+#chatForm{display:flex;gap:6px;padding:8px;border-top:2px solid #e2d6bf}#chatIn{flex:1;min-width:0;border:2px solid var(--ink);border-radius:12px;padding:8px 10px;font:700 16px var(--body);background:#fff}
 #chatForm .btn{padding:6px 12px}
 #chatLog p.msg{cursor:pointer;border-radius:10px;padding:3px 6px;margin:0 -6px 4px}#chatLog p.msg:active{background:#f1e4c8}
 #chatLog p.ment{background:#fff1b8;box-shadow:inset 3px 0 0 #f2b630}#chatLog .q{display:block;font-size:12px;color:#8a7560;border-left:3px solid #d8c7a5;padding-left:6px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -753,10 +753,18 @@ document.getElementById('chatForm').addEventListener('submit',async e=>{e.preven
 chatIn.addEventListener('keydown',e=>e.stopPropagation());chatIn.addEventListener('input',updMent);document.getElementById('replyX').onclick=()=>setReply(null);
 document.getElementById('mName').onclick=()=>openIdentity();
 netStart();
-// iPad/iPhone: setelah keyboard tertutup, kembalikan halaman ke posisi semula supaya UI tidak hilang
-(function(){const reset=()=>{if(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;window.scrollTo(0,0);document.documentElement.scrollTop=0;document.body.scrollTop=0};
- document.addEventListener('focusout',()=>setTimeout(reset,60));if(window.visualViewport)visualViewport.addEventListener('resize',()=>setTimeout(reset,60));addEventListener('orientationchange',()=>setTimeout(reset,300));
- document.head.insertAdjacentHTML('beforeend','<style>html,body{position:fixed;inset:0;width:100%}</style>')})();
+// iPad/iPhone: cegah zoom halaman & kembalikan posisi setelah keyboard tertutup supaya UI tidak hilang
+(function(){const vm=document.querySelector('meta[name=viewport]'),BASE='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover';
+ const unzoom=()=>{vm.setAttribute('content','width=device-width,initial-scale=1.0001,maximum-scale=1,user-scalable=no,viewport-fit=cover');setTimeout(()=>vm.setAttribute('content',BASE),50)};
+ const reset=()=>{if(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;window.scrollTo(0,0);document.documentElement.scrollTop=0;document.body.scrollTop=0;
+  if(window.visualViewport&&(visualViewport.scale>1.01||visualViewport.offsetTop>1||visualViewport.offsetLeft>1))unzoom()};
+ document.addEventListener('focusout',()=>{setTimeout(reset,80);setTimeout(reset,400)});if(window.visualViewport){visualViewport.addEventListener('resize',()=>setTimeout(reset,80));visualViewport.addEventListener('scroll',()=>setTimeout(reset,80))}
+ addEventListener('orientationchange',()=>setTimeout(reset,300));
+ // blok pinch/double-tap zoom halaman (zoom 3D tetap lewat dua jari di area kampus)
+ ['gesturestart','gesturechange','gestureend'].forEach(ev=>document.addEventListener(ev,e=>e.preventDefault(),{passive:false}));
+ let lastTap=0;document.addEventListener('touchend',e=>{const t=Date.now();if(t-lastTap<300&&!/INPUT|TEXTAREA|BUTTON|A/.test(e.target.tagName))e.preventDefault();lastTap=t},{passive:false});
+ document.head.insertAdjacentHTML('beforeend','<style>html,body{position:fixed;inset:0;width:100%;touch-action:none}input,textarea,select{font-size:max(16px,1em)}button{touch-action:manipulation}#chatLog{touch-action:pan-y}#mentList,#places{touch-action:pan-x}</style>');
+ setInterval(reset,2000)})();
 
 // ---------- start ----------
 (document.fonts&&document.fonts.load?Promise.all([document.fonts.load(FD(40)),document.fonts.load('600 16px Nunito'),document.fonts.load('900 16px Nunito')]).catch(()=>{}):Promise.resolve()).then(()=>{
