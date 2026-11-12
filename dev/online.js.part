@@ -68,8 +68,8 @@ function showOnlineList(){const now=srvNow(),L=[...NET.others.values()].filter(o
 function setOnl(n,live){const e=document.getElementById('onl');e.classList.toggle('live',!!live);e.lastChild.textContent=live?(n+' online'):'offline'}
 // ---- identitas: username IG yang dikunci ----
 async function claimIG(v){const F=NET.F,db=NET.db,k=igKey(v);
- const cur=await F.get(F.ref(db,'names/'+k));if(cur.exists()&&cur.val()!==NET.uid)return 'taken';
- await F.set(F.ref(db,'names/'+k),NET.uid);await F.set(F.ref(db,'profiles/'+NET.uid),{ig:v});
+ const cur=await F.get(F.ref(db,'names/'+k));
+ try{await F.set(F.ref(db,'names/'+k),NET.uid)}catch(e){return cur.exists()&&cur.val()!==NET.uid?'taken':(k==='uninet,id'?'reserved':'error')}await F.set(F.ref(db,'profiles/'+NET.uid),{ig:v});
  const old=NET.ig;NET.ig=v;LS.set('uninet_ig_claimed',v);if(old&&igKey(old)!==k)F.set(F.ref(db,'names/'+igKey(old)),null).catch(()=>{});
  sendPos(true);updName();return 'ok'}
 async function loadProfile(){const F=NET.F,db=NET.db;try{const p=await F.get(F.ref(db,'profiles/'+NET.uid));const ig=p.exists()&&p.val().ig;
@@ -88,7 +88,7 @@ function openIdentity(reason){const u=NET.auth&&NET.auth.currentUser,linked=u&&!
   if(!igOk(v)){E.textContent='Username Instagram hanya huruf kecil, angka, titik, dan garis bawah.';return}if(badName(v)){E.textContent='Username ini tidak bisa dipakai.';return}
   if(v===NET.ig){closeCard();return}if(!NET.on){E.textContent='Belum tersambung ke kampus. Coba lagi sebentar.';return}
   E.style.color='#4a3524';E.textContent='Mengecek…';let r;try{r=await claimIG(v)}catch(err){r='error';console.warn(err)}
-  if(r==='ok'){closeCard();logLine('','Selamat datang, @'+v+'!','sys')}else{E.style.color='#b0302b';E.textContent=r==='taken'?'@'+v+' sudah dipakai mahasiswa lain. Kalau itu akunmu, hubungi @uninet.id.':'Gagal menyimpan. Coba lagi sebentar.'}};
+  if(r==='ok'){closeCard();logLine('','Selamat datang, @'+v+'!','sys')}else{E.style.color='#b0302b';E.textContent=r==='taken'?'@'+v+' sudah dipakai mahasiswa lain. Kalau itu akunmu, hubungi @uninet.id.':r==='reserved'?'@uninet.id khusus akun resmi UNINET.':'Gagal menyimpan. Coba lagi sebentar.'}};
  const g=document.getElementById('gBtn');if(g)g.onclick=googleSave;const sk=document.getElementById('skipBtn');if(sk)sk.onclick=()=>closeCard()}
 async function googleSave(){const AU=NET.AU,auth=NET.auth,E=document.getElementById('nmE'),prov=new AU.GoogleAuthProvider();prov.setCustomParameters({prompt:'select_account'});
  try{await AU.linkWithPopup(auth.currentUser,prov);if(NET.ig)await NET.F.set(NET.F.ref(NET.db,'profiles/'+NET.uid),{ig:NET.ig});openIdentity('Tersimpan! Namamu sekarang terikat ke akun Google ini.')}
