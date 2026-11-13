@@ -25,63 +25,52 @@ textarea{min-height:70px;resize:vertical}
 .muted{color:#7a6450;font-size:14px}
 a{color:#3a6ea5}
 </style></head><body>
-<div class="hero"><small>PROGRAM BANTU UMKM</small><h1>Warung Gratis 7 Hari di Kantin UNINET</h1><p>5 UMKM tercepat langsung dapat warung sendiri di Kampus Mini UNINET. Tanpa antre, tanpa biaya.</p></div>
+<div class="hero"><small>PROGRAM BANTU UMKM</small><h1>Warung Gratis 7 Hari di Kantin UNINET</h1><p>Daftarkan usahamu. Admin UNINET memilih 5 UMKM untuk dapat warung gratis di Kampus Mini.</p></div>
 <main>
-<div class="card"><div class="slots" id="slots"><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i></div><p class="big" id="sisa">Memuat slot…</p><p class="muted" style="text-align:center;margin:2px 0 0" id="sisa2"></p></div>
-<div class="card"><b>Yang kamu dapat, gratis 7 hari:</b>
+<div class="card"><div class="slots" id="slots"><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i></div><p class="big" id="sisa">Memuat…</p><p class="muted" style="text-align:center;margin:2px 0 0" id="sisa2"></p></div>
+<div class="card"><b>Yang kamu dapat kalau terpilih, gratis 7 hari:</b>
 <ul><li>Warung sendiri di Kantin UNINET dengan papan nama brandmu</li><li>Banner, 4 foto produk, dan harga</li><li>Tombol ke toko online, Instagram, atau WhatsApp</li><li>Akses Portal Mitra untuk mengubah isi warung kapan saja</li><li>Laporan berapa mahasiswa yang mampir dan klik</li></ul>
-<p class="muted" style="margin:6px 0 0">Syarat: usaha mikro atau kecil asli, produk halal dan legal. Satu akun Google untuk satu warung. Isi yang tidak pantas akan dicabut admin.</p></div>
-<div class="card" id="step1"><b>Langkah 1 · Masuk dengan Google</b><p class="muted" style="margin:4px 0 0">Akun Google ini nanti dipakai untuk mengatur isi warungmu.</p><button class="btn" id="login" type="button" disabled>Memuat…</button></div>
-<form class="card" id="f" hidden autocomplete="on">
-<b>Langkah 2 · Isi nama brand</b><p class="muted" style="margin:4px 0 0" id="who"></p>
-<label for="usaha">Nama brand</label><input id="usaha" maxlength="24" required placeholder="mis. Kopi Bu Tini">
+<p class="muted" style="margin:6px 0 0">Syarat: usaha mikro atau kecil asli, produk halal dan legal. UMKM yang terpilih dihubungi lewat WhatsApp atau Instagram.</p></div>
+<form class="card" id="f" autocomplete="on">
+<b>Formulir pendaftaran</b>
+<label for="usaha">Nama usaha / brand</label><input id="usaha" maxlength="24" required placeholder="mis. Kopi Bu Tini">
+<label for="produk">Produk andalan</label><input id="produk" maxlength="60" required placeholder="mis. Es kopi susu gula aren">
 <label for="ig">Instagram usaha</label><input id="ig" maxlength="31" required placeholder="@namausaha" autocapitalize="none" autocorrect="off">
-<label for="wa">Nomor WhatsApp (tidak ditampilkan, hanya untuk admin)</label><input id="wa" maxlength="16" inputmode="tel" placeholder="08xxxxxxxxxx">
-<div class="chk"><input type="checkbox" id="ok" required><label for="ok" style="margin:0;color:#2b1a0e">Usaha ini milik saya, produknya halal dan legal.</label></div>
-<button class="btn" id="go" type="submit">Ambil warung sekarang</button>
+<label for="wa">Nomor WhatsApp</label><input id="wa" maxlength="16" required inputmode="tel" placeholder="08xxxxxxxxxx">
+<label for="email">Email Google (untuk masuk Portal Mitra kalau terpilih)</label><input id="email" type="email" maxlength="80" required placeholder="nama@gmail.com" autocapitalize="none">
+<label for="kota">Kota</label><input id="kota" maxlength="30" placeholder="mis. Bandung">
+<label for="alasan">Ceritakan usahamu singkat</label><textarea id="alasan" maxlength="300" placeholder="Sejak kapan berdiri, jualan di mana, kenapa ingin ikut."></textarea>
+<div class="chk"><input type="checkbox" id="ok" required><label for="ok" style="margin:0;color:#2b1a0e">Data ini benar, produknya halal dan legal, dan saya setuju dihubungi @uninet.id.</label></div>
+<button class="btn" id="go" type="submit" disabled>Memuat…</button>
+<p id="st" role="status"></p>
 </form>
-<div class="card" id="done" hidden style="background:#e3f7ea"><b id="doneT"></b><p id="doneP" style="margin:6px 0 0"></p><a class="btn" style="display:block;text-align:center;text-decoration:none" href="kampus/mitra.html">Isi warungku sekarang</a><a class="btn" style="display:block;text-align:center;text-decoration:none;background:#fff" href="kampus/jalan.html">Lihat di Kampus Mini</a></div>
-<p id="st" role="status" style="text-align:center"></p>
 </main>
 <script type="module">
 const V='10.14.1',U=n=>`https://www.gstatic.com/firebasejs/${V}/firebase-${n}.js`;const $=s=>document.querySelector(s);
-const st=$('#st'),login=$('#login'),go=$('#go');const set=(t,c)=>{st.textContent=t;st.className=c||''};
-const W=['warung1','warung2','warung3','warung4','warung5'];
+const go=$('#go'),st=$('#st');const set=(t,c)=>{st.textContent=t;st.className=c||''};const W=['warung1','warung2','warung3','warung4','warung5'];
 try{
 const [{initializeApp},A,D]=await Promise.all([import(U('app')),import(U('auth')),import(U('database'))]);
 const app=initializeApp({apiKey:"AIzaSyBq2b8RFiq0j47Hek0OghBABHv982ikuCw",authDomain:"uninet-kampus.firebaseapp.com",databaseURL:"https://uninet-kampus-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"uninet-kampus",storageBucket:"uninet-kampus.firebasestorage.app",messagingSenderId:"918457767424",appId:"1:918457767424:web:e42e5e58eed798ce296ae5"});
-const auth=A.getAuth(app),db=D.getDatabase(app);let open=false,taken={},off=0,user=null,mine=null;
-D.onValue(D.ref(db,'.info/serverTimeOffset'),x=>off=x.val()||0);
+const auth=A.getAuth(app),db=D.getDatabase(app);
+let u=await new Promise(r=>{const un=A.onAuthStateChanged(auth,x=>{un();r(x)})});if(!u)u=(await A.signInAnonymously(auth)).user;
+let open=false,taken={},sent=false;
+try{const m=(await D.get(D.ref(db,'umkm/'+u.uid))).val();if(m){sent=true;$('#usaha').value=m.usaha||''}}catch(e){}
 const sisa=()=>W.filter(w=>!taken[w]).length;
-function paint(){const n=5-sisa();document.querySelectorAll('#slots i').forEach((el,i)=>el.classList.toggle('on',!!taken[W[i]]));
- $('#sisa').textContent=!open&&!n?'Pendaftaran belum dibuka':(sisa()?`Slot tersisa ${sisa()} dari 5`:'Semua slot sudah terisi');
- $('#sisa2').textContent=!open?(n?'Pendaftaran sedang ditutup':'Pantau @uninet.id untuk jam bukanya'):(n?`${n} UMKM sudah dapat warung`:'Jadilah yang pertama!');
- if(mine)return;go.disabled=!open||!sisa();go.textContent=!open?'Pendaftaran ditutup':(sisa()?'Ambil warung sekarang':'Slot habis')}
-D.onValue(D.ref(db,'umkmOpen'),s=>{open=s.val()===true;paint()});
-D.onValue(D.ref(db,'umkmSlot'),s=>{taken=s.val()||{};paint()});
-async function showMine(w){mine=w;$('#step1').hidden=true;$('#f').hidden=true;$('#done').hidden=false;
- $('#doneT').textContent='Selamat, '+w.replace('warung','Warung ')+' di Kantin UNINET jadi milikmu!';
- let until='';try{const t=(await D.get(D.ref(db,'umkmSampai/'+w))).val();if(t)until=new Date(t).toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta',day:'numeric',month:'long'})}catch(e){}
- $('#doneP').textContent='Gratis'+(until?' sampai '+until:' 7 hari')+'. Sekarang pasang banner, foto produk, harga, dan link tokomu lewat Portal Mitra (masuk dengan akun Google yang sama).'}
-async function useUser(u){user=u;const g=u&&!u.isAnonymous&&u.email;
- if(!g){login.disabled=false;login.textContent='Masuk dengan Google';return}
- $('#step1').hidden=true;$('#f').hidden=false;$('#who').textContent='Masuk sebagai '+u.email;
- try{const b=(await D.get(D.ref(db,'umkmBy/'+u.uid))).val();if(b)return showMine(b)}catch(e){}paint()}
-A.onAuthStateChanged(auth,useUser);
-login.onclick=async()=>{const p=new A.GoogleAuthProvider();p.setCustomParameters({prompt:'select_account'});login.disabled=true;set('');
- try{if(auth.currentUser&&auth.currentUser.isAnonymous){try{await A.linkWithPopup(auth.currentUser,p)}catch(e){if(e.code==='auth/credential-already-in-use'||e.code==='auth/email-already-in-use'){await A.signInWithPopup(auth,p)}else throw e}}else await A.signInWithPopup(auth,p);
-  useUser(auth.currentUser)}catch(e){login.disabled=false;set(e.code==='auth/popup-blocked'?'Pop-up diblokir. Izinkan pop-up lalu coba lagi.':'Gagal masuk. Coba lagi.','bad')}};
-$('#f').addEventListener('submit',async e=>{e.preventDefault();if(mine||!user)return;
- const usaha=$('#usaha').value.replace(/[<>]/g,'').trim(),ig=$('#ig').value.trim().replace(/^@+/,'').toLowerCase(),wa=$('#wa').value.replace(/[^0-9+]/g,'');
- if(usaha.length<2)return set('Nama brand terlalu pendek.','bad');
+function paint(){document.querySelectorAll('#slots i').forEach((el,i)=>el.classList.toggle('on',!!taken[W[i]]));
+ $('#sisa').textContent=!open?'Pendaftaran sedang ditutup':(sisa()?`${sisa()} warung masih tersedia`:'Semua warung sudah terisi');
+ $('#sisa2').textContent=open?'Admin memilih UMKM dari formulir yang masuk':'Pantau @uninet.id untuk info pembukaan';
+ if(sent){go.disabled=true;go.textContent='Formulirmu sudah terkirim';set('Terima kasih! Kalau terpilih, admin UNINET menghubungimu lewat WhatsApp atau Instagram.','ok');return}
+ go.disabled=!open||!sisa();go.textContent=!open?'Pendaftaran ditutup':(sisa()?'Kirim pendaftaran':'Warung penuh')}
+D.onValue(D.ref(db,'umkmOpen'),s=>{open=s.val()===true;paint()},()=>paint());
+D.onValue(D.ref(db,'umkmSlot'),s=>{taken=s.val()||{};paint()},()=>{});
+$('#f').addEventListener('submit',async e=>{e.preventDefault();if(sent)return;
+ const usaha=$('#usaha').value.replace(/[<>]/g,'').trim(),produk=$('#produk').value.replace(/[<>]/g,'').trim(),ig=$('#ig').value.trim().replace(/^@+/,'').toLowerCase(),wa=$('#wa').value.replace(/[^0-9+]/g,''),email=$('#email').value.trim().toLowerCase(),kota=$('#kota').value.replace(/[<>]/g,'').trim(),alasan=$('#alasan').value.replace(/[<>]/g,'').trim();
+ if(usaha.length<2)return set('Nama usaha terlalu pendek.','bad');
  if(!/^[a-z0-9._]{1,30}$/.test(ig))return set('Username Instagram hanya huruf kecil, angka, titik, dan garis bawah.','bad');
- if(wa&&!/^(\+62|62|0)8[0-9]{7,12}$/.test(wa))return set('Nomor WhatsApp belum benar. Contoh: 081234567890.','bad');
- go.disabled=true;go.textContent='Mengambil warung…';set('');
- const email=String(user.email).toLowerCase(),until=Date.now()+off+7*864e5-60000;
- for(const w of W){if(taken[w])continue;
-  try{await D.update(D.ref(db),{['umkmSlot/'+w]:user.uid,['umkmBy/'+user.uid]:w,['umkmSampai/'+w]:until,['owners/'+w]:email,
-    ['brands/'+w]:{nama:usaha,tagline:'',link:'https://instagram.com/'+ig,tombol:'Lihat Instagram',aktif:true,umkm:true,t:D.serverTimestamp()}});
-   D.set(D.ref(db,'umkm/'+user.uid),{usaha,ig,wa,email,w,t:D.serverTimestamp()}).catch(()=>{});return showMine(w)}catch(err){taken[w]=taken[w]||'?'}}
- paint();set(open?'Maaf, semua slot baru saja terisi. Pantau @uninet.id untuk gelombang berikutnya.':'Pendaftaran sedang ditutup.','bad')});
-}catch(e){set('Halaman gagal dimuat. Periksa koneksi lalu muat ulang.','bad');login.textContent='Gagal memuat'}
+ if(!/^(\+62|62|0)8[0-9]{7,12}$/.test(wa))return set('Nomor WhatsApp belum benar. Contoh: 081234567890.','bad');
+ if(!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/.test(email))return set('Email belum benar.','bad');
+ go.disabled=true;go.textContent='Mengirim…';
+ try{await D.set(D.ref(db,'umkm/'+u.uid),{usaha,produk,ig,wa,email,kota,alasan,t:D.serverTimestamp()});sent=true;paint()}
+ catch(err){go.disabled=false;go.textContent='Kirim pendaftaran';set('Gagal mengirim. Coba lagi sebentar.','bad')}});
+}catch(e){set('Halaman gagal dimuat. Periksa koneksi lalu muat ulang.','bad');go.textContent='Gagal memuat'}
 </script></body></html>
