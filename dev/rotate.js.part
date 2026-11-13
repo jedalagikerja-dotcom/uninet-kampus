@@ -3,6 +3,8 @@
 #rotAsk[hidden]{display:none}#rotAsk h2{margin:0;font-family:var(--display);font-size:26px;color:#ffd23f;line-height:1.15}#rotAsk p{margin:0;font:700 16px/1.45 var(--body);max-width:300px;color:#f4e6cc}
 #rotAsk svg{width:110px;height:110px;animation:rotPh 2.4s ease-in-out infinite}@keyframes rotPh{0%,20%{transform:rotate(0)}50%,80%{transform:rotate(-90deg)}100%{transform:rotate(0)}}
 @media (prefers-reduced-motion:reduce){#rotAsk svg{animation:none;transform:rotate(-90deg)}}
+html body #card{overflow-y:auto;overscroll-behavior:contain;max-height:calc(100dvh - 150px - 16px - env(safe-area-inset-bottom,0px))}
+@media (max-height:520px){html body #card{bottom:calc(env(safe-area-inset-bottom,0px) + 8px);max-height:calc(100dvh - 16px - env(safe-area-inset-bottom,0px));padding:12px 14px 10px}html body #card h2{font-size:20px}html body #card p{font-size:14px;margin-bottom:8px}}
 #rotAsk button{margin-top:8px;font:800 15px var(--body);background:transparent;color:#fff8e6;border:2px solid #fff8e6;border-radius:14px;padding:11px 18px;min-height:44px;cursor:pointer}`;document.head.appendChild(st);
  document.body.insertAdjacentHTML('beforeend',`<div id="rotAsk" role="dialog" aria-modal="true" aria-labelledby="rotT" hidden><svg viewBox="0 0 100 100" aria-hidden="true"><rect x="30" y="12" width="40" height="76" rx="8" fill="none" stroke="#ffd23f" stroke-width="6"/><circle cx="50" cy="78" r="3.5" fill="#ffd23f"/></svg><h2 id="rotT">Miringkan HP kamu</h2><p>Kampus UNINET paling seru dijelajahi dalam posisi miring.</p><button type="button" id="rotSkip">Lanjut tegak saja</button></div>`);
  const el=document.getElementById('rotAsk');let skip=false;try{skip=sessionStorage.getItem('uninet_tegak')==='1'}catch(e){}
@@ -10,3 +12,6 @@
  function chk(){const tegak=innerHeight>innerWidth*1.05;el.hidden=!(touch&&tegak&&!skip)}
  document.getElementById('rotSkip').onclick=()=>{skip=true;try{sessionStorage.setItem('uninet_tegak','1')}catch(e){}chk()};
  addEventListener('resize',chk);addEventListener('orientationchange',()=>setTimeout(chk,250));chk()})();
+// Android: layar penuh otomatis saat menyentuh area kampus dalam posisi miring (menyembunyikan bilah browser)
+(function(){if(!/Android/i.test(navigator.userAgent)||!document.fullscreenEnabled)return;const cvs=document.querySelector('canvas');if(!cvs)return;
+ cvs.addEventListener('pointerdown',()=>{if(document.fullscreenElement||innerHeight>innerWidth)return;document.documentElement.requestFullscreen({navigationUI:'hide'}).catch(()=>{})},{passive:true})})();
