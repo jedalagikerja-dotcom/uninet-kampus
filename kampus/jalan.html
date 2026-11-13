@@ -791,10 +791,13 @@ netStart();
  setInterval(reset,2000)})();
 
 // ================= MITRA BRAND: slot warung kantin + baliho =================
-const BR={data:{},seen:new Set(),logo:{},logoSrc:{}};
+const BR={data:{},seen:new Set(),logo:{},logoSrc:{},open:false,slot:{},sampai:{}};
 const BSLOTS=['warung1','warung2','warung3','warung4','warung5','baliho1','baliho2'];
 const DEFC=['#ffd23f','#6cc3f5','#8bd17c','#ff9fb8','#f7a440'];
-function brandOf(slot){const b=BR.data[slot];return b&&b.aktif&&b.nama?b:null}
+function bNow(){return Date.now()+((typeof NET!=='undefined'&&NET.off)||0)}
+function brandOf(slot){const b=BR.data[slot];if(!(b&&b.aktif&&b.nama))return null;const u=BR.sampai[slot];if(slot.startsWith('warung')&&typeof u==='number'&&bNow()>u)return null;return b}
+function umkmSisa(){let n=0;for(let i=1;i<=5;i++)if(!BR.slot['warung'+i])n++;return n}
+function umkmHud(){const b=document.getElementById('umkmBtn');if(!b)return;const n=umkmSisa(),on=BR.open&&n>0;b.hidden=!on;if(on)b.innerHTML='DAFTAR<br>UMKM<b>'+n+' slot</b>'}
 function safeColor(c,d){return /^#[0-9a-f]{6}$/i.test(c||'')?c:d}
 function safeLink(u){try{const x=new URL(u);return /^https?:$/.test(x.protocol)?x.href:''}catch(e){return ''}}
 // papan nama warung: brand atau "?"
@@ -827,6 +830,7 @@ const _proyek=proyek;proyek=function(){_proyek();balihos()};
 function bday(){const d=new Date(Date.now()+7*3600e3);return d.toISOString().slice(0,10).replace(/-/g,'')}
 async function bstat(slot,k){if(!NET.on||!NET.F||!NET.F.runTransaction)return;try{await NET.F.runTransaction(NET.F.ref(NET.db,`bstats/${slot}/${bday()}/${k}`),v=>(v||0)+1)}catch(e){console.warn('bstat',e&&e.code)}}
 function openBrand(slot){const b=brandOf(slot),isW=slot.startsWith('warung');
+ if(!b&&isW&&BR.open&&!BR.slot[slot]){showCard(`<h2>Warung ${slot.slice(-1)}: masih kosong</h2><p>Program Bantu UMKM: 5 UMKM tercepat dapat warung gratis 7 hari di Kantin UNINET. Tersisa ${umkmSisa()} slot. Masuk pakai akun Google, isi nama brand, warung langsung jadi milikmu.</p><div class="row"><a class="btn" href="../umkm.html">Daftar UMKM gratis</a></div>`);return}
  if(!b){showCard(isW?`<h2>Warung ${slot.slice(-1)}: sedang divoting</h2><p>Nama dan menu warung ini ditentukan mahasiswa. Tulis usulan nama warung dan menu andalannya di kolom komentar video Kantin UNINET. Usulan dengan like terbanyak jadi warung resmi di sini.</p><div class="row"><a class="btn" href="https://www.instagram.com/uninet.id/" target="_blank" rel="noopener">Usulkan di Instagram</a></div>`:`<h2>Slot baliho tersedia</h2><p>Baliho ini terlihat dari seluruh kampus. Pasang brand kamu di depan mahasiswa UNINET.</p><div class="row"><a class="btn" href="https://www.instagram.com/uninet.id/" target="_blank" rel="noopener">DM @uninet.id</a></div>`);return}
  const link=safeLink(b.link);
  showCard(`<h2>${esc(String(b.nama))}</h2><p style="margin-top:-2px;color:#8a7560;font-size:13px">${isW?'Warung resmi Kantin UNINET'+(b.pengusul?' · usulan @'+esc(String(b.pengusul).replace(/^@+/,'')):''):'Mitra resmi Kampus UNINET'}</p>${b.tagline?`<p>${esc(String(b.tagline))}</p>`:''}
@@ -843,15 +847,19 @@ const _nearPlace=nearPlace;nearPlace=function(){let best=null;
  for(let i=0;i<5;i++){const p=KPT([KX-5.6+i*2.8,0,KBZ+.4]);const d=Math.hypot(p[0]-PL1.x,p[2]-PL1.z);if(d<1.9&&Math.abs(PL1.y-.4)<1&&(!best||d<best.d))best={slot:'warung'+(i+1),d}}
  for(const B of BALIHO){const p=balihoPos(B);const d=Math.hypot(p.x-PL1.x,p.z-PL1.z);if(d<6&&(!best||d<best.d))best={slot:B.slot,d}}
  if(!best){_nearPlace();return}const id='brand:'+best.slot,b=document.getElementById('wNear');
- if(id!==NEAR){NEAR=id;const bb=brandOf(best.slot);b.textContent=bb?'Lihat: '+String(bb.nama).slice(0,24):(best.slot.startsWith('warung')?'Lihat: Warung (voting)':'Lihat: Baliho');b.hidden=false}};
+ if(id!==NEAR){NEAR=id;const bb=brandOf(best.slot);b.textContent=bb?'Lihat: '+String(bb.nama).slice(0,24):(best.slot.startsWith('warung')?(BR.open&&!BR.slot[best.slot]?'Lihat: Warung kosong':'Lihat: Warung (voting)'):'Lihat: Baliho');b.hidden=false}};
 document.getElementById('wNear').onclick=()=>{if(!NEAR)return;if(NEAR.startsWith('brand:'))openBrand(NEAR.slice(6));else openPlace(NEAR)};
 // ketuk baliho dari jauh
 const _tap=tap;tap=function(x,y){if(VPm){const r=cv.getBoundingClientRect(),nx=((x-r.left)/r.width)*2-1,ny=1-((y-r.top)/r.height)*2,eye=VPm.eye,fwd=norm(sub(cam.tgt,eye)),right=norm(cross(fwd,[0,1,0])),upv=cross(right,fwd),th=Math.tan(cam.fov*Math.PI/360),asp=r.width/r.height;
   const dir=norm([fwd[0]+right[0]*nx*th*asp+upv[0]*ny*th,fwd[1]+right[1]*nx*th*asp+upv[1]*ny*th,fwd[2]+right[2]*nx*th*asp+upv[2]*ny*th]);
   for(const B of BALIHO){const p=balihoPos(B),oc=sub([p.x,6.6,p.z],eye),t=dot(oc,dir);if(t>0&&dot(oc,oc)-t*t<3.6*3.6){openBrand(B.slot);return}}}_tap(x,y)};
 function clearBrandTex(){for(const k of Object.keys(TX))if(/^(bst|bh)/.test(k)){gl.deleteTexture(TX[k]);delete TX[k]}}
-function brandStart(){const F=NET.F;F.onValue(F.ref(NET.db,'brands'),s=>{BR.data=s.val()||{};NEAR=null;clearBrandTex()},e=>console.warn('brands',e&&e.code));
+function brandStart(){const F=NET.F;F.onValue(F.ref(NET.db,'umkmOpen'),s=>{BR.open=s.val()===true;umkmHud()},()=>{});F.onValue(F.ref(NET.db,'umkmSlot'),s=>{BR.slot=s.val()||{};umkmHud()},()=>{});F.onValue(F.ref(NET.db,'umkmSampai'),s=>{BR.sampai=s.val()||{};clearBrandTex()},()=>{});setInterval(()=>{if(Object.keys(BR.sampai).length)clearBrandTex()},60000);F.onValue(F.ref(NET.db,'brands'),s=>{BR.data=s.val()||{};NEAR=null;clearBrandTex()},e=>console.warn('brands',e&&e.code));
  F.onValue(F.ref(NET.db,'blogo'),s=>{const v=s.val()||{};for(const slot of BSLOTS){const u=v[slot];if(typeof u==='string'&&u.startsWith('data:image/')){if(BR.logoSrc[slot]===u)continue;const im=new Image();im.onload=()=>{BR.logo[slot]=im;BR.logoSrc[slot]=u;clearBrandTex()};im.src=u}else if(BR.logo[slot]){delete BR.logo[slot];delete BR.logoSrc[slot];clearBrandTex()}}},e=>console.warn('blogo',e&&e.code))}
+
+// tombol Daftar UMKM (muncul saat Program Bantu UMKM dibuka dan slot masih ada)
+document.body.insertAdjacentHTML('beforeend','<a id="umkmBtn" href="../umkm.html" hidden></a>');
+document.head.insertAdjacentHTML('beforeend','<style>#umkmBtn{position:fixed;z-index:5;left:max(14px,env(safe-area-inset-left,0px));top:calc(50% + 46px);font-family:var(--display);font-size:12px;line-height:1.15;text-align:center;text-decoration:none;border:3px solid var(--ink);border-radius:16px;padding:8px 8px;background:#ffd23f;color:var(--ink);box-shadow:0 3px 0 var(--ink)}#umkmBtn b{display:block;font-size:11px;background:var(--red);color:#fff;border-radius:999px;padding:1px 6px;margin-top:4px}#umkmBtn[hidden]{display:none}body:not(.walk) #umkmBtn{display:none}</style>');
 
 // ---------- start ----------
 (document.fonts&&document.fonts.load?Promise.all([document.fonts.load(FD(40)),document.fonts.load('600 16px Nunito'),document.fonts.load('900 16px Nunito')]).catch(()=>{}):Promise.resolve()).then(()=>{
