@@ -1,4 +1,4 @@
-s=open('site/kampus/index.html').read();w=open('dev/walk.js.part').read()+'\n'+open('dev/online.js.part').read()+'\n'+open('dev/brand.js.part').read()
+s=open('site/kampus/index.html').read();w=open('dev/walk.js.part').read()+'\n'+open('dev/online.js.part').read()+'\n'+open('dev/brand.js.part').read()+'\n'+open('dev/rotate.js.part').read()
 m='// ---------- start ----------'
 s=s.replace(m,w+'\n'+m)
 s=s.replace("layoutMonument();layoutFence();loadOnline();","layoutMonument();layoutFence();buildSolids();loadOnline();")
