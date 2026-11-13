@@ -22,7 +22,13 @@
     "names": {
       ".read": true,
       "$k": {
-        ".write": "auth != null && (($k !== 'uninet,id' && ((!data.exists() && newData.val() === auth.uid) || (data.val() === auth.uid && (!newData.exists() || newData.val() === auth.uid)))) || (auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true))"
+        ".write": "auth != null && (($k !== 'uninet,id' && ((!data.exists() && newData.val() === auth.uid) || (data.val() === auth.uid && (!newData.exists() || newData.val() === auth.uid)) || (data.exists() && newData.val() === auth.uid && !root.child('nameLock/' + $k).exists() && (!root.child('online/' + data.val()).exists() || root.child('online/' + data.val() + '/t').val() < now - 120000)))) || (auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true))"
+      }
+    },
+    "nameLock": {
+      ".read": true,
+      "$k": {
+        ".write": "auth != null && ((auth.token.email != null && root.child('names/' + $k).val() === auth.uid && (!newData.exists() || newData.val() === auth.uid)) || (!newData.exists() && data.val() === auth.uid) || (auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true))"
       }
     },
     "profiles": {

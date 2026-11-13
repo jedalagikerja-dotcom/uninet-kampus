@@ -696,28 +696,45 @@ function setOnl(n,live){const e=document.getElementById('onl');e.classList.toggl
 async function claimIG(v){const F=NET.F,db=NET.db,k=igKey(v);
  const cur=await F.get(F.ref(db,'names/'+k));
  try{await F.set(F.ref(db,'names/'+k),NET.uid)}catch(e){return cur.exists()&&cur.val()!==NET.uid?'taken':(k==='uninet,id'?'reserved':'error')}await F.set(F.ref(db,'profiles/'+NET.uid),{ig:v});
- const old=NET.ig;NET.ig=v;LS.set('uninet_ig_claimed',v);if(old&&igKey(old)!==k)F.set(F.ref(db,'names/'+igKey(old)),null).catch(()=>{});
+ const old=NET.ig;NET.ig=v;LS.set('uninet_ig_claimed',v);if(old&&igKey(old)!==k){F.set(F.ref(db,'nameLock/'+igKey(old)),null).catch(()=>{});F.set(F.ref(db,'names/'+igKey(old)),null).catch(()=>{})}lockName();
  sendPos(true);updName();return 'ok'}
+function lockName(){const u=NET.auth&&NET.auth.currentUser;if(!NET.ig||!u||u.isAnonymous||!u.email)return;NET.F.set(NET.F.ref(NET.db,'nameLock/'+igKey(NET.ig)),NET.uid).catch(()=>{})}
 async function loadProfile(){const F=NET.F,db=NET.db;try{const p=await F.get(F.ref(db,'profiles/'+NET.uid));const ig=p.exists()&&p.val().ig;
-  if(ig){const o=await F.get(F.ref(db,'names/'+igKey(ig)));if(o.val()===NET.uid){NET.ig=ig;LS.set('uninet_ig_claimed',ig);updName();return true}}}catch(e){console.warn('profil',e&&e.code)}
+  if(ig){const o=await F.get(F.ref(db,'names/'+igKey(ig)));if(o.val()===NET.uid){NET.ig=ig;LS.set('uninet_ig_claimed',ig);updName();lockName();return true}}}catch(e){console.warn('profil',e&&e.code)}
  return false}
 function updName(){const b=document.getElementById('mName');b.textContent=NET.ig?shown(NET.ig):'Isi nama';b.classList.toggle('warn',!NET.ig);chatIn.placeholder=NET.ig?'Tulis pesan…':'Isi username IG dulu untuk chat'}
-function openIdentity(reason){const u=NET.auth&&NET.auth.currentUser,linked=u&&!u.isAnonymous,em=linked&&u.email?u.email:'';
- const pre=NET.ig||[LS.get('uninet_ig'),LS.get('uninet_nama').toLowerCase()].find(x=>x&&igOk(x))||'';
- showCard(`<h2>${NET.ig?'Namamu di kampus':'Masuk ke Kampus UNINET'}</h2><p>${reason||'Tulis username Instagram kamu. Nama ini muncul di atas kepala karaktermu dan di chat, dan tidak bisa dipakai orang lain.'}</p>
- <form id="nmF" class="row" autocomplete="off"><span style="flex:1;min-width:0;display:flex;align-items:center;border:3px solid var(--ink);border-radius:12px;background:#fff;padding:0 10px"><b style="font:900 17px var(--body)">@</b><input id="nmI" maxlength="30" autocapitalize="none" autocorrect="off" spellcheck="false" style="flex:1;min-width:0;border:0;padding:9px 4px;font:800 16px var(--body);background:transparent" placeholder="username"></span><button class="btn" type="submit">${NET.ig?'Ganti':'Masuk'}</button></form>
+const IGMAIL=v=>'ig_'+v.replace(/\./g,'-')+'@kampus.uninet.id';
+async function nameState(v){const F=NET.F,db=NET.db,k=igKey(v);const [n,l]=await Promise.all([F.get(F.ref(db,'names/'+k)),F.get(F.ref(db,'nameLock/'+k))]);
+ if(!n.exists()||n.val()===NET.uid)return 'free';if(l.exists())return 'locked';
+ const o=await F.get(F.ref(db,'online/'+n.val()));const t=o.exists()&&o.val().t;return t&&Date.now()+(NET.off||0)-t<120000?'busy':'free'}
+async function passLogin(v,pw){const AU=NET.AU,auth=NET.auth,F=NET.F,em=IGMAIL(v),cur=auth.currentUser;
+ try{const r=await AU.signInWithEmailAndPassword(auth,em,pw);if(r.user.uid!==NET.uid){await F.set(NET.me,null).catch(()=>{});await useUser(r.user)}
+  if(NET.ig!==v){const c=await claimIG(v);if(c!=='ok')return c}lockName();return 'ok'}
+ catch(e){if(!/invalid-credential|user-not-found|wrong-password|invalid-login/.test(e.code||''))return e.code==='auth/too-many-requests'?'slow':'error'}
+ const st=await nameState(v);if(st==='locked')return 'wrongpw';if(st==='busy')return 'taken';
+ try{if(cur&&cur.isAnonymous)await AU.linkWithCredential(cur,AU.EmailAuthProvider.credential(em,pw));else{await F.set(NET.me,null).catch(()=>{});const r=await AU.createUserWithEmailAndPassword(auth,em,pw);await useUser(r.user)}
+  await auth.currentUser.getIdToken(true)}catch(e){return e.code==='auth/email-already-in-use'||e.code==='auth/credential-already-in-use'?'wrongpw':e.code==='auth/operation-not-allowed'?'off':'error'}
+ const c=NET.ig===v?'ok':await claimIG(v);if(c==='ok')lockName();return c}
+function openIdentity(reason){const u=NET.auth&&NET.auth.currentUser,linked=u&&!u.isAnonymous,em=linked&&u.email?u.email:'',pwAcc=/@kampus\.uninet\.id$/.test(em);
+ const pre=NET.ig||[LS.get('uninet_ig'),LS.get('uninet_nama').toLowerCase()].find(x=>x&&igOk(x))||'';const INP='flex:1;min-width:0;display:flex;align-items:center;border:3px solid var(--ink);border-radius:12px;background:#fff;padding:0 10px';
+ showCard(linked&&NET.ig?`<h2>Namamu di kampus</h2><p>${reason||'Kamu masuk sebagai <b>@'+NET.ig+'</b>'+(pwAcc?' dengan password.':' dengan Google <b>'+em.replace(/[<>&]/g,'')+'</b>.')+' Masuk dari HP mana pun dengan cara yang sama, namamu tetap milikmu.'}</p><div class="row"><button class="btn" type="button" id="outBtn" style="background:#fff">Keluar</button><button class="btn dark" type="button" id="okBtn">Oke</button></div>`
+ :`<h2>${NET.ig?'Kunci namamu':'Masuk ke Kampus UNINET'}</h2><p>${reason||(NET.ig?'Namamu <b>@'+NET.ig+'</b> belum dikunci. Buat password supaya bisa masuk lagi dari HP mana pun dan tidak dipakai orang lain.':'Masukkan username Instagram dan password. Belum punya? Langsung buat di sini, dan lain kali masuk dengan username dan password yang sama.')}</p>
+ <form id="nmF" autocomplete="on"><div class="row"><span style="${INP}"><b style="font:900 17px var(--body)">@</b><input id="nmI" name="username" autocomplete="username" maxlength="30" autocapitalize="none" autocorrect="off" spellcheck="false" style="flex:1;min-width:0;border:0;padding:9px 4px;font:800 16px var(--body);background:transparent" placeholder="username IG"></span></div>
+ <div class="row" style="margin-top:8px"><span style="${INP}"><input id="nmP" name="password" type="password" autocomplete="current-password" maxlength="40" style="flex:1;min-width:0;border:0;padding:9px 4px;font:800 16px var(--body);background:transparent" placeholder="password (min. 6 huruf)"></span><button class="btn" type="submit">Masuk</button></div></form>
  <p id="nmE" style="color:#b0302b;margin:8px 0 6px;min-height:1em"></p>
- <div style="border-top:2px dashed #e2d6bf;padding-top:10px"><p style="margin-bottom:8px">${linked?'Tersimpan di akun Google'+(em?' <b>'+em.replace(/[<>&]/g,'')+'</b>':'')+'. Namamu ikut ke HP lain kalau kamu masuk dengan Google yang sama.':(INAPP?'Supaya namamu tetap sama di HP lain, buka halaman ini di <b>Safari atau Chrome</b>, lalu simpan dengan Google. Login Google tidak bisa di browser Instagram.':'Supaya namamu tetap sama di HP lain atau setelah data browser dihapus, simpan dengan akun Google.')}</p>
- <div class="row">${linked||INAPP?'':'<button class="btn dark" id="gBtn" type="button">Simpan dengan Google</button>'}${NET.ig?'':'<button class="btn" id="skipBtn" type="button" style="background:#fff">Nanti saja</button>'}</div></div>`);
- const i=document.getElementById('nmI'),E=document.getElementById('nmE');i.value=pre;
- document.getElementById('nmF').onsubmit=async e=>{e.preventDefault();const v=i.value.trim().replace(/^@+/,'').toLowerCase();
+ <div style="border-top:2px dashed #e2d6bf;padding-top:10px"><p style="margin-bottom:8px">Lupa password? DM @uninet.id. ${INAPP?'':'Bisa juga masuk dengan akun Google.'}</p>
+ <div class="row">${linked||INAPP?'':'<button class="btn dark" id="gBtn" type="button">Masuk dengan Google</button>'}${NET.ig?'':'<button class="btn" id="skipBtn" type="button" style="background:#fff">Nanti saja</button>'}</div></div>`);
+ const ob=document.getElementById('outBtn');if(ob){ob.onclick=async()=>{try{await NET.F.set(NET.me,null).catch(()=>{});await NET.AU.signOut(NET.auth);const r=await NET.AU.signInAnonymously(NET.auth);await useUser(r.user)}catch(e){}closeCard();updName()};document.getElementById('okBtn').onclick=closeCard;return}
+ const i=document.getElementById('nmI'),P=document.getElementById('nmP'),E=document.getElementById('nmE');i.value=pre;if(NET.ig)i.readOnly=true;
+ document.getElementById('nmF').onsubmit=async e=>{e.preventDefault();const v=i.value.trim().replace(/^@+/,'').toLowerCase(),pw=P.value;
   if(!igOk(v)){E.textContent='Username Instagram hanya huruf kecil, angka, titik, dan garis bawah.';return}if(badName(v)){E.textContent='Username ini tidak bisa dipakai.';return}
-  if(v===NET.ig){closeCard();return}if(!NET.on){E.textContent='Belum tersambung ke kampus. Coba lagi sebentar.';return}
-  E.style.color='#4a3524';E.textContent='Mengecek…';let r;try{r=await claimIG(v)}catch(err){r='error';console.warn(err)}
-  if(r==='ok'){closeCard();logLine('','Selamat datang, @'+v+'!','sys')}else{E.style.color='#b0302b';E.textContent=r==='taken'?'@'+v+' sudah dipakai mahasiswa lain. Kalau itu akunmu, hubungi @uninet.id.':r==='reserved'?'@uninet.id khusus akun resmi UNINET.':'Gagal menyimpan. Coba lagi sebentar.'}};
+  if(v==='uninet.id'&&!(u&&u.email==='jedalagikerja@gmail.com')){E.textContent='@uninet.id khusus akun resmi UNINET.';return}
+  if(pw.length<6){E.textContent='Password minimal 6 huruf.';return}if(!NET.on){E.textContent='Belum tersambung ke kampus. Coba lagi sebentar.';return}
+  E.style.color='#4a3524';E.textContent='Mengecek…';let r;try{r=await passLogin(v,pw)}catch(err){r='error';console.warn(err)}
+  if(r==='ok'){closeCard();updName();logLine('','Selamat datang, @'+v+'!','sys')}else{E.style.color='#b0302b';E.textContent={wrongpw:'Password salah untuk @'+v+'.',taken:'@'+v+' sedang dipakai mahasiswa yang lagi di kampus. Coba lagi beberapa menit lagi.',reserved:'@uninet.id khusus akun resmi UNINET.',slow:'Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.',off:'Login password belum diaktifkan admin.'}[r]||'Gagal masuk. Coba lagi sebentar.'}};
  const g=document.getElementById('gBtn');if(g)g.onclick=googleSave;const sk=document.getElementById('skipBtn');if(sk)sk.onclick=()=>closeCard()}
 async function googleSave(){const AU=NET.AU,auth=NET.auth,E=document.getElementById('nmE'),prov=new AU.GoogleAuthProvider();prov.setCustomParameters({prompt:'select_account'});
- try{await AU.linkWithPopup(auth.currentUser,prov);if(NET.ig)await NET.F.set(NET.F.ref(NET.db,'profiles/'+NET.uid),{ig:NET.ig});openIdentity('Tersimpan! Namamu sekarang terikat ke akun Google ini.')}
+ try{await AU.linkWithPopup(auth.currentUser,prov);if(NET.ig){await NET.F.set(NET.F.ref(NET.db,'profiles/'+NET.uid),{ig:NET.ig});lockName()}openIdentity('Tersimpan! Namamu sekarang terikat ke akun Google ini.')}
  catch(e){if(e.code==='auth/credential-already-in-use'||e.code==='auth/email-already-in-use'){const cred=AU.GoogleAuthProvider.credentialFromError(e);
    // akun Google ini sudah punya nama dari perangkat lain: pindah ke akun itu
    try{const F=NET.F;await F.set(NET.me,null).catch(()=>{});if(NET.ig){await F.set(F.ref(NET.db,'names/'+igKey(NET.ig)),null).catch(()=>{})}NET.ig=null;
