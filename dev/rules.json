@@ -1,0 +1,106 @@
+{
+  "rules": {
+    "online": {
+      ".read": true,
+      "$uid": { ".write": "auth != null && auth.uid === $uid" }
+    },
+    "chat": {
+      ".read": true,
+      ".indexOn": ["t"],
+      "$k": {
+        ".write": "auth != null && ((!data.exists() && newData.child('u').val() === auth.uid) || (auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true))",
+        ".validate": "newData.child('m').isString() && newData.child('m').val().length <= 200 && newData.child('n').isString() && newData.child('n').val().length <= 40"
+      }
+    },
+    "rate": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.val() === now && (!data.exists() || now - data.val() > 2500)"
+      }
+    },
+    "names": {
+      ".read": true,
+      "$k": {
+        ".write": "auth != null && (($k !== 'uninet,id' && ((!data.exists() && newData.val() === auth.uid) || (data.val() === auth.uid && (!newData.exists() || newData.val() === auth.uid)))) || (auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true))"
+      }
+    },
+    "profiles": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "owners": {
+      ".read": "auth != null && auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true",
+      ".write": "auth != null && auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true",
+      "$id": {
+        ".read": "auth != null && data.val() === auth.token.email",
+        ".write": "auth != null && $id.matches(/^warung[1-5]$/) && !data.exists() && root.child('umkmOpen').val() === true && auth.token.email_verified === true && newData.val() === auth.token.email && newData.parent().parent().child('umkmSlot/' + $id).val() === auth.uid && !root.child('umkmSlot/' + $id).exists()"
+      }
+    },
+    "brands": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true",
+      "$id": {
+        ".write": "auth != null && (root.child('owners/' + $id).val() === auth.token.email || (!root.child('owners/' + $id).exists() && root.child('umkmOpen').val() === true && newData.parent().parent().child('umkmSlot/' + $id).val() === auth.uid && !root.child('umkmSlot/' + $id).exists()))"
+      }
+    },
+    "blogo": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true",
+      "$id": { ".write": "auth != null && root.child('owners/' + $id).val() === auth.token.email" }
+    },
+    "bfoto": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true",
+      "$id": { ".write": "auth != null && root.child('owners/' + $id).val() === auth.token.email" }
+    },
+    "bstats": {
+      ".read": "auth != null && auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true",
+      "$id": {
+        ".read": "auth != null && root.child('owners/' + $id).val() === auth.token.email",
+        "$day": {
+          "$k": {
+            ".write": "auth != null",
+            ".validate": "newData.isNumber() && newData.val() === (data.exists() ? data.val() : 0) + 1"
+          }
+        }
+      }
+    },
+    "umkmOpen": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true"
+    },
+    "umkmSlot": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true",
+      "$id": {
+        ".write": "auth != null && $id.matches(/^warung[1-5]$/) && !data.exists() && newData.val() === auth.uid && root.child('umkmOpen').val() === true && auth.token.email_verified === true && !root.child('umkmBy/' + auth.uid).exists() && newData.parent().parent().child('umkmBy/' + auth.uid).val() === $id"
+      }
+    },
+    "umkmSampai": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true",
+      "$id": {
+        ".write": "auth != null && !data.exists() && newData.parent().parent().child('umkmSlot/' + $id).val() === auth.uid && !root.child('umkmSlot/' + $id).exists() && newData.isNumber() && newData.val() <= now + 608400000",
+        ".validate": "newData.isNumber()"
+      }
+    },
+    "umkmBy": {
+      ".read": "auth != null && auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true",
+      ".write": "auth != null && auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid && !data.exists() && newData.parent().parent().child('umkmSlot/' + newData.val()).val() === auth.uid"
+      }
+    },
+    "umkm": {
+      ".read": "auth != null && auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    }
+  }
+}
