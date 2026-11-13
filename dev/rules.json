@@ -41,7 +41,7 @@
       ".read": "auth != null && auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true",
       ".write": "auth != null && auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true",
       "$id": {
-        ".read": "auth != null && data.val() === auth.token.email",
+        ".read": "auth != null && auth.token.email_verified === true && data.val() === auth.token.email",
         ".write": "auth != null && $id.matches(/^warung[1-5]$/) && !data.exists() && root.child('umkmOpen').val() === true && auth.token.email_verified === true && newData.val() === auth.token.email && newData.parent().parent().child('umkmSlot/' + $id).val() === auth.uid && !root.child('umkmSlot/' + $id).exists()"
       }
     },
@@ -49,23 +49,23 @@
       ".read": true,
       ".write": "auth != null && auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true",
       "$id": {
-        ".write": "auth != null && (root.child('owners/' + $id).val() === auth.token.email || (!root.child('owners/' + $id).exists() && root.child('umkmOpen').val() === true && newData.parent().parent().child('umkmSlot/' + $id).val() === auth.uid && !root.child('umkmSlot/' + $id).exists()))"
+        ".write": "auth != null && ((auth.token.email_verified === true && root.child('owners/' + $id).val() === auth.token.email) || (!root.child('owners/' + $id).exists() && root.child('umkmOpen').val() === true && newData.parent().parent().child('umkmSlot/' + $id).val() === auth.uid && !root.child('umkmSlot/' + $id).exists()))"
       }
     },
     "blogo": {
       ".read": true,
       ".write": "auth != null && auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true",
-      "$id": { ".write": "auth != null && root.child('owners/' + $id).val() === auth.token.email" }
+      "$id": { ".write": "auth != null && (auth.token.email_verified === true && root.child('owners/' + $id).val() === auth.token.email)" }
     },
     "bfoto": {
       ".read": true,
       ".write": "auth != null && auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true",
-      "$id": { ".write": "auth != null && root.child('owners/' + $id).val() === auth.token.email" }
+      "$id": { ".write": "auth != null && (auth.token.email_verified === true && root.child('owners/' + $id).val() === auth.token.email)" }
     },
     "bstats": {
       ".read": "auth != null && auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true",
       "$id": {
-        ".read": "auth != null && root.child('owners/' + $id).val() === auth.token.email",
+        ".read": "auth != null && (auth.token.email_verified === true && root.child('owners/' + $id).val() === auth.token.email)",
         "$day": {
           "$k": {
             ".write": "auth != null",
