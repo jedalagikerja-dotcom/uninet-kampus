@@ -716,7 +716,6 @@ function openIdentity(reason,tab){const INP='display:flex;align-items:center;bor
  const pre=[LS.get('uninet_ig'),(LS.get('uninet_nama')||'').toLowerCase()].find(x=>x&&igOk(x))||'';i.value=pre;
  document.getElementById('nmF').onsubmit=async e=>{e.preventDefault();const v=i.value.trim().replace(/^@+/,'').toLowerCase(),pw=P.value;E.style.color='#b0302b';
   if(!igOk(v)){E.textContent='Username Instagram hanya huruf kecil, angka, titik, dan garis bawah.';return}if(D&&badName(v)){E.textContent='Username ini tidak bisa dipakai.';return}
-  if(v==='uninet.id'){E.textContent='@uninet.id khusus akun resmi UNINET.';return}
   if(pw.length<6){E.textContent='Password minimal 6 huruf.';return}if(D&&P2.value!==pw){E.textContent='Ulangi password belum sama.';return}
   if(!NET.on){E.textContent='Belum tersambung ke kampus. Coba lagi sebentar.';return}
   E.style.color='#4a3524';E.textContent=D?'Mendaftarkan…':'Masuk…';const r=await authDo(T,v,pw);
