@@ -67,54 +67,36 @@ function showOnlineList(){const now=srvNow(),L=[...NET.others.values()].filter(o
  showCard(`<h2>${L.length+1} mahasiswa online</h2><p>${NET.ig?'<b>@'+esc(NET.ig)+'</b> (kamu)':'Kamu (Tamu)'}</p><div style="max-height:40vh;overflow-y:auto;touch-action:pan-y">${L.length?L.map(o=>`<p style="margin:0 0 6px">${esc(shown(o.n))} <span style="color:#8a7560;font-size:13px">· ${o.d<8?'di dekatmu':Math.round(o.d)+' m'}</span></p>`).join(''):'<p>Belum ada mahasiswa lain. Ajak temanmu ke kampus!</p>'}</div>`)}
 function setOnl(n,live){const e=document.getElementById('onl');e.classList.toggle('live',!!live);e.lastChild.textContent=live?(n+' online'):'offline'}
 // ---- identitas: username IG yang dikunci ----
-async function claimIG(v){const F=NET.F,db=NET.db,k=igKey(v);
- const cur=await F.get(F.ref(db,'names/'+k));
- try{await F.set(F.ref(db,'names/'+k),NET.uid)}catch(e){return cur.exists()&&cur.val()!==NET.uid?'taken':(k==='uninet,id'?'reserved':'error')}await F.set(F.ref(db,'profiles/'+NET.uid),{ig:v});
- const old=NET.ig;NET.ig=v;LS.set('uninet_ig_claimed',v);if(old&&igKey(old)!==k){F.set(F.ref(db,'nameLock/'+igKey(old)),null).catch(()=>{});F.set(F.ref(db,'names/'+igKey(old)),null).catch(()=>{})}lockName();
- sendPos(true);updName();return 'ok'}
-function lockName(){const u=NET.auth&&NET.auth.currentUser;if(!NET.ig||!u||u.isAnonymous||!u.email)return;NET.F.set(NET.F.ref(NET.db,'nameLock/'+igKey(NET.ig)),NET.uid).catch(()=>{})}
-async function loadProfile(){const F=NET.F,db=NET.db;try{const p=await F.get(F.ref(db,'profiles/'+NET.uid));const ig=p.exists()&&p.val().ig;
-  if(ig){const o=await F.get(F.ref(db,'names/'+igKey(ig)));if(o.val()===NET.uid){NET.ig=ig;LS.set('uninet_ig_claimed',ig);updName();lockName();return true}}}catch(e){console.warn('profil',e&&e.code)}
- return false}
-function updName(){const b=document.getElementById('mName');b.textContent=NET.ig?shown(NET.ig):'Isi nama';b.classList.toggle('warn',!NET.ig);chatIn.placeholder=NET.ig?'Tulis pesan…':'Isi username IG dulu untuk chat'}
+function updName(){const b=document.getElementById('mName');b.textContent=NET.ig?shown(NET.ig):'Daftar / Masuk';b.classList.toggle('warn',!NET.ig);chatIn.placeholder=NET.ig?'Tulis pesan…':'Daftar atau masuk dulu untuk chat'}
 const IGMAIL=v=>'ig_'+v.replace(/\./g,'-')+'@kampus.uninet.id';
-async function nameState(v){const F=NET.F,db=NET.db,k=igKey(v);const [n,l]=await Promise.all([F.get(F.ref(db,'names/'+k)),F.get(F.ref(db,'nameLock/'+k))]);
- if(!n.exists()||n.val()===NET.uid)return 'free';if(l.exists())return 'locked';
- const o=await F.get(F.ref(db,'online/'+n.val()));const t=o.exists()&&o.val().t;return t&&Date.now()+(NET.off||0)-t<120000?'busy':'free'}
-async function passLogin(v,pw){const AU=NET.AU,auth=NET.auth,F=NET.F,em=IGMAIL(v),cur=auth.currentUser;
- try{const r=await AU.signInWithEmailAndPassword(auth,em,pw);if(r.user.uid!==NET.uid){await F.set(NET.me,null).catch(()=>{});await useUser(r.user)}
-  if(NET.ig!==v){const c=await claimIG(v);if(c!=='ok')return c}lockName();return 'ok'}
- catch(e){if(!/invalid-credential|user-not-found|wrong-password|invalid-login/.test(e.code||''))return e.code==='auth/too-many-requests'?'slow':'error'}
- const st=await nameState(v);if(st==='locked')return 'wrongpw';if(st==='busy')return 'taken';
- try{if(cur&&cur.isAnonymous)await AU.linkWithCredential(cur,AU.EmailAuthProvider.credential(em,pw));else{await F.set(NET.me,null).catch(()=>{});const r=await AU.createUserWithEmailAndPassword(auth,em,pw);await useUser(r.user)}
-  await auth.currentUser.getIdToken(true)}catch(e){return e.code==='auth/email-already-in-use'||e.code==='auth/credential-already-in-use'?'wrongpw':e.code==='auth/operation-not-allowed'?'off':'error'}
- const c=NET.ig===v?'ok':await claimIG(v);if(c==='ok')lockName();return c}
-function openIdentity(reason){const u=NET.auth&&NET.auth.currentUser,linked=u&&!u.isAnonymous,em=linked&&u.email?u.email:'',pwAcc=/@kampus\.uninet\.id$/.test(em);
- const pre=NET.ig||[LS.get('uninet_ig'),LS.get('uninet_nama').toLowerCase()].find(x=>x&&igOk(x))||'';const INP='flex:1;min-width:0;display:flex;align-items:center;border:3px solid var(--ink);border-radius:12px;background:#fff;padding:0 10px';
- showCard(linked&&NET.ig?`<h2>Namamu di kampus</h2><p>${reason||'Kamu masuk sebagai <b>@'+NET.ig+'</b>'+(pwAcc?' dengan password.':' dengan Google <b>'+em.replace(/[<>&]/g,'')+'</b>.')+' Masuk dari HP mana pun dengan cara yang sama, namamu tetap milikmu.'}</p><div class="row"><button class="btn" type="button" id="outBtn" style="background:#fff">Keluar</button><button class="btn dark" type="button" id="okBtn">Oke</button></div>`
- :`<h2>${NET.ig?'Kunci namamu':'Masuk ke Kampus UNINET'}</h2><p>${reason||(NET.ig?'Namamu <b>@'+NET.ig+'</b> belum dikunci. Buat password supaya bisa masuk lagi dari HP mana pun dan tidak dipakai orang lain.':'Masukkan username Instagram dan password. Belum punya? Langsung buat di sini, dan lain kali masuk dengan username dan password yang sama.')}</p>
- <form id="nmF" autocomplete="on"><div class="row"><span style="${INP}"><b style="font:900 17px var(--body)">@</b><input id="nmI" name="username" autocomplete="username" maxlength="30" autocapitalize="none" autocorrect="off" spellcheck="false" style="flex:1;min-width:0;border:0;padding:9px 4px;font:800 16px var(--body);background:transparent" placeholder="username IG"></span></div>
- <div class="row" style="margin-top:8px"><span style="${INP}"><input id="nmP" name="password" type="password" autocomplete="current-password" maxlength="40" style="flex:1;min-width:0;border:0;padding:9px 4px;font:800 16px var(--body);background:transparent" placeholder="password (min. 6 huruf)"></span><button class="btn" type="submit">Masuk</button></div></form>
- <p id="nmE" style="color:#b0302b;margin:8px 0 6px;min-height:1em"></p>
- <div style="border-top:2px dashed #e2d6bf;padding-top:10px"><p style="margin-bottom:8px">Lupa password? DM @uninet.id. ${INAPP?'':'Bisa juga masuk dengan akun Google.'}</p>
- <div class="row">${linked||INAPP?'':'<button class="btn dark" id="gBtn" type="button">Masuk dengan Google</button>'}${NET.ig?'':'<button class="btn" id="skipBtn" type="button" style="background:#fff">Nanti saja</button>'}</div></div>`);
- const ob=document.getElementById('outBtn');if(ob){ob.onclick=async()=>{try{await NET.F.set(NET.me,null).catch(()=>{});await NET.AU.signOut(NET.auth);const r=await NET.AU.signInAnonymously(NET.auth);await useUser(r.user)}catch(e){}closeCard();updName()};document.getElementById('okBtn').onclick=closeCard;return}
- const i=document.getElementById('nmI'),P=document.getElementById('nmP'),E=document.getElementById('nmE');i.value=pre;if(NET.ig)i.readOnly=true;
- document.getElementById('nmF').onsubmit=async e=>{e.preventDefault();const v=i.value.trim().replace(/^@+/,'').toLowerCase(),pw=P.value;
-  if(!igOk(v)){E.textContent='Username Instagram hanya huruf kecil, angka, titik, dan garis bawah.';return}if(badName(v)){E.textContent='Username ini tidak bisa dipakai.';return}
-  if(v==='uninet.id'&&!(u&&u.email==='jedalagikerja@gmail.com')){E.textContent='@uninet.id khusus akun resmi UNINET.';return}
-  if(pw.length<6){E.textContent='Password minimal 6 huruf.';return}if(!NET.on){E.textContent='Belum tersambung ke kampus. Coba lagi sebentar.';return}
-  E.style.color='#4a3524';E.textContent='Mengecek…';let r;try{r=await passLogin(v,pw)}catch(err){r='error';console.warn(err)}
-  if(r==='ok'){closeCard();updName();logLine('','Selamat datang, @'+v+'!','sys')}else{E.style.color='#b0302b';E.textContent={wrongpw:'Password salah untuk @'+v+'.',taken:'@'+v+' sedang dipakai mahasiswa yang lagi di kampus. Coba lagi beberapa menit lagi.',reserved:'@uninet.id khusus akun resmi UNINET.',slow:'Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.',off:'Login password belum diaktifkan admin.'}[r]||'Gagal masuk. Coba lagi sebentar.'}};
- const g=document.getElementById('gBtn');if(g)g.onclick=googleSave;const sk=document.getElementById('skipBtn');if(sk)sk.onclick=()=>closeCard()}
-async function googleSave(){const AU=NET.AU,auth=NET.auth,E=document.getElementById('nmE'),prov=new AU.GoogleAuthProvider();prov.setCustomParameters({prompt:'select_account'});
- try{await AU.linkWithPopup(auth.currentUser,prov);if(NET.ig){await NET.F.set(NET.F.ref(NET.db,'profiles/'+NET.uid),{ig:NET.ig});lockName()}openIdentity('Tersimpan! Namamu sekarang terikat ke akun Google ini.')}
- catch(e){if(e.code==='auth/credential-already-in-use'||e.code==='auth/email-already-in-use'){const cred=AU.GoogleAuthProvider.credentialFromError(e);
-   // akun Google ini sudah punya nama dari perangkat lain: pindah ke akun itu
-   try{const F=NET.F;await F.set(NET.me,null).catch(()=>{});if(NET.ig){await F.set(F.ref(NET.db,'names/'+igKey(NET.ig)),null).catch(()=>{})}NET.ig=null;
-    const r=await AU.signInWithCredential(auth,cred);await useUser(r.user);openIdentity(NET.ig?'Selamat datang kembali, @'+NET.ig+'!':'Masuk berhasil. Tulis username Instagram kamu.')}catch(e2){if(E)E.textContent='Gagal masuk dengan Google.'}}
-  else if(e.code!=='auth/popup-closed-by-user'&&e.code!=='auth/cancelled-popup-request'){if(E){E.style.color='#b0302b';E.textContent='Login Google gagal'+(e.code==='auth/popup-blocked'?': jendela login diblokir browser.':'. Coba buka di Safari atau Chrome.')}}}}
-async function useUser(u){const F=NET.F;NET.uid=u.uid;NET.me=F.ref(NET.db,'online/'+NET.uid);F.onDisconnect(NET.me).remove();NET.ig=null;await loadProfile();updName();sendPos(true)}
+function igFromUser(u){const e=u&&!u.isAnonymous&&u.email?u.email.toLowerCase():'';if(e==='jedalagikerja@gmail.com')return 'uninet.id';const m=e.match(/^ig_([a-z0-9_-]{1,30})@kampus\.uninet\.id$/);return m?m[1].replace(/-/g,'.'):null}
+async function switchUser(u){await NET.F.set(NET.me,null).catch(()=>{});await useUser(u)}
+async function authDo(mode,v,pw){const AU=NET.AU,auth=NET.auth,em=IGMAIL(v);
+ try{const r=mode==='daftar'?await AU.createUserWithEmailAndPassword(auth,em,pw):await AU.signInWithEmailAndPassword(auth,em,pw);await switchUser(r.user);return 'ok'}
+ catch(e){const c=e.code||'';return c==='auth/email-already-in-use'?'exists':/invalid-credential|user-not-found|wrong-password|invalid-login/.test(c)?'wrong':c==='auth/too-many-requests'?'slow':c==='auth/operation-not-allowed'?'off':c==='auth/network-request-failed'?'net':'error'}}
+function openIdentity(reason,tab){const INP='display:flex;align-items:center;border:3px solid var(--ink);border-radius:12px;background:#fff;padding:0 10px;margin-top:8px';const IS='flex:1;min-width:0;border:0;padding:9px 4px;font:800 16px var(--body);background:transparent';
+ if(NET.ig){showCard(`<h2>Namamu di kampus</h2><p>${reason||'Kamu masuk sebagai <b>@'+NET.ig+'</b>. Kamu bisa masuk dengan username dan password yang sama di HP, tablet, atau browser lain kapan saja, tanpa harus keluar dulu dari sini.'}</p><div class="row"><button class="btn" type="button" id="outBtn" style="background:#fff">Keluar</button><button class="btn dark" type="button" id="okBtn">Oke</button></div>`);
+  document.getElementById('okBtn').onclick=closeCard;document.getElementById('outBtn').onclick=async()=>{try{await NET.F.set(NET.me,null).catch(()=>{});await NET.AU.signOut(NET.auth);const r=await NET.AU.signInAnonymously(NET.auth);await switchUser(r.user)}catch(e){}closeCard();updName()};return}
+ const T=tab==='masuk'?'masuk':'daftar',D=T==='daftar';
+ showCard(`<h2>${D?'Daftar jadi mahasiswa':'Masuk ke Kampus UNINET'}</h2><p>${reason||(D?'Pakai username Instagram kamu dan buat password. Setelah itu kamu bisa masuk dari HP atau browser mana pun.':'Masukkan username Instagram dan password yang kamu buat waktu daftar.')}</p>
+ <div class="row" role="tablist"><button type="button" class="btn${D?' dark':''}" id="tD" role="tab" aria-selected="${D}" style="${D?'':'background:#fff'}">Daftar</button><button type="button" class="btn${D?'':' dark'}" id="tM" role="tab" aria-selected="${!D}" style="${D?'background:#fff':''}">Sudah punya akun? Masuk</button></div>
+ <form id="nmF" autocomplete="on"><label style="${INP}"><b style="font:900 17px var(--body)">@</b><input id="nmI" name="username" autocomplete="username" maxlength="30" autocapitalize="none" autocorrect="off" spellcheck="false" style="${IS}" placeholder="username IG" aria-label="Username Instagram"></label>
+ <label style="${INP}"><input id="nmP" name="password" type="password" autocomplete="${D?'new-password':'current-password'}" maxlength="40" style="${IS}" placeholder="${D?'buat password (min. 6 huruf)':'password'}" aria-label="Password"></label>
+ ${D?`<label style="${INP}"><input id="nmP2" type="password" autocomplete="new-password" maxlength="40" style="${IS}" placeholder="ulangi password" aria-label="Ulangi password"></label>`:''}
+ <div class="row" style="margin-top:10px"><button class="btn dark" type="submit">${D?'Daftar':'Masuk'}</button><button class="btn" id="skipBtn" type="button" style="background:#fff">Nanti saja</button></div></form>
+ <p id="nmE" role="status" style="color:#b0302b;margin:8px 0 4px;min-height:1em"></p><p style="margin:0;font-size:14px">Lupa password? DM @uninet.id.</p>`);
+ document.getElementById('tD').onclick=()=>openIdentity(null,'daftar');document.getElementById('tM').onclick=()=>openIdentity(null,'masuk');document.getElementById('skipBtn').onclick=()=>closeCard();
+ const i=document.getElementById('nmI'),P=document.getElementById('nmP'),P2=document.getElementById('nmP2'),E=document.getElementById('nmE');
+ const pre=[LS.get('uninet_ig'),(LS.get('uninet_nama')||'').toLowerCase()].find(x=>x&&igOk(x))||'';i.value=pre;
+ document.getElementById('nmF').onsubmit=async e=>{e.preventDefault();const v=i.value.trim().replace(/^@+/,'').toLowerCase(),pw=P.value;E.style.color='#b0302b';
+  if(!igOk(v)){E.textContent='Username Instagram hanya huruf kecil, angka, titik, dan garis bawah.';return}if(D&&badName(v)){E.textContent='Username ini tidak bisa dipakai.';return}
+  if(v==='uninet.id'){E.textContent='@uninet.id khusus akun resmi UNINET.';return}
+  if(pw.length<6){E.textContent='Password minimal 6 huruf.';return}if(D&&P2.value!==pw){E.textContent='Ulangi password belum sama.';return}
+  if(!NET.on){E.textContent='Belum tersambung ke kampus. Coba lagi sebentar.';return}
+  E.style.color='#4a3524';E.textContent=D?'Mendaftarkan…':'Masuk…';const r=await authDo(T,v,pw);
+  if(r==='ok'){LS.set('uninet_ig',v);closeCard();updName();logLine('',(D?'Selamat datang, mahasiswa baru @':'Selamat datang kembali, @')+v+'!','sys');return}
+  E.style.color='#b0302b';E.textContent={exists:'@'+v+' sudah terdaftar. Ketuk "Sudah punya akun? Masuk".',wrong:'Username atau password salah.',slow:'Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.',off:'Pendaftaran belum diaktifkan admin.',net:'Koneksi bermasalah. Coba lagi.'}[r]||'Gagal. Coba lagi sebentar.'}}
+async function useUser(u){const F=NET.F;NET.uid=u.uid;NET.sid=u.uid+'_'+Math.random().toString(36).slice(2,8);NET.me=F.ref(NET.db,'online/'+NET.sid);F.onDisconnect(NET.me).remove();NET.ig=igFromUser(u);updName();sendPos(true)}
 // ---- tekstur nama & gelembung ----
 function nameTagTex(n){return ctex('nt_'+n,320,72,(x,w,h)=>{x.font=FD(38);const tw=Math.min(w-12,x.measureText(n).width+36);x.fillStyle='rgba(255,248,230,.95)';x.strokeStyle='#2b1a0e';x.lineWidth=5;x.beginPath();x.roundRect((w-tw)/2,6,tw,h-12,28);x.fill();x.stroke();x.fillStyle='#2b1a0e';x.textAlign='center';x.textBaseline='middle';let s=n;while(x.measureText(s).width>w-50&&s.length>3)s=s.slice(0,-1);x.fillText(s===n?n:s+'…',w/2,h/2+2)})}
 function bubbleTex(key,msg){return ctex('bb_'+key,512,170,(x,w,h)=>{x.font='800 30px Nunito, sans-serif';const words=msg.split(' ');const lines=[];let cur='';for(const wd of words){const t=cur?cur+' '+wd:wd;if(x.measureText(t).width>w-60&&cur){lines.push(cur);cur=wd}else cur=t}if(cur)lines.push(cur);const L=lines.slice(0,3);if(lines.length>3)L[2]=L[2].slice(0,-1)+'…';
@@ -129,14 +111,14 @@ function drawOthers(dt){const now=srvNow();let k=Math.min(1,dt*6);for(const [id,
   const h=o.mv?Math.abs(Math.sin(o.ph))*.1:0,far=(o.x-EYE[0])**2+(o.z-EYE[2])**2;
   if(SPECIAL[o.n]){rektor(o.x,o.z,o.yaw,(o.y||0)+h,o.mv?Math.sin(o.ph)*.9:0,o.y||0);if(far<3600)textPlane(specialTag(o.n),o.x,(o.y||0)+2.35,o.z,1.35,.42,cam.yaw,{emis:1,recv:0})}
   else{person(o.x,o.z,o.c,o.yaw,(o.y||0)+h,{col:SHIRT[o.c%SHIRT.length],swing:o.mv?Math.sin(o.ph)*.9:0});if(far<1600)textPlane(nameTagTex(shown(o.n)),o.x,(o.y||0)+2.1,o.z,1.7,.38,cam.yaw,{emis:1,recv:0})}
-  const b=NET.bubbles.get(id);if(b&&now<b.until&&far<2500)textPlane(bubbleTex(b.key,b.m),o.x,(o.y||0)+2.95,o.z,2.5,.83,cam.yaw,{emis:1,recv:0})}
+  const b=NET.bubbles.get(o.u);if(b&&now<b.until&&far<2500)textPlane(bubbleTex(b.key,b.m),o.x,(o.y||0)+2.95,o.z,2.5,.83,cam.yaw,{emis:1,recv:0})}
  const mb=NET.bubbles.get(NET.uid);if(WALK&&mb&&now<mb.until)textPlane(bubbleTex(mb.key,mb.m),PL1.x,PL1.y+2.95,PL1.z,2.5,.83,cam.yaw,{emis:1,recv:0});
  for(const [id,b] of NET.bubbles)if(now>b.until+500){dropTex('bb_'+b.key);NET.bubbles.delete(id)}}
 // ---- kirim posisi ----
 let lastInput=Date.now();['touchstart','keydown','mousedown'].forEach(ev=>addEventListener(ev,()=>{lastInput=Date.now();if(NET.idleOff&&NET.F){NET.idleOff=false;NET.F.goOnline(NET.db);setTimeout(()=>sendPos(true),300)}},{passive:true}));
 function sendPos(force){if(!NET.on||!NET.uid||NET.idleOff)return;const now=Date.now(),L=NET.last,moved=Math.hypot(PL1.x-L.x,PL1.z-L.z)>.25||Math.abs(PL1.yaw-L.yaw)>.4;
  if(!force&&!(moved&&now-L.t>1200)&&now-L.t<25000)return;NET.last={x:PL1.x,z:PL1.z,yaw:PL1.yaw,t:now};
- const F=NET.F;F.set(NET.me,{n:myName(),x:+PL1.x.toFixed(2),z:+PL1.z.toFixed(2),y:+PL1.y.toFixed(2),yaw:+PL1.yaw.toFixed(2),c:hashN(NET.uid)%SHIRT.length,t:F.serverTimestamp()}).catch(e=>console.warn('pos',e&&e.code))}
+ const F=NET.F;F.set(NET.me,{u:NET.uid,n:myName(),x:+PL1.x.toFixed(2),z:+PL1.z.toFixed(2),y:+PL1.y.toFixed(2),yaw:+PL1.yaw.toFixed(2),c:hashN(NET.uid)%SHIRT.length,t:F.serverTimestamp()}).catch(e=>console.warn('pos',e&&e.code))}
 function countOnline(){if(NET.idleOff)return;const now=srvNow();let n=1;for(const o of NET.others.values())if(now-o.seen<70000)n++;setOnl(n,true)}
 // ---- sambung ke Firebase ----
 async function netStart(){try{
@@ -144,10 +126,9 @@ async function netStart(){try{
   const app=A.initializeApp(FB_CFG),auth=AU.getAuth(app),db=D.getDatabase(app);NET.db=db;NET.F=D;
   NET.auth=auth;NET.AU=AU;let user=await new Promise(r=>{const un=AU.onAuthStateChanged(auth,u=>{un();r(u)})});if(!user)user=(await AU.signInAnonymously(auth)).user;
   NET.on=true;await useUser(user);
-  if(!NET.ig){const c=[LS.get('uninet_ig_claimed'),LS.get('uninet_ig')].find(x=>x&&igOk(x));let ok=false;if(c){try{ok=(await claimIG(c))==='ok'}catch(e){}}
-   if(!ok)setTimeout(()=>{if(card.hidden)openIdentity()},1200)}
-  const R=D.ref(db,'online');const up=s=>{if(s.key===NET.uid)return;const v=s.val()||{};if(typeof v.x!=='number')return;let o=NET.others.get(s.key);
-   if(!o){o={x:v.x,z:v.z,yaw:v.yaw||0};NET.others.set(s.key,o)}Object.assign(o,{tx:v.x,tz:v.z,tyaw:v.yaw||0,y:v.y||0,n:cleanText(v.n||'Tamu').slice(0,30)||'Tamu',c:v.c||0,seen:typeof v.t==='number'?v.t:srvNow()});countOnline()};
+  if(!NET.ig)setTimeout(()=>{if(card.hidden&&!NET.ig)openIdentity()},1200);
+  const R=D.ref(db,'online');const up=s=>{if(s.key===NET.sid)return;const v=s.val()||{};if(typeof v.x!=='number')return;let o=NET.others.get(s.key);
+   if(!o){o={x:v.x,z:v.z,yaw:v.yaw||0};NET.others.set(s.key,o)}Object.assign(o,{tx:v.x,tz:v.z,tyaw:v.yaw||0,y:v.y||0,n:cleanText(v.n||'Tamu').slice(0,30)||'Tamu',u:typeof v.u==='string'?v.u:s.key,c:v.c||0,seen:typeof v.t==='number'?v.t:srvNow()});countOnline()};
   D.onChildAdded(R,up);D.onChildChanged(R,up);D.onChildRemoved(R,s=>{NET.others.delete(s.key);dropTex('nt_'+s.key);countOnline()});
   const Q=D.query(D.ref(db,'chat'),D.orderByChild('t'),D.limitToLast(30));let first=true;setTimeout(()=>first=false,2500);
   D.onChildAdded(Q,s=>{const v=s.val()||{};const m=cleanText(v.m).slice(0,120),n=cleanText(v.n).slice(0,30)||'Tamu';if(!m)return;
@@ -155,7 +136,7 @@ async function netStart(){try{
    MSG.set(s.key,{n,m,u:v.u});if(MSG.size>80)MSG.delete(MSG.keys().next().value);msgLine(s.key,{n,m,u:v.u,r,ment});
    if(ment&&!first&&Date.now()-(v.t||0)<20000){toast(shown(n)+(ro&&ro.u===NET.uid?' membalas pesanmu':' menyebut namamu')+': '+m.slice(0,40));try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}}
    if(Date.now()-(v.t||0)<15000)NET.bubbles.set(v.u,{key:s.key,m,until:Date.now()+6000});if(!first&&!chatEl.classList.contains('open'))setUnread(unread+1)});
-  logLine('',NET.ig?'Kamu masuk sebagai @'+NET.ig+'.':'Kamu masih Tamu. Ketuk "Isi nama" untuk memakai username IG.','sys');logLine('','Ketuk pesan untuk membalas. Ketik @ untuk menyebut nama.','sys');if(typeof brandStart==='function')brandStart();countOnline();
+  logLine('',NET.ig?'Kamu masuk sebagai @'+NET.ig+'.':'Kamu masih Tamu. Ketuk "Daftar / Masuk" untuk memakai username IG.','sys');logLine('','Ketuk pesan untuk membalas. Ketik @ untuk menyebut nama.','sys');if(typeof brandStart==='function')brandStart();countOnline();
   document.addEventListener('visibilitychange',()=>{if(document.hidden){D.goOffline(db)}else{D.goOnline(db);setTimeout(()=>sendPos(true),400)}});
   D.onValue(D.ref(db,'.info/serverTimeOffset'),x=>{NET.off=x.val()||0;countOnline()});
   setInterval(()=>{if(NET.on&&!NET.idleOff&&Date.now()-lastInput>600000){NET.idleOff=true;D.goOffline(db);const e=document.getElementById('onl');e.classList.remove('live');e.lastChild.textContent='ketuk layar';}else countOnline()},5000);
