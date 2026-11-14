@@ -173,7 +173,7 @@ document.getElementById('wNear').onclick=()=>{if(NEAR)openPlace(NEAR)};
 (function(){const bj=document.getElementById('bJump'),br=document.getElementById('bRun');
  const hold=(el,f)=>{el.addEventListener('touchstart',e=>{e.preventDefault();f()},{passive:false});el.addEventListener('mousedown',e=>{e.preventDefault();f()})};
  hold(bj,jump);hold(br,()=>{PL1.run=!PL1.run;br.classList.toggle('on',!!PL1.run)})})();
-addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;KEYS[e.code]=true;if(e.code==='Space'&&WALK){e.preventDefault();jump()}if(WALK)hideHint()});
+addEventListener('keydown',e=>{const tg=e.target&&e.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA'||tg==='SELECT'||(e.target&&e.target.isContentEditable))return;KEYS[e.code]=true;if(e.code==='Space'&&WALK){e.preventDefault();jump()}if(WALK)hideHint()});
 addEventListener('keyup',e=>{KEYS[e.code]=false});addEventListener('blur',()=>{for(const k in KEYS)KEYS[k]=false});
 (function(){const pad=document.getElementById('walkpad'),joy=document.getElementById('joy'),knob=joy.firstElementChild;const T=new Map();let pinch=null;
  const half=()=>innerWidth*.45;

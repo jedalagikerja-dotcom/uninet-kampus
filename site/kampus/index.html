@@ -171,7 +171,7 @@ function cityWin(){return ctex('cwin',256,256,(x,w,h)=>{x.clearRect(0,0,w,h);for
 let GLOW=0;
 function boardTex(){return ctex('board',1024,640,(x,w,h)=>{x.fillStyle='#2f5d4a';x.fillRect(0,0,w,h);x.strokeStyle='#c99b63';x.lineWidth=36;x.strokeRect(0,0,w,h);x.textAlign='center';x.textBaseline='middle';
  x.fillStyle='#ffd23f';x.font=FD(84);x.fillText('PAPAN PENGUMUMAN',w/2,110);x.fillStyle='#f6f2e4';x.font=FD(64);x.fillText(CONFIG.pengumuman.judul.toUpperCase()+':',w/2,230);
- const words=CONFIG.pengumuman.isi.split(' ');let line='',y=330;x.font=FD(56);for(const wd of words){const t=line?line+' '+wd:wd;if(x.measureText(t).width>880){x.fillText(line,w/2,y);y+=74;line=wd}else line=t}x.fillText(line,w/2,y)})}
+ let y=330;x.font=FD(56);for(const para of CONFIG.pengumuman.isi.split('\n')){const words=para.split(' ');let line='';for(const wd of words){const t=line?line+' '+wd:wd;if(x.measureText(t).width>880&&line){x.fillText(line,w/2,y);y+=74;line=wd}else line=t}x.fillText(line,w/2,y);y+=74}})}
 
 // monument layout (virtual 1536x3072 per panel, 16px names, 24px rows)
 const PW=1536,PH=3072,FONT_V=16,ROW=24, MONO=[]; let PANELS=0;
