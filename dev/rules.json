@@ -124,6 +124,11 @@
           ".validate": "newData.isNumber() && newData.val() === (data.exists() ? data.val() : 0) + 1"
         }
       }
+    },
+    "papantulis": {
+      ".read": true,
+      ".write": "auth != null",
+      ".validate": "newData.child('t').isString() && newData.child('t').val().length <= 200 && newData.child('n').isString() && newData.child('n').val().length <= 40"
     }
   }
 }
