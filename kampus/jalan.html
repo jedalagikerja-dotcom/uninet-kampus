@@ -967,7 +967,7 @@ function qrbTex(){return ctex('qrb',640,900,(x,w,h)=>{x.fillStyle='#a7764d';x.fi
  x.strokeStyle='#2b1a0e';x.lineWidth=7;x.lineCap='round';x.lineJoin='round';x.beginPath();x.moveTo(268,92);x.lineTo(352,92);x.lineTo(352,124);x.arc(318,124,34,0,Math.PI);x.lineTo(268,92);x.stroke();x.beginPath();x.arc(362,112,12,-Math.PI/2,Math.PI/2);x.stroke();
  for(const k of[296,322]){x.beginPath();x.moveTo(k,58);x.quadraticCurveTo(k-8,68,k,78);x.stroke()}
  x.fillStyle='#2b1a0e';x.textAlign='center';x.textBaseline='middle';x.font=FD(58);let ttl='TRAKTIR PAK RAKA';while(x.measureText(ttl).width>w-150){x.font=FD(parseInt(x.font)-2)}x.fillText(ttl,w/2,215);x.fillText('KOPI',w/2,282);
- x.font='800 26px Nunito, sans-serif';x.fillStyle='#5c4430';x.fillText('Suka sama UNINET?',w/2,340);x.fillText('Boleh traktir kopi.',w/2,374);
+ x.font='800 26px Nunito, sans-serif';x.fillStyle='#5c4430';x.fillText('Suka sama UNINET? Boleh traktir kopi',w/2,352);
  x.fillStyle='#fff';x.strokeStyle='#2b1a0e';x.lineWidth=8;x.beginPath();x.roundRect(150,410,340,340,24);x.fill();x.stroke();x.imageSmoothingEnabled=false;x.drawImage(qrCanvas(300,1),170,430,300,300);
  x.fillStyle='#2b1a0e';x.font='900 30px Nunito, sans-serif';x.fillText(QRB.label,w/2,800);x.font='700 22px Nunito, sans-serif';x.fillStyle='#7a5a3c';x.fillText('Ketuk papan untuk menyimpan QR',w/2,840)})}
 function qrbDraw(){const P=QRB.pos;if(!P)return;const t=performance.now()/1000,y=(P.y||0)+2.6+Math.sin(t*1.4)*.12,yaw=(P.yaw||0)+Math.sin(t*.6)*.25,W=1.55,H=2.18;
