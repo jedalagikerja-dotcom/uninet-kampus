@@ -110,8 +110,8 @@ function srvNow(){return Date.now()+NET.off}
 function drawOthers(dt){const now=srvNow();let k=Math.min(1,dt*6);for(const [id,o] of NET.others){if(now-o.seen>70000)continue;
   const dx=o.tx-o.x,dz=o.tz-o.z,d=Math.hypot(dx,dz);o.x+=dx*k;o.z+=dz*k;let dy=o.tyaw-o.yaw;while(dy>Math.PI)dy-=2*Math.PI;while(dy<-Math.PI)dy+=2*Math.PI;o.yaw+=dy*k;o.mv=d>.05;if(o.mv)o.ph=(o.ph||0)+dt*10;
   const h=o.mv?Math.abs(Math.sin(o.ph))*.1:0,far=(o.x-EYE[0])**2+(o.z-EYE[2])**2;
-  if(SPECIAL[o.n]){rektor(o.x,o.z,o.yaw,(o.y||0)+h,o.mv?Math.sin(o.ph)*.9:0,o.y||0);if(far<3600)textPlane(specialTag(o.n),o.x,(o.y||0)+2.35,o.z,1.35,.42,cam.yaw,{emis:1,recv:0})}
-  else{person(o.x,o.z,o.c,o.yaw,(o.y||0)+h,{av:o.av,col:SHIRT[o.c%SHIRT.length],swing:o.mv?Math.sin(o.ph)*.9:0});if(far<1600){textPlane(nameTagTex(shown(o.n)),o.x,(o.y||0)+2.1,o.z,1.7,.38,cam.yaw,{emis:1,recv:0});if(LABELS[o.n])textPlane(lblTex(o.n),o.x,(o.y||0)+1.76,o.z,1.3,.28,cam.yaw,{emis:1,recv:0})}}
+  if(SPECIAL[o.n]){rektor(o.x,o.z,o.yaw,(o.y||0)+h,o.mv?Math.sin(o.ph)*.9:0,o.y||0,o.s);if(far<3600)textPlane(specialTag(o.n),o.x,(o.y||0)+2.35,o.z,1.35,.42,cam.yaw,{emis:1,recv:0})}
+  else{person(o.x,o.z,o.c,o.yaw,(o.y||0)+h,{sit:o.s,av:o.av,col:SHIRT[o.c%SHIRT.length],swing:o.mv?Math.sin(o.ph)*.9:0});if(far<1600){textPlane(nameTagTex(shown(o.n)),o.x,(o.y||0)+2.1,o.z,1.7,.38,cam.yaw,{emis:1,recv:0});if(LABELS[o.n])textPlane(lblTex(o.n),o.x,(o.y||0)+1.76,o.z,1.3,.28,cam.yaw,{emis:1,recv:0})}}
   const b=NET.bubbles.get(o.u);if(b&&now<b.until&&far<2500)textPlane(bubbleTex(b.key,b.m),o.x,(o.y||0)+2.95,o.z,2.5,.83,cam.yaw,{emis:1,recv:0})}
  const mb=NET.bubbles.get(NET.uid);if(WALK&&mb&&now<mb.until)textPlane(bubbleTex(mb.key,mb.m),PL1.x,PL1.y+2.95,PL1.z,2.5,.83,cam.yaw,{emis:1,recv:0});
  for(const [id,b] of NET.bubbles)if(now>b.until+500){dropTex('bb_'+b.key);NET.bubbles.delete(id)}}
@@ -119,7 +119,7 @@ function drawOthers(dt){const now=srvNow();let k=Math.min(1,dt*6);for(const [id,
 let lastInput=Date.now();['touchstart','keydown','mousedown'].forEach(ev=>addEventListener(ev,()=>{lastInput=Date.now();if(NET.idleOff&&NET.F){NET.idleOff=false;NET.F.goOnline(NET.db);setTimeout(()=>sendPos(true),300)}},{passive:true}));
 function sendPos(force){if(!NET.on||!NET.uid||NET.idleOff)return;const now=Date.now(),L=NET.last,moved=Math.hypot(PL1.x-L.x,PL1.z-L.z)>.25||Math.abs(PL1.yaw-L.yaw)>.4;
  if(!force&&!(moved&&now-L.t>1200)&&now-L.t<25000)return;NET.last={x:PL1.x,z:PL1.z,yaw:PL1.yaw,t:now};
- const F=NET.F;const pd={u:NET.uid,n:myName(),x:+PL1.x.toFixed(2),z:+PL1.z.toFixed(2),y:+PL1.y.toFixed(2),yaw:+PL1.yaw.toFixed(2),c:hashN(NET.uid)%SHIRT.length,t:F.serverTimestamp()};if(NET.av)pd.a=avStr(NET.av);F.set(NET.me,pd).catch(e=>console.warn('pos',e&&e.code))}
+ const F=NET.F;const pd={u:NET.uid,n:myName(),x:+PL1.x.toFixed(2),z:+PL1.z.toFixed(2),y:+PL1.y.toFixed(2),yaw:+PL1.yaw.toFixed(2),c:hashN(NET.uid)%SHIRT.length,t:F.serverTimestamp()};if(NET.av)pd.a=avStr(NET.av);if(PL1.sit)pd.s=1;F.set(NET.me,pd).catch(e=>console.warn('pos',e&&e.code))}
 function countOnline(){if(NET.idleOff)return;const now=srvNow();let n=1;for(const o of NET.others.values())if(now-o.seen<70000)n++;setOnl(n,true)}
 // ---- sambung ke Firebase ----
 async function netStart(){try{
@@ -129,7 +129,7 @@ async function netStart(){try{
   NET.on=true;await useUser(user);
   if(!NET.ig)setTimeout(()=>{if(card.hidden&&!NET.ig)openIdentity()},1200);
   const R=D.ref(db,'online');const up=s=>{if(s.key===NET.sid)return;const v=s.val()||{};if(typeof v.x!=='number')return;let o=NET.others.get(s.key);
-   if(!o){o={x:v.x,z:v.z,yaw:v.yaw||0};NET.others.set(s.key,o)}Object.assign(o,{tx:v.x,tz:v.z,tyaw:v.yaw||0,y:v.y||0,n:cleanText(v.n||'Tamu').slice(0,30)||'Tamu',u:typeof v.u==='string'?v.u:s.key,av:parseAv(v.a),c:v.c||0,seen:typeof v.t==='number'?v.t:srvNow()});countOnline()};
+   if(!o){o={x:v.x,z:v.z,yaw:v.yaw||0};NET.others.set(s.key,o)}Object.assign(o,{tx:v.x,tz:v.z,tyaw:v.yaw||0,y:v.y||0,n:cleanText(v.n||'Tamu').slice(0,30)||'Tamu',u:typeof v.u==='string'?v.u:s.key,av:parseAv(v.a),s:v.s===1,c:v.c||0,seen:typeof v.t==='number'?v.t:srvNow()});countOnline()};
   D.onChildAdded(R,up);D.onChildChanged(R,up);D.onChildRemoved(R,s=>{NET.others.delete(s.key);dropTex('nt_'+s.key);countOnline()});
   const Q=D.query(D.ref(db,'chat'),D.orderByChild('t'),D.limitToLast(30));let first=true;setTimeout(()=>first=false,2500);
   D.onChildAdded(Q,s=>{const v=s.val()||{};const m=cleanText(v.m).slice(0,120),n=cleanText(v.n).slice(0,30)||'Tamu';if(!m)return;
