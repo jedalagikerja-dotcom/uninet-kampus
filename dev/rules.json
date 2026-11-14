@@ -109,6 +109,11 @@
       ".read": true,
       ".write": "auth != null && (auth.token.email === 'ig_uninet-id@kampus.uninet.id' || (auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true))",
       ".validate": "newData.child('judul').isString() && newData.child('judul').val().length <= 40 && newData.child('isi').isString() && newData.child('isi').val().length <= 200"
+    },
+    "qrboard": {
+      ".read": true,
+      ".write": "auth != null && (auth.token.email === 'ig_uninet-id@kampus.uninet.id' || (auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true))",
+      ".validate": "newData.child('x').isNumber() && newData.child('z').isNumber()"
     }
   }
 }
