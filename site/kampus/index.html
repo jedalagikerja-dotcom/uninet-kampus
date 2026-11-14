@@ -180,8 +180,9 @@ function layoutMonument(){const c=document.createElement('canvas').getContext('2
   if(x+w>PW-20){x=20;y+=ROW}if(y>PH-30){p++;x=20;y=20}MONO.push({p,x,y,w});x+=w+16}PANELS=p+1}
 function panelTex(p){return ctex('pn'+p,512,1024,(x,w,h)=>{x.fillStyle='#e3e7ea';x.fillRect(0,0,w,h);x.scale(w/PW,h/PH);x.font=`600 ${FONT_V}px Nunito, sans-serif`;x.textBaseline='top';
  for(let i=0;i<MONO.length;i++){const m=MONO[i];if(!m||m.p!==p)continue;x.fillStyle='#fbfcfd';x.fillText('@'+NAMES[i],m.x+2,m.y+2);x.fillStyle='#5b6470';x.fillText('@'+NAMES[i],m.x,m.y)}})}
-const MON={z:-21.2,y0:1.4,pw:3.2,ph:6.4,gap:.35};
-function panelX(p){const n=PANELS,tot=n*MON.pw+(n-1)*MON.gap;return -tot/2+p*(MON.pw+MON.gap)}
+const MON={dg:3.4,z:-21.2,y0:1.4,pw:3.2,ph:6.4,gap:.35};
+function monTot(){return PANELS*MON.pw+(PANELS-1)*MON.gap+MON.dg}
+function panelX(p){const n=PANELS,tot=monTot();return -tot/2+p*(MON.pw+MON.gap)+(p>=Math.floor(n/2)?MON.dg:0)}
 // ---- pagar nama (Angkatan Kedua dst) ----
 const FEN={H:31.5,RR:7,gx:5.2,R:31.5,NP:80,w:2.55,h:1.7,y0:.45},PWF=1024,PHF=640,FONT_F=22,ROW_F=32,FENO=[];let FPANELS=0;
 // kotak bersudut tumpul: s=0 di tengah depan (gerbang), bergerak ke +x; th = arah hadap keluar
@@ -254,13 +255,18 @@ function person(x,z,c,yaw,h){const C=['#ff8a5c','#6cc3f5','#ffd166','#8bd17c','#
 function flag(x,z,h,s){D(CYL,'#f4f1ea',[x,0,z],0,[.09*s,h,.09*s]);D(ICO,'#f1c24b',[x,h+.12*s,z],0,[.2*s,.2*s,.2*s],{emis:.2});const y=h-1.25*s;
  D(FLAG,'#e3342f',[x+.1,y+.6*s,z],0,[2.2*s,.62*s,1],{wave:1});D(FLAG,'#fbfbf7',[x+.1,y,z],0,[2.2*s,.62*s,1],{wave:1});D(BOX,'#d9d2c4',[x,.25,z],0,[1.2*s,.5,1.2*s])}
 function textPlane(tex,x,y,z,w,h,ry,o){const d=D(PL,'#ffffff',[0,0,0],0,0,Object.assign({tex,cast:0},o||{}));d.M=M4.mul(M4.trs([x,y,z],[0,ry||0,0],[1,1,1]),M4.trs([-w/2,-h/2,0],0,[w,h,1]));return d}
-function monument(){const n=PANELS,tot=n*MON.pw+(n-1)*MON.gap,z=MON.z;
+function monument(){const n=PANELS,tot=monTot(),z=MON.z,dg=MON.dg,nt=ENV.night>.5;
  D(BOX,'#cfd5da',[0,.4,z],0,[tot+4,.8,6]);D(BOX,'#dde2e6',[0,1.0,z],0,[tot+1.5,.5,4.4]);
  for(let p=0;p<n;p++){const x=panelX(p)+MON.pw/2;D(BOX,'#e3e7ea',[x,MON.y0+MON.ph/2,z-.05],0,[MON.pw+.2,MON.ph+.2,1.2]);textPlane(panelTex(p),x,MON.y0+MON.ph/2,z+.56,MON.pw,MON.ph,0,{recv:1})}
  D(BOX,'#c9cfd4',[0,MON.y0+MON.ph+.45,z-.05],0,[tot+.8,.7,1.6]);D(BOX,'#d8a93c',[0,MON.y0+MON.ph+1.6,z+.2],0,[9.2,2.2,.2]);
  textPlane(signTex('plq2',['ANGKATAN PERTAMA','UNIVERSITAS NETIZEN INDONESIA'],'#d8a93c','#4a3208'),0,MON.y0+MON.ph+1.6,z+.32,8.8,2.0);
- D(BOX,'#e3342f',[0,MON.y0+MON.ph*.62,z+.6],0,[tot+.4,.32,.06],{cast:0});D(BOX,'#fbfbf7',[0,MON.y0+MON.ph*.62-.32,z+.6],0,[tot+.4,.32,.06],{cast:0})}
-function gedung(){const tot=PANELS*MON.pw+(PANELS-1)*MON.gap,bw=tot+6,z0=-30,z1=-21.5,H=11.6,cz=(z0+z1)/2;
+ const sw=(tot+.4-dg)/2;for(const sg of[-1,1]){const sx=sg*(dg/2+sw/2);D(BOX,'#e3342f',[sx,MON.y0+MON.ph*.62,z+.6],0,[sw,.32,.06],{cast:0});D(BOX,'#fbfbf7',[sx,MON.y0+MON.ph*.62-.32,z+.6],0,[sw,.32,.06],{cast:0})}
+ // pintu masuk gedung utama di tengah monumen
+ const y0=1.25,dh=3.9,dw=2.6;D(BOX,'#f4f1ea',[0,MON.y0+MON.ph/2,z-.2],0,[dg,MON.ph+.2,.9]);
+ D(BOX,'#d8a93c',[0,y0+dh/2+.1,z+.28],0,[dw+.5,dh+.3,.14]);
+ for(const sg of[-1,1]){D(BOX,nt?'#ffe6a8':'#2e4a6b',[sg*dw/4,y0+dh/2,z+.36],0,[dw/2-.08,dh,.08],{emis:nt?.7:.05});D(BOX,'#d8a93c',[sg*.18,y0+dh*.48,z+.42],0,[.07,.6,.06],{cast:0})}
+ D(BOX,'#d8a93c',[0,y0+dh+.55,z+.3],0,[dw+.9,.5,.3]);textPlane(signTex('pmasuk',['PINTU MASUK'],'#2b1a0e','#ffd23f'),0,y0+dh+1.25,z+.3,2.6,.85,0,{emis:nt?.6:.1})}
+function gedung(){const tot=monTot(),bw=tot+6,z0=-30,z1=-21.5,H=11.6,cz=(z0+z1)/2;
  D(BOX,'#f4f1ea',[0,H/2,cz],0,[bw,H,z1-z0],{tex:winTex(),win:1,uvs:[Math.round(bw/3.2),Math.round(H/3.2)]});
  D(BOX,'#dcd6ca',[0,H+.3,cz],0,[bw+.6,.6,z1-z0+.6]);D(BOX,'#e3342f',[0,H-.45,z1+.07],0,[bw,.4,.12],{cast:0});D(BOX,'#d9d2c4',[0,.25,cz],0,[bw+1,.5,z1-z0+1])}
 function sejarah(){XF(-23.6,-25.2,0,()=>{
