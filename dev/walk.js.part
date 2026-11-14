@@ -41,7 +41,7 @@ function proyek(){const i0=DL.length,x=KX,z=KZ,bz=KBZ,nt=ENV.night>.5;
  D(BOX,'#e9dcc2',[x,.06,z],0,[17,.12,13],{cast:0});D(BOX,'#f7efe0',[x,.2,bz],0,[15,.4,6]);
  D(BOX,'#c0583e',[x,1.75,bz-2.8],0,[15,3.5,.35],{tex:brickTex(),uvs:[4,1]});for(const s of[-1,1])D(BOX,'#c0583e',[x+s*7.4,1.75,bz],0,[.35,3.5,5.6],{tex:brickTex(),uvs:[2,1]});
  for(const px of [-7.2,-3.6,0,3.6,7.2])D(BOX,'#efe4cf',[x+px,1.75,bz+2.8],0,[.45,3.5,.45]);
- for(let i=0;i<5;i++)kiosk2(x-5.6+i*2.8,bz-1.6,i);
+ for(let i=0;i<5;i++)kiosk2(x-5.6+i*2.8,bz-1.6,i);if(typeof roofBoards==='function')roofBoards(x,bz);
  D(BOX,'#e3342f',[x,3.65,bz],0,[15.4,.35,6.4]);
  for(const s of[-1,1])D(BOX,'#f4f1ea',[x,4.25,bz+s*3.1],0,[15,.6,.12]);D(BOX,'#f4f1ea',[x-7.5,4.25,bz],0,[.12,.6,6.2]);D(BOX,'#f4f1ea',[x+7.5,4.25,bz+.75],0,[.12,.6,4.7]);D(BOX,'#c9c3b5',[x+8.2,3.7,bz-2.55],0,[1.4,.25,.9]);D(BOX,'#f4f1ea',[x+8.95,4.25,bz-2.55],0,[.1,.6,.9]);D(BOX,'#f4f1ea',[x+8.2,4.25,bz-3.05],0,[1.5,.6,.1]);
  for(let k=0;k<8;k++)D(BOX,'#c9c3b5',[x+8.2,.22+k*.45,bz+2.4-k*.6],0,[1.4,.45,.6]);
@@ -55,8 +55,8 @@ function proyek(){const i0=DL.length,x=KX,z=KZ,bz=KBZ,nt=ENV.night>.5;
   for(let k=0;k<3;k++){if(rnd(i*5+k)<.4)continue;const a=k*2.1+i;person(tx+Math.cos(a)*1.15,bz+Math.sin(a)*1.15,i*3+k+40,Math.atan2(-Math.cos(a),-Math.sin(a)),3.82)}}
  for(let k=0;k<14;k++){const q=k/13;D(ICO,['#ffd23f','#ff9fb8','#6cc3f5'][k%3],[x-7.2+14.4*q,3.35-Math.abs(Math.sin(q*Math.PI*4))*.18,bz+2.9],0,[.12,.12,.12],{emis:.9,cast:0})}
  // papan nama di atas kantin, menghadap depan
- for(const s2 of[-1,1])D(BOX,'#5a3c24',[x+s2*2.6,4.9,bz+2.98],0,[.18,1.9,.18]);D(BOX,'#2b1a0e',[x,5.75,bz+3.2],0,[6.5,2.05,.2]);
- textPlane(signTex('kantinB',['KANTIN UNINET','BUKA SETIAP HARI']),x,5.75,bz+3.32,6.2,1.85,0,{emis:nt?.5:.05});
+ const SY=typeof roofBoards==='function'?7.75:5.75;for(const s2 of[-1,1])D(BOX,'#5a3c24',[x+s2*2.6,(4.0+SY-.9)/2,bz+2.7],0,[.18,SY-.9-4.0,.18]);D(BOX,'#2b1a0e',[x,SY,bz+2.9],0,[6.5,2.05,.2]);
+ textPlane(signTex('kantinB',['KANTIN UNINET','BUKA SETIAP HARI']),x,SY,bz+3.02,6.2,1.85,0,{emis:nt?.5:.05});
  for(let i=i0;i<DL.length;i++)DL[i].M=M4.mul(KR,DL[i].M)}
 CONFIG.warung=CONFIG.warung||['?','?','?','?','?'];
 {const pk=PLACES.find(p=>p.id==='proyek');pk.name='Kantin UNINET';document.querySelectorAll('#places .chip').forEach(b=>{if(b.textContent==='Proyek Berikutnya')b.textContent='Kantin UNINET'});pk.c=[KX,2,KZ];pk.r=7;pk.cam={tgt:[KX,2,KZ],dist:26,yaw:Math.PI/2+.35,pitch:.32}}
