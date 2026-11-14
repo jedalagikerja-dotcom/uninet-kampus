@@ -75,8 +75,8 @@ async function authDo(mode,v,pw){const AU=NET.AU,auth=NET.auth,em=IGMAIL(v);
  try{const r=mode==='daftar'?await AU.createUserWithEmailAndPassword(auth,em,pw):await AU.signInWithEmailAndPassword(auth,em,pw);await switchUser(r.user);return 'ok'}
  catch(e){const c=e.code||'';return c==='auth/email-already-in-use'?'exists':/invalid-credential|user-not-found|wrong-password|invalid-login/.test(c)?'wrong':c==='auth/too-many-requests'?'slow':c==='auth/operation-not-allowed'?'off':c==='auth/network-request-failed'?'net':'error'}}
 function openIdentity(reason,tab){const INP='display:flex;align-items:center;border:3px solid var(--ink);border-radius:12px;background:#fff;padding:0 10px;margin-top:8px';const IS='flex:1;min-width:0;border:0;padding:9px 4px;font:800 16px var(--body);background:transparent';
- if(NET.ig){showCard(`<h2>Namamu di kampus</h2><p>${reason||'Kamu masuk sebagai <b>@'+NET.ig+'</b>. Kamu bisa masuk dengan username dan password yang sama di HP, tablet, atau browser lain kapan saja, tanpa harus keluar dulu dari sini.'}</p><div class="row"><button class="btn" type="button" id="outBtn" style="background:#fff">Keluar</button><button class="btn dark" type="button" id="okBtn">Oke</button></div>`);
-  document.getElementById('okBtn').onclick=closeCard;document.getElementById('outBtn').onclick=async()=>{try{await NET.F.set(NET.me,null).catch(()=>{});await NET.AU.signOut(NET.auth);const r=await NET.AU.signInAnonymously(NET.auth);await switchUser(r.user)}catch(e){}closeCard();updName()};return}
+ if(NET.ig){showCard(`<h2>Namamu di kampus</h2><p>${reason||'Kamu masuk sebagai <b>@'+NET.ig+'</b>. Kamu bisa masuk dengan username dan password yang sama di HP, tablet, atau browser lain kapan saja, tanpa harus keluar dulu dari sini.'}</p><div class="row"><button class="btn dark" type="button" id="avOpen">Ubah karakter</button><button class="btn" type="button" id="outBtn" style="background:#fff">Keluar</button><button class="btn dark" type="button" id="okBtn">Oke</button></div>`);
+  document.getElementById('avOpen').onclick=()=>{closeCard();openAvatar()};document.getElementById('okBtn').onclick=closeCard;document.getElementById('outBtn').onclick=async()=>{try{await NET.F.set(NET.me,null).catch(()=>{});await NET.AU.signOut(NET.auth);const r=await NET.AU.signInAnonymously(NET.auth);await switchUser(r.user)}catch(e){}closeCard();updName()};return}
  const T=tab==='masuk'?'masuk':'daftar',D=T==='daftar';
  showCard(`<h2>${D?'Daftar jadi mahasiswa':'Masuk ke Kampus UNINET'}</h2><p>${reason||(D?'Pakai username Instagram kamu dan buat password. Setelah itu kamu bisa masuk dari HP atau browser mana pun.':'Masukkan username Instagram dan password yang kamu buat waktu daftar.')}</p>
  <div class="row" role="tablist"><button type="button" class="btn${D?' dark':''}" id="tD" role="tab" aria-selected="${D}" style="${D?'':'background:#fff'}">Daftar</button><button type="button" class="btn${D?'':' dark'}" id="tM" role="tab" aria-selected="${!D}" style="${D?'background:#fff':''}">Sudah punya akun? Masuk</button></div>
@@ -93,9 +93,9 @@ function openIdentity(reason,tab){const INP='display:flex;align-items:center;bor
   if(pw.length<6){E.textContent='Password minimal 6 huruf.';return}if(D&&P2.value!==pw){E.textContent='Ulangi password belum sama.';return}
   if(!NET.on){E.textContent='Belum tersambung ke kampus. Coba lagi sebentar.';return}
   E.style.color='#4a3524';E.textContent=D?'Mendaftarkan…':'Masuk…';const r=await authDo(T,v,pw);
-  if(r==='ok'){LS.set('uninet_ig',v);closeCard();updName();logLine('',(D?'Selamat datang, mahasiswa baru @':'Selamat datang kembali, @')+v+'!','sys');return}
+  if(r==='ok'){LS.set('uninet_ig',v);closeCard();updName();logLine('',(D?'Selamat datang, mahasiswa baru @':'Selamat datang kembali, @')+v+'!','sys');if(D||!NET.av)setTimeout(()=>openAvatar(true),400);return}
   E.style.color='#b0302b';E.textContent={exists:'@'+v+' sudah terdaftar. Ketuk "Sudah punya akun? Masuk".',wrong:'Username atau password salah.',slow:'Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.',off:'Pendaftaran belum diaktifkan admin.',net:'Koneksi bermasalah. Coba lagi.'}[r]||'Gagal. Coba lagi sebentar.'}}
-async function useUser(u){const F=NET.F;NET.uid=u.uid;NET.sid=u.uid+'_'+Math.random().toString(36).slice(2,8);NET.me=F.ref(NET.db,'online/'+NET.sid);F.onDisconnect(NET.me).remove();NET.ig=igFromUser(u);updName();sendPos(true)}
+async function useUser(u){const F=NET.F;NET.uid=u.uid;NET.sid=u.uid+'_'+Math.random().toString(36).slice(2,8);NET.me=F.ref(NET.db,'online/'+NET.sid);F.onDisconnect(NET.me).remove();NET.ig=igFromUser(u);NET.av=null;NET.avEdit=null;updName();if(NET.ig){try{const a=await F.get(F.ref(NET.db,'avatar/'+u.uid));NET.av=parseAv(a.val())}catch(e){}}sendPos(true)}
 // ---- tekstur nama & gelembung ----
 function nameTagTex(n){return ctex('nt_'+n,320,72,(x,w,h)=>{x.font=FD(38);const tw=Math.min(w-12,x.measureText(n).width+36);x.fillStyle='rgba(255,248,230,.95)';x.strokeStyle='#2b1a0e';x.lineWidth=5;x.beginPath();x.roundRect((w-tw)/2,6,tw,h-12,28);x.fill();x.stroke();x.fillStyle='#2b1a0e';x.textAlign='center';x.textBaseline='middle';let s=n;while(x.measureText(s).width>w-50&&s.length>3)s=s.slice(0,-1);x.fillText(s===n?n:s+'…',w/2,h/2+2)})}
 function bubbleTex(key,msg){return ctex('bb_'+key,512,170,(x,w,h)=>{x.font='800 30px Nunito, sans-serif';const words=msg.split(' ');const lines=[];let cur='';for(const wd of words){const t=cur?cur+' '+wd:wd;if(x.measureText(t).width>w-60&&cur){lines.push(cur);cur=wd}else cur=t}if(cur)lines.push(cur);const L=lines.slice(0,3);if(lines.length>3)L[2]=L[2].slice(0,-1)+'…';
@@ -109,7 +109,7 @@ function drawOthers(dt){const now=srvNow();let k=Math.min(1,dt*6);for(const [id,
   const dx=o.tx-o.x,dz=o.tz-o.z,d=Math.hypot(dx,dz);o.x+=dx*k;o.z+=dz*k;let dy=o.tyaw-o.yaw;while(dy>Math.PI)dy-=2*Math.PI;while(dy<-Math.PI)dy+=2*Math.PI;o.yaw+=dy*k;o.mv=d>.05;if(o.mv)o.ph=(o.ph||0)+dt*10;
   const h=o.mv?Math.abs(Math.sin(o.ph))*.1:0,far=(o.x-EYE[0])**2+(o.z-EYE[2])**2;
   if(SPECIAL[o.n]){rektor(o.x,o.z,o.yaw,(o.y||0)+h,o.mv?Math.sin(o.ph)*.9:0,o.y||0);if(far<3600)textPlane(specialTag(o.n),o.x,(o.y||0)+2.35,o.z,1.35,.42,cam.yaw,{emis:1,recv:0})}
-  else{person(o.x,o.z,o.c,o.yaw,(o.y||0)+h,{col:SHIRT[o.c%SHIRT.length],swing:o.mv?Math.sin(o.ph)*.9:0});if(far<1600)textPlane(nameTagTex(shown(o.n)),o.x,(o.y||0)+2.1,o.z,1.7,.38,cam.yaw,{emis:1,recv:0})}
+  else{person(o.x,o.z,o.c,o.yaw,(o.y||0)+h,{av:o.av,col:SHIRT[o.c%SHIRT.length],swing:o.mv?Math.sin(o.ph)*.9:0});if(far<1600)textPlane(nameTagTex(shown(o.n)),o.x,(o.y||0)+2.1,o.z,1.7,.38,cam.yaw,{emis:1,recv:0})}
   const b=NET.bubbles.get(o.u);if(b&&now<b.until&&far<2500)textPlane(bubbleTex(b.key,b.m),o.x,(o.y||0)+2.95,o.z,2.5,.83,cam.yaw,{emis:1,recv:0})}
  const mb=NET.bubbles.get(NET.uid);if(WALK&&mb&&now<mb.until)textPlane(bubbleTex(mb.key,mb.m),PL1.x,PL1.y+2.95,PL1.z,2.5,.83,cam.yaw,{emis:1,recv:0});
  for(const [id,b] of NET.bubbles)if(now>b.until+500){dropTex('bb_'+b.key);NET.bubbles.delete(id)}}
@@ -117,7 +117,7 @@ function drawOthers(dt){const now=srvNow();let k=Math.min(1,dt*6);for(const [id,
 let lastInput=Date.now();['touchstart','keydown','mousedown'].forEach(ev=>addEventListener(ev,()=>{lastInput=Date.now();if(NET.idleOff&&NET.F){NET.idleOff=false;NET.F.goOnline(NET.db);setTimeout(()=>sendPos(true),300)}},{passive:true}));
 function sendPos(force){if(!NET.on||!NET.uid||NET.idleOff)return;const now=Date.now(),L=NET.last,moved=Math.hypot(PL1.x-L.x,PL1.z-L.z)>.25||Math.abs(PL1.yaw-L.yaw)>.4;
  if(!force&&!(moved&&now-L.t>1200)&&now-L.t<25000)return;NET.last={x:PL1.x,z:PL1.z,yaw:PL1.yaw,t:now};
- const F=NET.F;F.set(NET.me,{u:NET.uid,n:myName(),x:+PL1.x.toFixed(2),z:+PL1.z.toFixed(2),y:+PL1.y.toFixed(2),yaw:+PL1.yaw.toFixed(2),c:hashN(NET.uid)%SHIRT.length,t:F.serverTimestamp()}).catch(e=>console.warn('pos',e&&e.code))}
+ const F=NET.F;const pd={u:NET.uid,n:myName(),x:+PL1.x.toFixed(2),z:+PL1.z.toFixed(2),y:+PL1.y.toFixed(2),yaw:+PL1.yaw.toFixed(2),c:hashN(NET.uid)%SHIRT.length,t:F.serverTimestamp()};if(NET.av)pd.a=avStr(NET.av);F.set(NET.me,pd).catch(e=>console.warn('pos',e&&e.code))}
 function countOnline(){if(NET.idleOff)return;const now=srvNow();let n=1;for(const o of NET.others.values())if(now-o.seen<70000)n++;setOnl(n,true)}
 // ---- sambung ke Firebase ----
 async function netStart(){try{
@@ -127,7 +127,7 @@ async function netStart(){try{
   NET.on=true;await useUser(user);
   if(!NET.ig)setTimeout(()=>{if(card.hidden&&!NET.ig)openIdentity()},1200);
   const R=D.ref(db,'online');const up=s=>{if(s.key===NET.sid)return;const v=s.val()||{};if(typeof v.x!=='number')return;let o=NET.others.get(s.key);
-   if(!o){o={x:v.x,z:v.z,yaw:v.yaw||0};NET.others.set(s.key,o)}Object.assign(o,{tx:v.x,tz:v.z,tyaw:v.yaw||0,y:v.y||0,n:cleanText(v.n||'Tamu').slice(0,30)||'Tamu',u:typeof v.u==='string'?v.u:s.key,c:v.c||0,seen:typeof v.t==='number'?v.t:srvNow()});countOnline()};
+   if(!o){o={x:v.x,z:v.z,yaw:v.yaw||0};NET.others.set(s.key,o)}Object.assign(o,{tx:v.x,tz:v.z,tyaw:v.yaw||0,y:v.y||0,n:cleanText(v.n||'Tamu').slice(0,30)||'Tamu',u:typeof v.u==='string'?v.u:s.key,av:parseAv(v.a),c:v.c||0,seen:typeof v.t==='number'?v.t:srvNow()});countOnline()};
   D.onChildAdded(R,up);D.onChildChanged(R,up);D.onChildRemoved(R,s=>{NET.others.delete(s.key);dropTex('nt_'+s.key);countOnline()});
   const Q=D.query(D.ref(db,'chat'),D.orderByChild('t'),D.limitToLast(30));let first=true;setTimeout(()=>first=false,2500);
   D.onChildAdded(Q,s=>{const v=s.val()||{};const m=cleanText(v.m).slice(0,120),n=cleanText(v.n).slice(0,30)||'Tamu';if(!m)return;
@@ -160,3 +160,37 @@ netStart();
  let lastTap=0;document.addEventListener('touchend',e=>{const t=Date.now();if(t-lastTap<300&&!/INPUT|TEXTAREA|BUTTON|A/.test(e.target.tagName))e.preventDefault();lastTap=t},{passive:false});
  document.head.insertAdjacentHTML('beforeend','<style>html,body{position:fixed;inset:0;width:100%;touch-action:none}input,textarea,select{font-size:max(16px,1em)}button{touch-action:manipulation}#chatLog{touch-action:pan-y}#mentList,#places{touch-action:pan-x}</style>');
  setInterval(reset,2000)})();
+
+// ================= RUANG GANTI KARAKTER =================
+const WARD={on:false,ty:1.5,prev:null};
+(function(){const st=document.createElement('style');st.textContent=`#ward{position:fixed;z-index:8;right:max(10px,env(safe-area-inset-right,0px));top:64px;bottom:10px;width:min(360px,46vw);overflow-y:auto;overscroll-behavior:contain;background:var(--cream);border:3px solid var(--ink);border-radius:20px;box-shadow:0 5px 0 var(--ink);padding:14px 14px 10px;color:var(--ink);font-family:var(--body)}
+#ward[hidden]{display:none}#ward h2{margin:0 0 4px;font-family:var(--display);font-size:22px}#ward .g{margin:10px 0 0}#ward .g b{display:block;font-size:14px;margin-bottom:6px}
+#ward .opts{display:flex;flex-wrap:wrap;gap:7px}#ward .o{font:800 14px var(--body);border:2.5px solid var(--ink);border-radius:999px;padding:8px 12px;min-height:40px;background:#fff;color:var(--ink);cursor:pointer}
+#ward .o[aria-pressed=true]{background:var(--ink);color:var(--cream)}#ward .sw{width:40px;height:40px;padding:0;border-radius:50%;border:3px solid var(--ink)}#ward .sw[aria-pressed=true]{outline:3px solid #ffd23f;outline-offset:2px}
+#ward .act{position:sticky;bottom:-10px;background:var(--cream);display:flex;gap:8px;padding:10px 0 4px;margin-top:12px}
+#avBtn{position:fixed;z-index:5;left:max(14px,env(safe-area-inset-left,0px));top:calc(50% - 98px);font-family:var(--display);font-size:12px;line-height:1.15;text-align:center;border:3px solid var(--ink);border-radius:16px;padding:8px 8px;background:var(--cream);color:var(--ink);box-shadow:0 3px 0 var(--ink);cursor:pointer}
+body:not(.walk) #avBtn{display:none}body.ward #avBtn,body.ward #chatBtn,body.ward #umkmBtn{display:none}
+@media (max-aspect-ratio:1/1){#ward{left:10px;right:10px;width:auto;top:auto;height:50vh}}`;document.head.appendChild(st);
+ document.body.insertAdjacentHTML('beforeend','<button id="avBtn" type="button">UBAH<br>KARAKTER</button><div id="ward" role="dialog" aria-modal="false" aria-labelledby="wardT" hidden></div>');
+ document.getElementById('avBtn').onclick=()=>openAvatar()})();
+const AV_DEF={sh:0,sk:0,hs:0,hc:0,bd:1,tg:0,hat:0,hj:0};
+function openAvatar(fresh){if(!NET.ig){openIdentity('Daftar atau masuk dulu supaya karaktermu tersimpan dan dilihat mahasiswa lain.');return}
+ if(typeof SPECIAL!=='undefined'&&SPECIAL[NET.ig]){toast('Akun Rektor memakai karakter khusus.');return}
+ if(typeof WALK!=='undefined'&&!WALK&&typeof setWalk==='function')setWalk(true);
+ NET.avEdit=Object.assign({},NET.av||AV_DEF);WARD.on=true;WARD.prev={yaw:WCAM.yaw,pitch:WCAM.pitch,dist:WCAM.dist};document.body.classList.add('ward');
+ WCAM.yaw=PL1.yaw;WCAM.pitch=.12;WCAM.dist=3.6;WARD.ty=matchMedia('(max-aspect-ratio:1/1)').matches?.35:1.15;closeCard();drawWard(fresh)}
+function drawWard(fresh){const A=NET.avEdit,el=document.getElementById('ward');
+ const sw=(k,cols,lab)=>`<div class="g"><b>${lab}</b><div class="opts">${cols.map((c,i)=>`<button type="button" class="o sw" data-k="${k}" data-v="${i}" aria-pressed="${A[k]===i}" aria-label="${lab} ${i+1}" style="background:${c}"></button>`).join('')}</div></div>`;
+ const ch=(k,names,lab,off)=>`<div class="g"><b>${lab}</b><div class="opts">${names.map((n,i)=>`<button type="button" class="o" data-k="${k}" data-v="${i+(off||0)}" aria-pressed="${A[k]===i+(off||0)}">${n}</button>`).join('')}</div></div>`;
+ const hjOn=A.hj>0;
+ el.innerHTML=`<h2 id="wardT">${fresh?'Buat karaktermu':'Ubah karakter'}</h2><p style="margin:0;font-size:14px">Pilih tampilanmu. Mahasiswa lain langsung melihatnya di kampus.</p>
+ ${sw('sk',AVC.sk,'Warna kulit')}${sw('sh',AVC.sh,'Warna baju')}${ch('bd',['Kurus','Sedang','Gemuk'],'Bentuk badan')}${ch('tg',['Normal','Tinggi','Pendek'],'Tinggi badan')}
+ <div class="g"><b>Hijab</b><div class="opts"><button type="button" class="o" data-k="hj" data-v="0" aria-pressed="${A.hj===0}">Tidak</button>${AVC.hj.map((c,i)=>`<button type="button" class="o sw" data-k="hj" data-v="${i+1}" aria-pressed="${A.hj===i+1}" aria-label="Hijab warna ${i+1}" style="background:${c}"></button>`).join('')}</div></div>
+ ${hjOn?'':ch('hs',['Pendek','Panjang','Keriting','Cepak','Botak'],'Rambut')+sw('hc',AVC.hc,'Warna rambut')+ch('hat',['Tanpa topi','Topi','Kupluk','Toga'],'Topi')}
+ <div class="act"><button type="button" class="btn dark" id="wSave">Simpan</button><button type="button" class="btn" id="wCancel" style="background:#fff">Batal</button></div>`;
+ el.hidden=false;el.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{A[b.dataset.k]=+b.dataset.v;const st=el.scrollTop;drawWard(fresh);el.scrollTop=st});
+ document.getElementById('wCancel').onclick=()=>closeWard();
+ document.getElementById('wSave').onclick=async()=>{const b=document.getElementById('wSave');b.disabled=true;b.textContent='Menyimpan…';
+  try{await NET.F.set(NET.F.ref(NET.db,'avatar/'+NET.uid),avStr(A));NET.av=Object.assign({},A);closeWard();sendPos(true);toast('Karaktermu tersimpan!')}
+  catch(e){b.disabled=false;b.textContent='Simpan';toast('Gagal menyimpan. Coba lagi.')}}}
+function closeWard(){NET.avEdit=null;WARD.on=false;document.getElementById('ward').hidden=true;document.body.classList.remove('ward');if(WARD.prev)Object.assign(WCAM,WARD.prev)}
