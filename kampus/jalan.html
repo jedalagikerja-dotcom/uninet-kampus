@@ -717,7 +717,7 @@ async function authDo(mode,v,pw){const AU=NET.AU,auth=NET.auth,em=IGMAIL(v);
  try{const r=mode==='daftar'?await AU.createUserWithEmailAndPassword(auth,em,pw):await AU.signInWithEmailAndPassword(auth,em,pw);await switchUser(r.user);return 'ok'}
  catch(e){const c=e.code||'';return c==='auth/email-already-in-use'?'exists':/invalid-credential|user-not-found|wrong-password|invalid-login/.test(c)?'wrong':c==='auth/too-many-requests'?'slow':c==='auth/operation-not-allowed'?'off':c==='auth/network-request-failed'?'net':'error'}}
 function openIdentity(reason,tab){const INP='display:flex;align-items:center;border:3px solid var(--ink);border-radius:12px;background:#fff;padding:0 10px;margin-top:8px';const IS='flex:1;min-width:0;border:0;padding:9px 4px;font:800 16px var(--body);background:transparent';
- if(NET.ig){showCard(`<h2>Namamu di kampus</h2><p>${reason||'Kamu masuk sebagai <b>@'+NET.ig+'</b>. Kamu bisa masuk dengan username dan password yang sama di HP, tablet, atau browser lain kapan saja, tanpa harus keluar dulu dari sini.'}</p><div class="row"><button class="btn dark" type="button" id="avOpen">Ubah karakter</button><button class="btn" type="button" id="outBtn" style="background:#fff">Keluar</button><button class="btn dark" type="button" id="okBtn">Oke</button></div>`);
+ if(NET.ig){showCard(`<h2>Namamu di kampus</h2><p>${reason||'Kamu masuk sebagai <b>@'+NET.ig+'</b>. Kamu bisa masuk dengan username dan password yang sama di HP, tablet, atau browser lain kapan saja, tanpa harus keluar dulu dari sini.'}</p><div class="row"><button class="btn dark" type="button" id="avOpen">Ubah karakter</button>${NET.ig==='uninet.id'?'<button class="btn" type="button" id="qrbSet" style="background:#ffd23f">Pasang papan traktir di sini</button>':''}<button class="btn" type="button" id="outBtn" style="background:#fff">Keluar</button><button class="btn dark" type="button" id="okBtn">Oke</button></div>`);
   document.getElementById('avOpen').onclick=()=>{closeCard();openAvatar()};document.getElementById('okBtn').onclick=closeCard;document.getElementById('outBtn').onclick=async()=>{try{await NET.F.set(NET.me,null).catch(()=>{});await NET.AU.signOut(NET.auth);const r=await NET.AU.signInAnonymously(NET.auth);await switchUser(r.user)}catch(e){}closeCard();updName()};return}
  const T=tab==='masuk'?'masuk':'daftar',D=T==='daftar';
  showCard(`<h2>${D?'Daftar jadi mahasiswa':'Masuk ke Kampus UNINET'}</h2><p>${reason||(D?'Pakai username Instagram kamu dan buat password. Setelah itu kamu bisa masuk dari HP atau browser mana pun.':'Masukkan username Instagram dan password yang kamu buat waktu daftar.')}</p>
@@ -779,7 +779,7 @@ async function netStart(){try{
    MSG.set(s.key,{n,m,u:v.u});if(MSG.size>80)MSG.delete(MSG.keys().next().value);msgLine(s.key,{n,m,u:v.u,r,ment});
    if(ment&&!first&&Date.now()-(v.t||0)<20000){toast(shown(n)+(ro&&ro.u===NET.uid?' membalas pesanmu':' menyebut namamu')+': '+m.slice(0,40));try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}}
    if(Date.now()-(v.t||0)<15000)NET.bubbles.set(v.u,{key:s.key,m,until:Date.now()+6000});if(!first&&!chatEl.classList.contains('open'))setUnread(unread+1)});
-  logLine('',NET.ig?'Kamu masuk sebagai @'+NET.ig+'.':'Kamu masih Tamu. Ketuk "Daftar / Masuk" untuk memakai username IG.','sys');logLine('','Ketuk pesan untuk membalas. Ketik @ untuk menyebut nama.','sys');D.onValue(D.ref(db,'mading'),x=>{const v=x.val();if(v&&typeof v.judul==='string'&&typeof v.isi==='string'){CONFIG.pengumuman={judul:v.judul.slice(0,40),isi:v.isi.slice(0,200)};dropTex('board')}},()=>{});if(typeof brandStart==='function')brandStart();countOnline();
+  logLine('',NET.ig?'Kamu masuk sebagai @'+NET.ig+'.':'Kamu masih Tamu. Ketuk "Daftar / Masuk" untuk memakai username IG.','sys');logLine('','Ketuk pesan untuk membalas. Ketik @ untuk menyebut nama.','sys');D.onValue(D.ref(db,'mading'),x=>{const v=x.val();if(v&&typeof v.judul==='string'&&typeof v.isi==='string'){CONFIG.pengumuman={judul:v.judul.slice(0,40),isi:v.isi.slice(0,200)};dropTex('board')}},()=>{});if(typeof brandStart==='function')brandStart();if(typeof qrbStart==='function')qrbStart();countOnline();
   document.addEventListener('visibilitychange',()=>{if(document.hidden){D.goOffline(db)}else{D.goOnline(db);setTimeout(()=>sendPos(true),400)}});
   D.onValue(D.ref(db,'.info/serverTimeOffset'),x=>{NET.off=x.val()||0;countOnline()});
   setInterval(()=>{if(NET.on&&!NET.idleOff&&Date.now()-lastInput>600000){NET.idleOff=true;D.goOffline(db);const e=document.getElementById('onl');e.classList.remove('live');e.lastChild.textContent='ketuk layar';}else countOnline()},5000);
@@ -919,6 +919,72 @@ function brandStart(){const F=NET.F;F.onValue(F.ref(NET.db,'umkmOpen'),s=>{BR.op
 // tombol Daftar UMKM (muncul saat Program Bantu UMKM dibuka dan slot masih ada)
 document.body.insertAdjacentHTML('beforeend','<a id="umkmBtn" href="../umkm.html" hidden></a>');
 document.head.insertAdjacentHTML('beforeend','<style>#umkmBtn{position:fixed;z-index:5;left:max(14px,env(safe-area-inset-left,0px));top:calc(50% + 46px);font-family:var(--display);font-size:12px;line-height:1.15;text-align:center;text-decoration:none;border:3px solid var(--ink);border-radius:16px;padding:8px 8px;background:#ffd23f;color:var(--ink);box-shadow:0 3px 0 var(--ink)}#umkmBtn b{display:block;font-size:11px;background:var(--red);color:#fff;border-radius:999px;padding:1px 6px;margin-top:4px}#umkmBtn[hidden]{display:none}body:not(.walk) #umkmBtn{display:none}</style>');
+
+// ================= QR CODE GENERATOR (byte mode, ECC M) — ringkasan algoritme qrcodegen (Nayuki, MIT) =================
+const QRGEN=(function(){
+ const ECC_CW=[-1,10,16,26,18,24,16,18,22,22,26,30,22,22,24,24,28,28,26,26,26,26,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28];
+ const NUM_EC=[-1,1,1,1,2,2,4,4,4,5,5,5,8,9,9,10,10,11,13,14,16,17,17,18,20,21,23,25,26,28,29,31,33,35,37,38,40,43,45,47,49];
+ function rawMods(v){let r=(16*v+128)*v+64;if(v>=2){const n=Math.floor(v/7)+2;r-=(25*n-10)*n-55;if(v>=7)r-=36}return r}
+ const dataCw=v=>Math.floor(rawMods(v)/8)-ECC_CW[v]*NUM_EC[v];
+ function rsDiv(deg){const r=new Array(deg).fill(0);r[deg-1]=1;let root=1;for(let i=0;i<deg;i++){for(let j=0;j<r.length;j++){r[j]=mul(r[j],root);if(j+1<r.length)r[j]^=r[j+1]}root=mul(root,2)}return r}
+ function rsRem(data,div){const res=div.map(()=>0);for(const b of data){const f=b^res.shift();res.push(0);div.forEach((c,i)=>res[i]^=mul(c,f))}return res}
+ function mul(x,y){let z=0;for(let i=7;i>=0;i--){z=(z<<1)^((z>>>7)*0x11D);z^=((y>>>i)&1)*x}return z&255}
+ function make(text){const bytes=[...new TextEncoder().encode(text)];let v=1;for(;v<=40;v++){const cap=dataCw(v)*8,need=4+(v<10?8:16)+bytes.length*8;if(need<=cap)break}
+  const bits=[];const put=(val,n)=>{for(let i=n-1;i>=0;i--)bits.push((val>>>i)&1)};put(4,4);put(bytes.length,v<10?8:16);bytes.forEach(b=>put(b,8));
+  const cap=dataCw(v)*8;put(0,Math.min(4,cap-bits.length));put(0,(8-bits.length%8)%8);for(let p=0xEC;bits.length<cap;p^=0xEC^0x11)put(p,8);
+  const data=[];for(let i=0;i<bits.length;i+=8){let b=0;for(let j=0;j<8;j++)b=(b<<1)|bits[i+j];data.push(b)}
+  const nb=NUM_EC[v],ecl=ECC_CW[v],raw=Math.floor(rawMods(v)/8),ns=nb-raw%nb,sl=Math.floor(raw/nb),div=rsDiv(ecl),blocks=[];
+  for(let i=0,k=0;i<nb;i++){const d=data.slice(k,k+sl-ecl+(i<ns?0:1));k+=d.length;const e=rsRem(d,div);if(i<ns)d.push(0);blocks.push(d.concat(e))}
+  const cw=[];for(let i=0;i<blocks[0].length;i++)blocks.forEach((b,j)=>{if(i!==sl-ecl||j>=ns)cw.push(b[i])});
+  const size=v*4+17,M=[],F=[];for(let i=0;i<size;i++){M.push(new Array(size).fill(false));F.push(new Array(size).fill(false))}
+  const set=(x,y,d)=>{M[y][x]=d;F[y][x]=true};
+  for(let i=0;i<size;i++){set(6,i,i%2===0);set(i,6,i%2===0)}
+  const finder=(x,y)=>{for(let dy=-4;dy<=4;dy++)for(let dx=-4;dx<=4;dx++){const d=Math.max(Math.abs(dx),Math.abs(dy)),xx=x+dx,yy=y+dy;if(xx>=0&&xx<size&&yy>=0&&yy<size)set(xx,yy,d!==2&&d!==4)}};
+  finder(3,3);finder(size-4,3);finder(3,size-4);
+  const al=[];if(v>1){const n=Math.floor(v/7)+2,st=v===32?26:Math.ceil((v*4+4)/(n*2-2))*2;al.push(6);for(let p=size-7;al.length<n;p-=st)al.splice(1,0,p)}
+  for(let i=0;i<al.length;i++)for(let j=0;j<al.length;j++){if((i===0&&j===0)||(i===0&&j===al.length-1)||(i===al.length-1&&j===0))continue;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)set(al[i]+dx,al[j]+dy,Math.max(Math.abs(dx),Math.abs(dy))!==1)}
+  const fmt=mask=>{const d=0<<3|mask;let r=d;for(let i=0;i<10;i++)r=(r<<1)^((r>>>9)*0x537);const b=(d<<10|r)^0x5412;
+   for(let i=0;i<=5;i++)set(8,i,(b>>>i)&1);set(8,7,(b>>>6)&1);set(8,8,(b>>>7)&1);set(7,8,(b>>>8)&1);for(let i=9;i<15;i++)set(14-i,8,(b>>>i)&1);
+   for(let i=0;i<8;i++)set(size-1-i,8,(b>>>i)&1);for(let i=8;i<15;i++)set(8,size-15+i,(b>>>i)&1);set(8,size-8,true)};
+  fmt(0);
+  if(v>=7){let r=v;for(let i=0;i<12;i++)r=(r<<1)^((r>>>11)*0x1F25);const b=v<<12|r;for(let i=0;i<18;i++){const bt=(b>>>i)&1,a=size-11+i%3,c=Math.floor(i/3);set(a,c,bt);set(c,a,bt)}}
+  let i=0;for(let right=size-1;right>=1;right-=2){if(right===6)right=5;for(let vert=0;vert<size;vert++)for(let j=0;j<2;j++){const x=right-j,up=((right+1)&2)===0,y=up?size-1-vert:vert;if(!F[y][x]&&i<cw.length*8){M[y][x]=((cw[i>>>3]>>>(7-(i&7)))&1)===1;i++}}}
+  const masks=[(x,y)=>(x+y)%2===0,(x,y)=>y%2===0,(x,y)=>x%3===0,(x,y)=>(x+y)%3===0,(x,y)=>(Math.floor(x/3)+Math.floor(y/2))%2===0,(x,y)=>x*y%2+x*y%3===0,(x,y)=>(x*y%2+x*y%3)%2===0,(x,y)=>((x+y)%2+x*y%3)%2===0];
+  const apply=m=>{for(let y=0;y<size;y++)for(let x=0;x<size;x++)if(!F[y][x]&&masks[m](x,y))M[y][x]=!M[y][x]};
+  const pen=()=>{let p=0;for(let y=0;y<size;y++){let run=1;for(let x=1;x<=size;x++){if(x<size&&M[y][x]===M[y][x-1])run++;else{if(run>=5)p+=run-2;run=1}}}
+   for(let x=0;x<size;x++){let run=1;for(let y=1;y<=size;y++){if(y<size&&M[y][x]===M[y-1][x])run++;else{if(run>=5)p+=run-2;run=1}}}
+   for(let y=0;y<size-1;y++)for(let x=0;x<size-1;x++){const c=M[y][x];if(c===M[y][x+1]&&c===M[y+1][x]&&c===M[y+1][x+1])p+=3}
+   let dark=0;M.forEach(r=>r.forEach(c=>dark+=c));p+=Math.floor(Math.abs(dark*20-size*size*10)/(size*size))*10;return p};
+  let best=0,bp=1e9;for(let m=0;m<8;m++){apply(m);fmt(m);const p=pen();if(p<bp){bp=p;best=m}apply(m)}
+  apply(best);fmt(best);return M}
+ return {make}})();
+
+// ================= PAPAN QR "TRAKTIR PAK RAKA NGOPI" =================
+const QRB={url:'https://saweria.co/UNINET',label:'saweria.co/UNINET',pos:null,M:null};
+QRB.M=QRGEN.make(QRB.url);
+function qrCanvas(px,margin){const M=QRB.M,n=M.length,c=document.createElement('canvas'),s=Math.floor(px/(n+margin*2));c.width=c.height=s*(n+margin*2);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.fillStyle='#000';for(let r=0;r<n;r++)for(let k=0;k<n;k++)if(M[r][k])x.fillRect((k+margin)*s,(r+margin)*s,s,s);return c}
+function qrbTex(){return ctex('qrb',640,900,(x,w,h)=>{x.fillStyle='#a7764d';x.fillRect(0,0,w,h);x.fillStyle='#fff8e6';x.strokeStyle='#2b1a0e';x.lineWidth=10;x.beginPath();x.roundRect(28,28,w-56,h-56,40);x.fill();x.stroke();
+ x.strokeStyle='#2b1a0e';x.lineWidth=7;x.lineCap='round';x.lineJoin='round';x.beginPath();x.moveTo(268,92);x.lineTo(352,92);x.lineTo(352,124);x.arc(318,124,34,0,Math.PI);x.lineTo(268,92);x.stroke();x.beginPath();x.arc(362,112,12,-Math.PI/2,Math.PI/2);x.stroke();
+ for(const k of[296,322]){x.beginPath();x.moveTo(k,58);x.quadraticCurveTo(k-8,68,k,78);x.stroke()}
+ x.fillStyle='#2b1a0e';x.textAlign='center';x.textBaseline='middle';x.font=FD(64);x.fillText('TRAKTIR',w/2,215);x.fillText('PAK RAKA NGOPI',w/2,282);
+ x.font='800 26px Nunito, sans-serif';x.fillStyle='#5c4430';x.fillText('Suka sama UNINET? Boleh traktir',w/2,340);x.fillText('kopi, seikhlasnya.',w/2,374);
+ x.fillStyle='#fff';x.strokeStyle='#2b1a0e';x.lineWidth=8;x.beginPath();x.roundRect(150,410,340,340,24);x.fill();x.stroke();x.imageSmoothingEnabled=false;x.drawImage(qrCanvas(300,1),170,430,300,300);
+ x.fillStyle='#2b1a0e';x.font='900 30px Nunito, sans-serif';x.fillText(QRB.label,w/2,800);x.font='700 22px Nunito, sans-serif';x.fillStyle='#7a5a3c';x.fillText('Ketuk papan untuk menyimpan QR',w/2,840)})}
+function qrbDraw(){const P=QRB.pos;if(!P)return;const t=performance.now()/1000,y=(P.y||0)+2.6+Math.sin(t*1.4)*.12,yaw=(P.yaw||0)+Math.sin(t*.6)*.25,W=1.55,H=2.18;
+ textPlane(qrbTex(),P.x,y,P.z,W,H,yaw,{emis:.85,recv:0});textPlane(qrbTex(),P.x,y,P.z,W,H,yaw+Math.PI,{emis:.85,recv:0});
+ D(DISC,'#ffd77a',[P.x,(P.y||0)+.04,P.z],0,[1.6,.01,1.6],{alpha:.25+.1*Math.sin(t*2),emis:1,cast:0,recv:0});
+ for(let i=0;i<4;i++){const a=t*1.2+i*1.57;D(ICO0,'#fff3a0',[P.x+Math.cos(a)*1.1,y-.6+Math.sin(t*2+i)*.4,P.z+Math.sin(a)*1.1],[t,t*2,0],[.06,.06,.06],{emis:1,cast:0})}}
+{const _pk=proyek;proyek=function(){_pk();qrbDraw()}}
+{const _np=nearPlace;nearPlace=function(){const P=QRB.pos;if(P&&Math.hypot(P.x-PL1.x,P.z-PL1.z)<2.6&&Math.abs((P.y||0)-PL1.y)<2){const b=document.getElementById('wNear');if(NEAR!=='qrb'){NEAR='qrb';b.textContent='Lihat: Traktir Pak Raka';b.hidden=false}return}_np()}}
+{const wb=document.getElementById('wNear'),prev=wb.onclick;wb.onclick=e=>{if(NEAR==='qrb')openQRB();else if(prev)prev.call(wb,e)}}
+function openQRB(){const img=qrCanvas(600,3).toDataURL('image/png');
+ showCard(`<h2>Traktir Pak Raka Ngopi</h2><p>Suka sama UNINET? Boleh traktir kopi, seikhlasnya. Kampus tetap gratis untuk semua.</p>
+ <img src="${img}" alt="Kode QR Saweria UNINET" style="display:block;width:min(240px,60vw);margin:6px auto;border:4px solid var(--ink);border-radius:14px;background:#fff">
+ <p style="font-size:13px;margin:4px 0 8px;text-align:center">Dari HP ini: simpan gambar QR lalu pindai lewat galeri, atau langsung buka Saweria.</p>
+ <div class="row"><a class="btn dark" href="${QRB.url}" target="_blank" rel="noopener">Buka Saweria</a><a class="btn" href="${img}" download="QR-Traktir-UNINET.png" style="background:#fff">Simpan gambar QR</a></div>`)}
+document.addEventListener('click',async e=>{if(!e.target||e.target.id!=='qrbSet')return;if(NET.ig!=='uninet.id')return;
+ try{await NET.F.set(NET.F.ref(NET.db,'qrboard'),{x:+PL1.x.toFixed(2),y:+PL1.y.toFixed(2),z:+PL1.z.toFixed(2),yaw:+(PL1.yaw+Math.PI).toFixed(3)});closeCard();toast('Papan traktir dipasang di sini!')}catch(err){toast('Gagal memasang. Sudah tempel aturan database terbaru?')}});
+function qrbStart(){NET.F.onValue(NET.F.ref(NET.db,'qrboard'),s=>{const v=s.val();QRB.pos=v&&typeof v.x==='number'&&typeof v.z==='number'?v:null},()=>{})}
 
 // ================= AJAKAN MIRINGKAN HP (hanya di layar sentuh, posisi tegak) =================
 (function(){const st=document.createElement('style');st.textContent=`#rotAsk{position:fixed;inset:0;z-index:50;background:rgba(43,26,14,.97);color:#fff8e6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center}
