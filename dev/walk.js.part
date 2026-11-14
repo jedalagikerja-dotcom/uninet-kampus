@@ -118,7 +118,7 @@ function player(){const h=PL1.y+(PL1.moving&&PL1.y<=groundAt(PL1.x,PL1.z)+.01?Ma
  if(sp){rektor(PL1.x,PL1.z,PL1.yaw,h,PL1.moving?Math.sin(PL1.phase)*.9:0,groundAt(PL1.x,PL1.z));textPlane(specialTag(NET.ig),PL1.x,h+2.35,PL1.z,1.35,.42,WCAM.yaw,{emis:1,recv:0})}
  else{const myav=(typeof NET!=='undefined'&&(NET.avEdit||NET.av))||null;person(PL1.x,PL1.z,0,PL1.yaw,h,{me:1,av:myav,col:'#3a6ea5',hair:'#2b1a0e',swing:PL1.moving?Math.sin(PL1.phase)*.9:0});
  if(!myav){DM(ICO2,'#ffd23f',M4.trs([PL1.x,h+1.27,PL1.z],[0,PL1.yaw,0],[1,1,1]),[0,0,0],0,[.35,.15,.35]);DM(BOX,'#ffd23f',M4.trs([PL1.x,h+1.27,PL1.z],[0,PL1.yaw,0],[1,1,1]),[0,0,.34],0,[.42,.05,.3])}
- textPlane(nameTex(),PL1.x,h+2,PL1.z,1.15,.29,WCAM.yaw,{emis:1,recv:0})}
+ textPlane(nameTex(),PL1.x,h+2,PL1.z,1.15,.29,WCAM.yaw,{emis:1,recv:0});if(typeof LABELS!=='undefined'&&NET.ig&&LABELS[NET.ig])textPlane(lblTex(NET.ig),PL1.x,h+1.72,PL1.z,1.15,.25,WCAM.yaw,{emis:1,recv:0})}
  D(DISC,'#000000',[PL1.x,groundAt(PL1.x,PL1.z)+.02,PL1.z],0,[.4,.01,.4],{alpha:.18,cast:0,recv:0})}
 function stepPlayer(dt){let ix=JOY.x,iy=JOY.y;if(KEYS.KeyW||KEYS.ArrowUp)iy-=1;if(KEYS.KeyS||KEYS.ArrowDown)iy+=1;if(KEYS.KeyA||KEYS.ArrowLeft)ix-=1;if(KEYS.KeyD||KEYS.ArrowRight)ix+=1;
  const m=Math.hypot(ix,iy);if(m>1){ix/=m;iy/=m}
