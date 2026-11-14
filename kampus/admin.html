@@ -36,8 +36,8 @@ const V='10.14.1',U=n=>`https://www.gstatic.com/firebasejs/${V}/firebase-${n}.js
 const [{initializeApp},A,D]=await Promise.all([import(U('app')),import(U('auth')),import(U('database'))]);
 const app=initializeApp({apiKey:"AIzaSyBq2b8RFiq0j47Hek0OghBABHv982ikuCw",authDomain:"uninet-kampus.firebaseapp.com",databaseURL:"https://uninet-kampus-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"uninet-kampus",storageBucket:"uninet-kampus.firebasestorage.app",messagingSenderId:"918457767424",appId:"1:918457767424:web:e42e5e58eed798ce296ae5"});
 const auth=A.getAuth(app),db=D.getDatabase(app);
-const SL=[['warung1','Warung 1 (kantin, paling kiri)'],['warung2','Warung 2 (kantin)'],['warung3','Warung 3 (kantin, tengah)'],['warung4','Warung 4 (kantin)'],['warung5','Warung 5 (kantin, paling kanan)'],['baliho1','Baliho 1 (luar pagar, kiri gerbang)'],['baliho2','Baliho 2 (luar pagar, kanan gerbang)']];
-const DEFC={warung1:'#ffd23f',warung2:'#6cc3f5',warung3:'#8bd17c',warung4:'#ff9fb8',warung5:'#f7a440',baliho1:'#3a6ea5',baliho2:'#e3342f'};
+const SL=[['warung1','Warung 1 (kantin, paling kiri)'],['warung2','Warung 2 (kantin)'],['warung3','Warung 3 (kantin, tengah)'],['warung4','Warung 4 (kantin)'],['warung5','Warung 5 (kantin, paling kanan)'],['baliho1','Baliho 1 (kiri depan, dekat gerbang)'],['baliho2','Baliho 2 (kanan depan, dekat gerbang)'],['baliho3','Baliho 3 (kiri belakang, dekat Ruang Sejarah)'],['baliho4','Baliho 4 (kanan belakang, dekat Perpustakaan)']];
+const DEFC={warung1:'#ffd23f',warung2:'#6cc3f5',warung3:'#8bd17c',warung4:'#ff9fb8',warung5:'#f7a440',baliho1:'#3a6ea5',baliho2:'#e3342f',baliho3:'#2f8f6a',baliho4:'#f28c38'};
 const $=s=>document.querySelector(s);let mt=0;
 const PORTAL=/mitra\.html$/.test(location.pathname);
 if(PORTAL){document.title='Portal Mitra · UNINET';$('header h1').innerHTML='UNINET <b>Portal Mitra</b>';document.documentElement.style.setProperty('--yellow','#7fe0a8');document.documentElement.style.setProperty('--bg','#dff3e6');document.documentElement.style.setProperty('--cream','#f4fff8');document.querySelector('header').style.background='#0f4c36';
