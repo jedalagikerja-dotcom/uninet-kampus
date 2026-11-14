@@ -266,9 +266,9 @@ function monument(){const n=PANELS,tot=monTot(),z=MON.z,dg=MON.dg,nt=ENV.night>.
  textPlane(signTex('plq2',['ANGKATAN PERTAMA','UNIVERSITAS NETIZEN INDONESIA'],'#d8a93c','#4a3208'),0,MON.y0+MON.ph+1.6,z+.32,8.8,2.0);
  const sw=(tot+.4-dg)/2;for(const sg of[-1,1]){const sx=sg*(dg/2+sw/2);D(BOX,'#e3342f',[sx,MON.y0+MON.ph*.62,z+.6],0,[sw,.32,.06],{cast:0});D(BOX,'#fbfbf7',[sx,MON.y0+MON.ph*.62-.32,z+.6],0,[sw,.32,.06],{cast:0})}
  // pintu masuk gedung utama di tengah monumen
- const y0=1.25,dh=3.9,dw=2.6;D(BOX,'#f4f1ea',[0,MON.y0+MON.ph/2,z-.2],0,[dg,MON.ph+.2,.9]);
- D(BOX,'#d8a93c',[0,y0+dh/2+.1,z+.28],0,[dw+.5,dh+.3,.14]);
- for(const sg of[-1,1]){D(BOX,nt?'#ffe6a8':'#2e4a6b',[sg*dw/4,y0+dh/2,z+.36],0,[dw/2-.08,dh,.08],{emis:nt?.7:.05});D(BOX,'#d8a93c',[sg*.18,y0+dh*.48,z+.42],0,[.07,.6,.06],{cast:0})}
+ const y0=1.25,dh=3.9,dw=2.6,top=MON.y0+MON.ph+.1;D(BOX,'#f4f1ea',[0,(y0+dh+top)/2,z-.2],0,[dg,top-y0-dh,.9]);
+ for(const sg of[-1,1]){D(BOX,'#f4f1ea',[sg*(dw/2+.2),(y0+dh)/2+.4,z-.2],0,[.4,dh+.4,.9]);D(BOX,'#d8a93c',[sg*(dw/2+.08),y0+dh/2,z+.3],0,[.2,dh+.2,.2]);
+  D(BOX,nt?'#ffe6a8':'#2e4a6b',[sg*(dw/2-.08),y0+dh/2,z-.85-dw/4],0,[.08,dh,dw/2-.1],{emis:nt?.5:.05});D(BOX,'#d8a93c',[sg*(dw/2-.16),y0+dh*.48,z-.85-dw/2+.3],0,[.06,.6,.07],{cast:0})}
  D(BOX,'#d8a93c',[0,y0+dh+.55,z+.3],0,[dw+.9,.5,.3]);textPlane(signTex('pmasuk',['PINTU MASUK'],'#2b1a0e','#ffd23f'),0,y0+dh+1.25,z+.3,2.6,.85,0,{emis:nt?.6:.1})}
 function gedung(){const tot=monTot(),bw=tot+6,z0=-30,z1=-21.5,H=11.6,cz=(z0+z1)/2;
  D(BOX,'#f4f1ea',[0,H/2,cz],0,[bw,H,z1-z0],{tex:winTex(),win:1,uvs:[Math.round(bw/3.2),Math.round(H/3.2)]});
@@ -550,7 +550,7 @@ function toLocal(x,z){const M=KR,dx=x-M[12],dz=z-M[14];return [M[0]*dx+M[2]*dz,M
 const FLOORS=[];
 function buildSolids(){SOL.length=0;FLOORS.length=0;
  addBox(-27.1,-20.1,-28.7,-21.7,7);addBox(20.1,27.1,-28.7,-21.7,7);addBox(22.3,29.3,-5.05,-.45,4.3);
- const tot=monTot();addBox(-(tot+4)/2,(tot+4)/2,MON.z-3,MON.z+3,9);addBox(-(tot+6)/2,(tot+6)/2,-30,-21.5,12);
+ gedungSolids();
  addBox(-2.5,2.5,-2.5,2.5,.75);addBox(-.6,.6,-.6,.6,7.5);for(const x of[-18,16])addBox(x-.2,x+.2,-16.8,-16.4,9);
  for(const s of[-1,1])addBox(-9.12,-8.72,21+s*2.6-.2,21+s*2.6+.2,5.2);
  for(const s of[-1,1])addBox(s>0?21.7:-30.3,s>0?30.3:-21.7,-20.3,-6.2,2.2);for(const z of[1.85,17.65])addBox(25.6,25.9,z-.15,z+.15,4);
@@ -582,8 +582,8 @@ let WALK=true;const KEYS={};const JOY={x:0,y:0};
 const WCAM={yaw:0,pitch:.32,dist:7.5};
 // ---- karakter spesial: Rektor UNINET (akun @uninet.id) ----
 const SPECIAL={'uninet.id':{title:'REKTOR UNINET'}};
-function rektor(x,z,yaw,h,sw,g){const P=M4.trs([x,h,z],[0,yaw,0],[1,1,1]),NV='#1d2742',GD='#f2b630';
- DM(PCYL,NV,P,[0,0,0],0,[.36,.8,.36]);DM(ICO2,NV,P,[0,.8,0],0,[.31,.12,.31]);
+function rektor(x,z,yaw,h,sw,g,sit){if(sit)h-=.28;const P=M4.trs([x,h,z],[0,yaw,0],[1,1,1]),NV='#1d2742',GD='#f2b630';
+ DM(PCYL,NV,P,[0,0,0],0,[.36,.8,.36]);if(sit){DM(BOX,NV,P,[0,.34,.26],0,[.62,.17,.55]);for(const s of[-1,1])DM(ICO2,'#151515',P,[s*.17,.3,.56],0,[.1,.08,.12],{cast:0})}DM(ICO2,NV,P,[0,.8,0],0,[.31,.12,.31]);
  DM(BOX,GD,P,[0,.48,.27],[0,0,.62],[.11,.98,.04],{emis:.15});DM(RCYL,'#b8261f',P,[0,.3,0],0,[.345,.07,.345],{cast:0});
  for(const s of[-1,1]){DM(RCYL,NV,P,[s*.38,.22-sw*0,s*0+sw*s*.06],0,[.1,.52,.1]);DM(RCYL,GD,P,[s*.38,.2,sw*s*.06],0,[.105,.06,.105],{cast:0});DM(ICO2,'#ffd9b8',P,[s*.38,.18,sw*s*.1],0,[.09,.09,.09],{cast:0})}
  DM(ICO2,'#ffd9b8',P,[0,1.14,0],0,[.32,.32,.32]);DM(ICO2,'#2b1a0e',P,[0,1.25,-.1],0,[.335,.22,.335]);
@@ -598,8 +598,8 @@ function myTag(){return (typeof NET!=='undefined'&&NET.ig)?'@'+NET.ig:'KAMU'}
 function nameTex(){const L=myTag();return ctex('ptag_'+L,320,80,(x,w,h)=>{x.font=FD(L==='KAMU'?46:34);const tw=Math.min(w-8,x.measureText(L).width+40);x.fillStyle='#2b1a0e';x.beginPath();x.roundRect((w-tw)/2,4,tw,h-8,30);x.fill();x.fillStyle='#ffd23f';x.textAlign='center';x.textBaseline='middle';let t=L;while(x.measureText(t).width>w-40&&t.length>3)t=t.slice(0,-1);x.fillText(t===L?L:t+'…',w/2,h/2+3)})}
 function player(){const h=PL1.y+(PL1.moving&&PL1.y<=groundAt(PL1.x,PL1.z)+.01?Math.abs(Math.sin(PL1.phase))*.1:0);
  const sp=typeof NET!=='undefined'&&NET.ig&&SPECIAL[NET.ig];
- if(sp){rektor(PL1.x,PL1.z,PL1.yaw,h,PL1.moving?Math.sin(PL1.phase)*.9:0,groundAt(PL1.x,PL1.z));textPlane(specialTag(NET.ig),PL1.x,h+2.35,PL1.z,1.35,.42,WCAM.yaw,{emis:1,recv:0})}
- else{const myav=(typeof NET!=='undefined'&&(NET.avEdit||NET.av))||null;person(PL1.x,PL1.z,0,PL1.yaw,h,{me:1,av:myav,col:'#3a6ea5',hair:'#2b1a0e',swing:PL1.moving?Math.sin(PL1.phase)*.9:0});
+ if(sp){rektor(PL1.x,PL1.z,PL1.yaw,h,PL1.moving?Math.sin(PL1.phase)*.9:0,groundAt(PL1.x,PL1.z),PL1.sit);textPlane(specialTag(NET.ig),PL1.x,h+2.35,PL1.z,1.35,.42,WCAM.yaw,{emis:1,recv:0})}
+ else{const myav=(typeof NET!=='undefined'&&(NET.avEdit||NET.av))||null;person(PL1.x,PL1.z,0,PL1.yaw,h,{me:1,sit:PL1.sit,av:myav,col:'#3a6ea5',hair:'#2b1a0e',swing:PL1.moving?Math.sin(PL1.phase)*.9:0});
  if(!myav){DM(ICO2,'#ffd23f',M4.trs([PL1.x,h+1.27,PL1.z],[0,PL1.yaw,0],[1,1,1]),[0,0,0],0,[.35,.15,.35]);DM(BOX,'#ffd23f',M4.trs([PL1.x,h+1.27,PL1.z],[0,PL1.yaw,0],[1,1,1]),[0,0,.34],0,[.42,.05,.3])}
  textPlane(nameTex(),PL1.x,h+2,PL1.z,1.15,.29,WCAM.yaw,{emis:1,recv:0});if(typeof LABELS!=='undefined'&&NET.ig&&LABELS[NET.ig])textPlane(lblTex(NET.ig),PL1.x,h+1.72,PL1.z,1.15,.25,WCAM.yaw,{emis:1,recv:0})}
  D(DISC,'#000000',[PL1.x,groundAt(PL1.x,PL1.z)+.02,PL1.z],0,[.4,.01,.4],{alpha:.18,cast:0,recv:0})}
@@ -621,7 +621,7 @@ function followCam(){const t=[PL1.x,PL1.y+(typeof WARD!=='undefined'&&WARD.on?WA
  cam.tgt=t;cam.yaw=WCAM.yaw;cam.pitch=WCAM.pitch;cam.dist=lerp(cam.dist,d,d<cam.dist?.6:.08);cam.fov=58}
 // tempat terdekat
 let NEAR=null;
-function nearPlace(){let best=null;for(const pl of PLACES){if(pl.id==='bendera')continue;const d=Math.hypot(pl.c[0]-PL1.x,pl.c[2]-PL1.z)-pl.r;if(d<3.5&&(!best||d<best.d))best={pl,d}}
+function nearPlace(){let best=null;for(const pl of PLACES){if(pl.id==='bendera'||(pl.id==='monumen'&&PL1.z<-21.6))continue;const d=Math.hypot(pl.c[0]-PL1.x,pl.c[2]-PL1.z)-pl.r;if(d<3.5&&(!best||d<best.d))best={pl,d}}
  const b=document.getElementById('wNear');const id=best?best.pl.id:null;if(id!==NEAR){NEAR=id;if(id){b.textContent='Lihat: '+best.pl.name;b.hidden=false}else b.hidden=true}}
 
 // ---- UI mode jalan ----
@@ -656,7 +656,7 @@ document.getElementById('mFind').onclick=()=>{if(document.body.classList.contain
 document.getElementById('wNear').onclick=()=>{if(NEAR)openPlace(NEAR)};
 (function(){const bj=document.getElementById('bJump'),br=document.getElementById('bRun');
  const hold=(el,f)=>{el.addEventListener('touchstart',e=>{e.preventDefault();f()},{passive:false});el.addEventListener('mousedown',e=>{e.preventDefault();f()})};
- hold(bj,jump);hold(br,()=>{PL1.run=!PL1.run;br.classList.toggle('on',!!PL1.run)})})();
+ hold(bj,()=>jump());hold(br,()=>{PL1.run=!PL1.run;br.classList.toggle('on',!!PL1.run)})})();
 addEventListener('keydown',e=>{const tg=e.target&&e.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA'||tg==='SELECT'||(e.target&&e.target.isContentEditable))return;KEYS[e.code]=true;if(e.code==='Space'&&WALK){e.preventDefault();jump()}if(WALK)hideHint()});
 addEventListener('keyup',e=>{KEYS[e.code]=false});addEventListener('blur',()=>{for(const k in KEYS)KEYS[k]=false});
 (function(){const pad=document.getElementById('walkpad'),joy=document.getElementById('joy'),knob=joy.firstElementChild;const T=new Map();let pinch=null;
@@ -807,8 +807,8 @@ function srvNow(){return Date.now()+NET.off}
 function drawOthers(dt){const now=srvNow();let k=Math.min(1,dt*6);for(const [id,o] of NET.others){if(now-o.seen>70000)continue;
   const dx=o.tx-o.x,dz=o.tz-o.z,d=Math.hypot(dx,dz);o.x+=dx*k;o.z+=dz*k;let dy=o.tyaw-o.yaw;while(dy>Math.PI)dy-=2*Math.PI;while(dy<-Math.PI)dy+=2*Math.PI;o.yaw+=dy*k;o.mv=d>.05;if(o.mv)o.ph=(o.ph||0)+dt*10;
   const h=o.mv?Math.abs(Math.sin(o.ph))*.1:0,far=(o.x-EYE[0])**2+(o.z-EYE[2])**2;
-  if(SPECIAL[o.n]){rektor(o.x,o.z,o.yaw,(o.y||0)+h,o.mv?Math.sin(o.ph)*.9:0,o.y||0);if(far<3600)textPlane(specialTag(o.n),o.x,(o.y||0)+2.35,o.z,1.35,.42,cam.yaw,{emis:1,recv:0})}
-  else{person(o.x,o.z,o.c,o.yaw,(o.y||0)+h,{av:o.av,col:SHIRT[o.c%SHIRT.length],swing:o.mv?Math.sin(o.ph)*.9:0});if(far<1600){textPlane(nameTagTex(shown(o.n)),o.x,(o.y||0)+2.1,o.z,1.7,.38,cam.yaw,{emis:1,recv:0});if(LABELS[o.n])textPlane(lblTex(o.n),o.x,(o.y||0)+1.76,o.z,1.3,.28,cam.yaw,{emis:1,recv:0})}}
+  if(SPECIAL[o.n]){rektor(o.x,o.z,o.yaw,(o.y||0)+h,o.mv?Math.sin(o.ph)*.9:0,o.y||0,o.s);if(far<3600)textPlane(specialTag(o.n),o.x,(o.y||0)+2.35,o.z,1.35,.42,cam.yaw,{emis:1,recv:0})}
+  else{person(o.x,o.z,o.c,o.yaw,(o.y||0)+h,{sit:o.s,av:o.av,col:SHIRT[o.c%SHIRT.length],swing:o.mv?Math.sin(o.ph)*.9:0});if(far<1600){textPlane(nameTagTex(shown(o.n)),o.x,(o.y||0)+2.1,o.z,1.7,.38,cam.yaw,{emis:1,recv:0});if(LABELS[o.n])textPlane(lblTex(o.n),o.x,(o.y||0)+1.76,o.z,1.3,.28,cam.yaw,{emis:1,recv:0})}}
   const b=NET.bubbles.get(o.u);if(b&&now<b.until&&far<2500)textPlane(bubbleTex(b.key,b.m),o.x,(o.y||0)+2.95,o.z,2.5,.83,cam.yaw,{emis:1,recv:0})}
  const mb=NET.bubbles.get(NET.uid);if(WALK&&mb&&now<mb.until)textPlane(bubbleTex(mb.key,mb.m),PL1.x,PL1.y+2.95,PL1.z,2.5,.83,cam.yaw,{emis:1,recv:0});
  for(const [id,b] of NET.bubbles)if(now>b.until+500){dropTex('bb_'+b.key);NET.bubbles.delete(id)}}
@@ -816,7 +816,7 @@ function drawOthers(dt){const now=srvNow();let k=Math.min(1,dt*6);for(const [id,
 let lastInput=Date.now();['touchstart','keydown','mousedown'].forEach(ev=>addEventListener(ev,()=>{lastInput=Date.now();if(NET.idleOff&&NET.F){NET.idleOff=false;NET.F.goOnline(NET.db);setTimeout(()=>sendPos(true),300)}},{passive:true}));
 function sendPos(force){if(!NET.on||!NET.uid||NET.idleOff)return;const now=Date.now(),L=NET.last,moved=Math.hypot(PL1.x-L.x,PL1.z-L.z)>.25||Math.abs(PL1.yaw-L.yaw)>.4;
  if(!force&&!(moved&&now-L.t>1200)&&now-L.t<25000)return;NET.last={x:PL1.x,z:PL1.z,yaw:PL1.yaw,t:now};
- const F=NET.F;const pd={u:NET.uid,n:myName(),x:+PL1.x.toFixed(2),z:+PL1.z.toFixed(2),y:+PL1.y.toFixed(2),yaw:+PL1.yaw.toFixed(2),c:hashN(NET.uid)%SHIRT.length,t:F.serverTimestamp()};if(NET.av)pd.a=avStr(NET.av);F.set(NET.me,pd).catch(e=>console.warn('pos',e&&e.code))}
+ const F=NET.F;const pd={u:NET.uid,n:myName(),x:+PL1.x.toFixed(2),z:+PL1.z.toFixed(2),y:+PL1.y.toFixed(2),yaw:+PL1.yaw.toFixed(2),c:hashN(NET.uid)%SHIRT.length,t:F.serverTimestamp()};if(NET.av)pd.a=avStr(NET.av);if(PL1.sit)pd.s=1;F.set(NET.me,pd).catch(e=>console.warn('pos',e&&e.code))}
 function countOnline(){if(NET.idleOff)return;const now=srvNow();let n=1;for(const o of NET.others.values())if(now-o.seen<70000)n++;setOnl(n,true)}
 // ---- sambung ke Firebase ----
 async function netStart(){try{
@@ -826,7 +826,7 @@ async function netStart(){try{
   NET.on=true;await useUser(user);
   if(!NET.ig)setTimeout(()=>{if(card.hidden&&!NET.ig)openIdentity()},1200);
   const R=D.ref(db,'online');const up=s=>{if(s.key===NET.sid)return;const v=s.val()||{};if(typeof v.x!=='number')return;let o=NET.others.get(s.key);
-   if(!o){o={x:v.x,z:v.z,yaw:v.yaw||0};NET.others.set(s.key,o)}Object.assign(o,{tx:v.x,tz:v.z,tyaw:v.yaw||0,y:v.y||0,n:cleanText(v.n||'Tamu').slice(0,30)||'Tamu',u:typeof v.u==='string'?v.u:s.key,av:parseAv(v.a),c:v.c||0,seen:typeof v.t==='number'?v.t:srvNow()});countOnline()};
+   if(!o){o={x:v.x,z:v.z,yaw:v.yaw||0};NET.others.set(s.key,o)}Object.assign(o,{tx:v.x,tz:v.z,tyaw:v.yaw||0,y:v.y||0,n:cleanText(v.n||'Tamu').slice(0,30)||'Tamu',u:typeof v.u==='string'?v.u:s.key,av:parseAv(v.a),s:v.s===1,c:v.c||0,seen:typeof v.t==='number'?v.t:srvNow()});countOnline()};
   D.onChildAdded(R,up);D.onChildChanged(R,up);D.onChildRemoved(R,s=>{NET.others.delete(s.key);dropTex('nt_'+s.key);countOnline()});
   const Q=D.query(D.ref(db,'chat'),D.orderByChild('t'),D.limitToLast(30));let first=true;setTimeout(()=>first=false,2500);
   D.onChildAdded(Q,s=>{const v=s.val()||{};const m=cleanText(v.m).slice(0,120),n=cleanText(v.n).slice(0,30)||'Tamu';if(!m)return;
@@ -1054,6 +1054,59 @@ function openQRB(){const img=qrCanvas(600,3).toDataURL('image/png');
 document.addEventListener('click',async e=>{if(!e.target||e.target.id!=='qrbSet')return;if(NET.ig!=='uninet.id')return;
  try{await NET.F.set(NET.F.ref(NET.db,'qrboard'),{x:+PL1.x.toFixed(2),y:+PL1.y.toFixed(2),z:+PL1.z.toFixed(2),yaw:+(PL1.yaw+Math.PI).toFixed(3)});closeCard();toast('Papan traktir dipasang di sini!')}catch(err){toast('Gagal memasang. Sudah tempel aturan database terbaru?')}});
 function qrbStart(){NET.F.onValue(NET.F.ref(NET.db,'qrboard'),s=>{const v=s.val();QRB.pos=v&&typeof v.x==='number'&&typeof v.z==='number'?v:null},()=>{})}
+
+// ================= GEDUNG UTAMA BISA DIMASUKI: ruang kelas 30 bangku =================
+const KELAS={desks:[],board:{x:0,z:-25.75},pod:{x:-16.4,z:-25.75}};
+{for(let c=0;c<6;c++)for(let r=0;r<5;r++)KELAS.desks.push({x:-14+c*2.35,z:-28.7+r*1.5});}
+const FL=1.25;// tinggi lantai dalam gedung (sama dengan teras atas monumen)
+function gedung(){const tot=monTot(),bw=tot+6,hw=bw/2,z0=-30,z1=-21.5,H=11.6,cz=(z0+z1)/2,nt=ENV.night>.5,W='#f4f1ea',IN='#f6efe0';
+ const win=(w,h)=>({tex:winTex(),win:1,uvs:[Math.max(1,Math.round(w/3.2)),Math.max(1,Math.round(h/3.2))]});
+ // dinding luar (berjendela)
+ D(BOX,W,[0,H/2,z0+.2],0,[bw,H,.4],win(bw,H));for(const s of[-1,1])D(BOX,W,[s*(hw-.2),H/2,cz],0,[.4,H,z1-z0],win(z1-z0,H));
+ for(const s of[-1,1]){const w=hw-1.3;D(BOX,W,[s*(1.3+w/2),H/2,z1-.2],0,[w,H,.4],win(w,H))}D(BOX,W,[0,(5.3+H)/2,z1-.2],0,[2.6,H-5.3,.4]);
+ D(BOX,'#dcd6ca',[0,H+.3,cz],0,[bw+.6,.6,z1-z0+.6]);D(BOX,'#e3342f',[0,H-.45,z1+.07],0,[bw,.4,.12],{cast:0});D(BOX,'#d9d2c4',[0,.25,cz],0,[bw+1,.5,z1-z0+1]);
+ // bagian dalam: lantai, dinding dalam, plafon (tidak kena bayangan atap supaya terang)
+ const R={recv:0,emis:nt?.08:.18};D(BOX,nt?'#cdbb98':'#e2cfa6',[0,FL-.05,cz],0,[bw-.8,.1,z1-z0-.8],{recv:0,cast:0});
+ D(BOX,IN,[0,(FL+H)/2,z0+.43],0,[bw-.8,H-FL,.05],R);for(const s of[-1,1])D(BOX,IN,[s*(hw-.43),(FL+H)/2,cz],0,[.05,H-FL,z1-z0-.8],R);
+ for(const s of[-1,1]){const w=hw-1.3-.4;D(BOX,IN,[s*(1.3+w/2),(FL+H)/2,z1-.43],0,[w,H-FL,.05],R)}D(BOX,IN,[0,(5.3+H)/2,z1-.43],0,[2.6,H-5.3,.05],R);
+ D(BOX,'#fbf8f0',[0,H-.25,cz],0,[bw-.8,.1,z1-z0-.8],{recv:0,cast:0});
+ for(const s of[-1,1])D(BOX,'#c9b48a',[0,FL+.08,cz+s*(z1-z0-.9)/2],0,[bw-.9,.16,.06],{recv:0,cast:0});
+ // lampu plafon
+ for(let i=0;i<6;i++){const lx=-15+i*6;for(const lz of[-27.6,-23.9])D(BOX,'#fffbe8',[lx,H-.33,lz],0,[2.2,.06,.5],{emis:1,cast:0,recv:0});if(i%2===0)LAMPS.push([lx+3,FL+8.5,-25.75])}
+ // papan tulis + podium
+ const bx=-hw+.47;D(BOX,'#9aa3ab',[bx,FL+2.35,KELAS.board.z],0,[.08,2.6,6],R);D(BOX,'#ffffff',[bx+.05,FL+2.35,KELAS.board.z],0,[.04,2.3,5.7],{recv:0,emis:nt?.15:0});
+ D(BOX,'#9aa3ab',[bx+.16,FL+1.0,KELAS.board.z],0,[.22,.06,5.6],R);for(const [k,c] of [[-.6,'#e3342f'],[-.3,'#3a6ea5'],[0,'#2b1a0e']])D(BOX,c,[bx+.16,FL+1.05,KELAS.board.z+k],0,[.05,.05,.22],{cast:0,recv:0});
+ const P=KELAS.pod;D(BOX,'#8a5a36',[P.x,FL+.6,P.z],0,[.8,1.2,1.1],R);D(BOX,'#a7764d',[P.x-.05,FL+1.24,P.z],[0,0,.18],[.95,.08,1.25],R);D(BOX,'#d8a93c',[P.x+.41,FL+.75,P.z],0,[.02,.3,.6],{cast:0,recv:0});
+ // 30 bangku kuliah: meja + kursi menghadap papan tulis
+ for(const d of KELAS.desks){D(BOX,'#c99b63',[d.x,FL+.78,d.z],0,[1.4,.07,.62],R);for(const s of[-1,1])D(BOX,'#6b4a2b',[d.x+s*.62,FL+.38,d.z],0,[.07,.76,.55],R);
+  const cx=d.x+1.05;D(BOX,'#3a6ea5',[cx,FL+.47,d.z],0,[.5,.06,.5],R);D(BOX,'#3a6ea5',[cx+.24,FL+.8,d.z],0,[.05,.62,.5],R);D(BOX,'#3d3a44',[cx,FL+.22,d.z],0,[.06,.44,.06],R)}}
+function gedungSolids(){const tot=monTot(),bw=tot+6,hw=bw/2,z0=-30,z1=-21.5,H=12;
+ addBox(-hw,hw,z0,z0+.4,H);addBox(-hw,-hw+.4,z0,z1,H);addBox(hw-.4,hw,z0,z1,H);addBox(-hw,-1.3,z1-.4,z1,H);addBox(1.3,hw,z1-.4,z1,H);addBox(-1.3,1.3,z1-.4,z1,H,5.3);
+ addBox(-tot/2-.2,-1.3,MON.z-.7,MON.z+.6,H);addBox(1.3,tot/2+.2,MON.z-.7,MON.z+.6,H);addBox(-1.3,1.3,MON.z-.7,MON.z+.6,H,5.3);
+ // undakan masuk: anak tangga .4, teras .8, teras atas 1.25, lantai dalam 1.25
+ addBox(-(tot+4)/2,(tot+4)/2,MON.z-3,MON.z+3,.8,0,1);addBox(-(tot+1.5)/2,(tot+1.5)/2,MON.z-2.2,MON.z+2.2,FL,0,1);addBox(-1.6,1.6,MON.z+3,MON.z+3.7,.4,0,1);
+ addBox(-hw+.4,hw-.4,z0+.4,z1-.4,FL,0,1);
+ for(const d of KELAS.desks)addBox(d.x-.7,d.x+.7,d.z-.32,d.z+.32,FL+.85,FL);
+ addBox(KELAS.pod.x-.45,KELAS.pod.x+.45,KELAS.pod.z-.6,KELAS.pod.z+.6,FL+1.3,FL);addBox(-hw+.4,-hw+.75,KELAS.board.z-3,KELAS.board.z+3,FL+3.7,FL)}
+// anak tangga di depan pintu
+{const _mon=monument;monument=function(){_mon();const tot=monTot();D(BOX,'#dde2e6',[0,.2,MON.z+3.35],0,[3.2,.4,.7])}}
+
+// ================= DUDUK OTOMATIS di bangku (kelas + kantin) =================
+const SEAT={cur:null,skip:null,list:null};
+function seatList(){if(SEAT.list)return SEAT.list;const L=[];
+ for(const d of KELAS.desks)L.push({x:d.x+1.05,z:d.z,y:FL+.48,yaw:-Math.PI/2,ox:1,oz:0,gy:FL});
+ // bangku kantin yang tidak ditempati NPC
+ for(let i=0;i<4;i++){const tx=KX-5.4+i*3.6,tz=KZ+3.4;for(let k=0;k<3;k++)for(const b of [-1,1]){if(rnd(i*13+k*7+b)>=.45)continue;
+  const p=KPT([tx+b*1.05,0,tz+(k-1)*1.1]),o=KPT([tx+b*1.9,0,tz+(k-1)*1.1]),ln=Math.hypot(o[0]-p[0],o[2]-p[2]);L.push({x:p[0],z:p[2],y:.58,yaw:(b>0?-Math.PI/2:Math.PI/2)+Math.PI/2,ox:(o[0]-p[0])/ln,oz:(o[2]-p[2])/ln,gy:0})}}
+ return SEAT.list=L}
+function seatInput(){let ix=JOY.x,iy=JOY.y;if(KEYS.KeyW||KEYS.ArrowUp)iy-=1;if(KEYS.KeyS||KEYS.ArrowDown)iy+=1;if(KEYS.KeyA||KEYS.ArrowLeft)ix-=1;if(KEYS.KeyD||KEYS.ArrowRight)ix+=1;return Math.hypot(ix,iy)>.08}
+function seatStand(){const s=SEAT.cur;if(!s)return;SEAT.cur=null;PL1.sit=0;SEAT.skip=s;PL1.x=s.x+s.ox*.95;PL1.z=s.z+s.oz*.95;PL1.y=s.gy;PL1.vy=0;collide(PL1);if(typeof sendPos==='function')sendPos(true)}
+{const _sp=stepPlayer;stepPlayer=function(dt){
+ if(SEAT.cur){if(!seatInput()){const s=SEAT.cur;PL1.x=s.x;PL1.z=s.z;PL1.y=s.y;PL1.vy=0;PL1.yaw=s.yaw;PL1.moving=false;return}seatStand()}
+ _sp(dt);
+ if(SEAT.skip&&Math.hypot(PL1.x-SEAT.skip.x,PL1.z-SEAT.skip.z)>1.15)SEAT.skip=null;
+ if(PL1.vy===0)for(const s of seatList()){if(s===SEAT.skip||Math.abs(PL1.y-s.gy)>.6)continue;if(Math.hypot(PL1.x-s.x,PL1.z-s.z)<.72){SEAT.cur=s;PL1.sit=1;PL1.x=s.x;PL1.z=s.z;PL1.y=s.y;PL1.yaw=s.yaw;PL1.moving=false;if(typeof sendPos==='function')sendPos(true);break}}}}
+{const _j=jump;jump=function(){if(SEAT.cur){seatStand();return}_j()}}
 
 // ================= AJAKAN MIRINGKAN HP (hanya di layar sentuh, posisi tegak) =================
 (function(){const st=document.createElement('style');st.textContent=`#rotAsk{position:fixed;inset:0;z-index:50;background:rgba(43,26,14,.97);color:#fff8e6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center}
