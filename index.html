@@ -313,7 +313,7 @@ document.getElementById('f').addEventListener('submit', async e => {
   lastData = await drawCard({ nama, user, jur, rank: rank && rank <= TOTAL ? rank : null, seat, photo: photoImg });
   try { const bl = await (await fetch(lastData)).blob(); if (lastBlobUrl) URL.revokeObjectURL(lastBlobUrl); lastBlobUrl = URL.createObjectURL(bl); out.src = lastBlobUrl; } catch (e) { out.src = lastData; }
   out.hidden = false; hint.hidden = false; document.getElementById('saveBtn').hidden = false; lastName = user; status.className = 'status ok';
-  status.innerHTML = `Selamat, <b>${nama.replace(/[<>&"]/g, '')}</b>! ${rank && rank <= TOTAL ? `Kamu mahasiswa ke-${fmt(rank)} UNINET dan resmi senior Angkatan Pertama.` : seat ? `Kamu dapat kursi ke-${fmt(seat)} dari 100.000 di Angkatan Kedua, dan namamu ikut terukir di <a href="kampus/">Pagar Kampus Mini</a>.` : 'KTM Angkatan Kedua kamu sudah jadi.'} ${rank ? '' : 'Belum follow? <a href="https://www.instagram.com/uninet.id/" target="_blank" rel="noopener">Follow @uninet.id</a> biar resmi jadi mahasiswa.'}`;
+  status.innerHTML = `Selamat, <b>${nama.replace(/[<>&"]/g, '')}</b>! ${rank && rank <= TOTAL ? `Kamu mahasiswa ke-${fmt(rank)} UNINET dan resmi senior Angkatan Pertama.` : seat ? `Kamu dapat kursi ke-${fmt(seat)} dari 100.000 di Angkatan Kedua, dan namamu ikut terukir di <a href="kampus/">Pagar Kampus Virtual</a>.` : 'KTM Angkatan Kedua kamu sudah jadi.'} ${rank ? '' : 'Belum follow? <a href="https://www.instagram.com/uninet.id/" target="_blank" rel="noopener">Follow @uninet.id</a> biar resmi jadi mahasiswa.'}`;
 });
 
 document.getElementById('saveBtn').addEventListener('click', async () => {
