@@ -27,7 +27,7 @@ function person(x,z,c,yaw,h,o){const C=['#ff8a5c','#6cc3f5','#ffd166','#8bd17c',
   else if(hat===3){D(CYL,'#151515',[x,hy+.22,z],0,[.29,.13,.29]);D(BOX,'#151515',[x,hy+.36,z],[0,yaw+Math.PI/4,0],[.66,.05,.66]);D(BOX,'#ffd23f',[x+rx*.24,hy+.39,z+rz*.24],[0,yaw,0],[.48,.02,.02]);D(BOX,'#ffd23f',[x+rx*.47,hy+.24,z+rz*.47],0,[.03,.3,.03])}}
  const ef=hj?.36:.3;for(const s of[-1,1])D(ICO0,'#2b1a0e',[x+fx*ef+rx*s*.11,hy+.01,z+fz*ef+rz*s*.11],0,[.04,.055,.04],{cast:0})}
 // ---- kantin 2 lantai (menggantikan Proyek Berikutnya) ----
-const KX=-11,KZ=16,SX=KX+5.5,SZ=KZ+7.6,KBZ=KZ-3.5;
+const KX=-23.5,KZ=5,SX=KX+5.5,SZ=KZ+7.6,KBZ=KZ-3.5;
 const KR=M4.mul(M4.trs([KX,0,KZ],[0,Math.PI/2,0],[1,1,1]),M4.trs([-KX,0,-KZ],0,[1,1,1]));
 function KPT(p){const M=KR;return [M[0]*p[0]+M[4]*p[1]+M[8]*p[2]+M[12],M[1]*p[0]+M[5]*p[1]+M[9]*p[2]+M[13],M[2]*p[0]+M[6]*p[1]+M[10]*p[2]+M[14]]}
 function brickTex(){return ctex('brick',256,256,(x,w,h)=>{x.fillStyle='#d9cbb5';x.fillRect(0,0,w,h);for(let r=0;r<8;r++)for(let c=0;c<6;c++){x.fillStyle=['#c0583e','#b14d35','#cc6648'][(r*3+c)%3];x.fillRect(c*52+(r%2?26:0)-26+3,r*32+3,46,26)}})}
@@ -69,11 +69,13 @@ function addLocal(x0,x1,z0,z1,h,y0,st){const a=KPT([x0,0,z0]),b=KPT([x1,0,z1]);a
 function toLocal(x,z){const M=KR,dx=x-M[12],dz=z-M[14];return [M[0]*dx+M[2]*dz,M[8]*dx+M[10]*dz]}
 const FLOORS=[];
 function buildSolids(){SOL.length=0;FLOORS.length=0;
- addBox(-21,-13,-3,7,6.5);addBox(13.5,20.5,-2,6,4.5);
- const tot=PANELS*MON.pw+(PANELS-1)*MON.gap;addBox(-(tot+4)/2,(tot+4)/2,MON.z-3,MON.z+3,9);
- addBox(-.72,.72,1.28,2.72,9);for(const s of[-1,1])addBox(12+s*2.6-.2,12+s*2.6+.2,15.5,15.9,5.2);
- const gx=FEN.R*Math.sin(FEN.gate),gz=FEN.R*Math.cos(FEN.gate);for(const s of[-1,1])addBox(s*gx-.6,s*gx+.6,gz-.6,gz+.6,5);
- for(const [x,z] of [[-20,-6],[20,-6],[-6,-21],[6,-21],[-22,12],[22,12]])addBox(x-.35,x+.35,z-.35,z+.35,6);
+ addBox(-27.1,-20.1,-28.7,-21.7,7);addBox(20.1,27.1,-28.7,-21.7,7);addBox(22.3,29.3,-5.05,-.45,4.3);
+ const tot=PANELS*MON.pw+(PANELS-1)*MON.gap;addBox(-(tot+4)/2,(tot+4)/2,MON.z-3,MON.z+3,9);addBox(-(tot+6)/2,(tot+6)/2,-30,-21.5,12);
+ addBox(-2.5,2.5,-2.5,2.5,.75);addBox(-.6,.6,-.6,.6,7.5);for(const x of[-18,16])addBox(x-.2,x+.2,-16.8,-16.4,9);
+ for(const s of[-1,1])addBox(-9.12,-8.72,21+s*2.6-.2,21+s*2.6+.2,5.2);
+ for(const s of[-1,1])addBox(s>0?21.7:-30.3,s>0?30.3:-21.7,-20.3,-6.2,2.2);for(const z of[1.85,17.65])addBox(25.6,25.9,z-.15,z+.15,4);
+ const gx=FEN.gx,gz=FEN.H;for(const s of[-1,1])addBox(s*gx-.6,s*gx+.6,gz-.6,gz+.6,5);
+ for(const [x,z] of TREES)addBox(x-.35,x+.35,z-.35,z+.35,6);
  for(const [x,z] of LAMPXZ)addBox(x-.15,x+.15,z-.15,z+.15,3.2);
  // kantin (koordinat lokal, diputar)
  addLocal(KX-7.6,KX+7.6,KBZ-3.2,KBZ-2.6,3.45);for(const s of[-1,1])addLocal(KX+s*7.4-.25,KX+s*7.4+.25,KBZ-3,KBZ+2.8,3.45);
@@ -87,11 +89,12 @@ const STEP=.55;function groundAt(x,z,py){if(py===undefined)py=PL1.y;const L=toLo
 const PR=.38;
 function collide(p){for(const b of SOL){if(p.y>b.h-.05||p.y+1.5<b.y0)continue;if(b.st&&b.h<=p.y+STEP)continue;const cx=cl(p.x,b.x0,b.x1),cz=cl(p.z,b.z0,b.z1),dx=p.x-cx,dz=p.z-cz,d2=dx*dx+dz*dz;
   if(d2<PR*PR){if(d2>1e-6){const d=Math.sqrt(d2),k=(PR-d)/d;p.x+=dx*k;p.z+=dz*k}else{const o=[p.x-b.x0,b.x1-p.x,p.z-b.z0,b.z1-p.z],m=Math.min(...o);if(m===o[0])p.x=b.x0-PR;else if(m===o[1])p.x=b.x1+PR;else if(m===o[2])p.z=b.z0-PR;else p.z=b.z1+PR}}}
- // pagar melingkar: lewat hanya di gerbang
- const r=Math.hypot(p.x,p.z),th=Math.atan2(p.x,p.z),inGate=Math.abs(th)<FEN.gate-.04;
- if(!inGate){if(p.side<0&&r>FEN.R-.6){const k=(FEN.R-.6)/r;p.x*=k;p.z*=k}if(p.side>0&&r<FEN.R+.6){const k=(FEN.R+.6)/r;p.x*=k;p.z*=k}}
- const r2=Math.hypot(p.x,p.z);if(r2>33.1){const k=33.1/r2;p.x*=k;p.z*=k}
- p.side=Math.hypot(p.x,p.z)<FEN.R?-1:1}
+ // pagar kotak tumpul: lewat hanya di gerbang
+ const push=(h,r,inside)=>{for(let it=0;it<3;it++){const d=rrSD(p.x,p.z,h,r);if(inside?d<=0:d>=0)return;const e=.01,gx=(rrSD(p.x+e,p.z,h,r)-rrSD(p.x-e,p.z,h,r))/(2*e),gz=(rrSD(p.x,p.z+e,h,r)-rrSD(p.x,p.z-e,h,r))/(2*e);p.x-=gx*d;p.z-=gz*d}};
+ const inGate=Math.abs(p.x)<FEN.gx-.5&&p.z>0;
+ if(!inGate){if(p.side<0)push(FEN.H-.6,FEN.RR-.6,true);else push(FEN.H+.6,FEN.RR+.6,false)}
+ push(33.6,8.6,true);
+ p.side=rrSD(p.x,p.z,FEN.H,FEN.RR)<0?-1:1}
 
 // ---- pemain ----
 const PL1={x:0,z:26,y:0,vy:0,yaw:Math.PI,side:-1,moving:0,run:0,phase:0};
@@ -200,7 +203,7 @@ function openFind(){document.body.classList.add('find');const q=document.getElem
 const _openPlace=openPlace;openPlace=function(id){if(WALK){showCard(INFO[id]());const f=card.querySelector('[data-act="focus"]');if(f)f.onclick=()=>{closeCard();openFind()};return}_openPlace(id)};
 const _closeCard=closeCard;closeCard=function(){const h=HL;_closeCard();if(!WALK)return;fly=null;
  // setelah cari nama: pindahkan pemain ke depan namanya
- if(h){let px,pz,face;if(MONO[h.i]){const q=nameWorld(h.i);px=cl(q[0],-20,20);pz=MON.z+4.2;face=Math.PI}else if(FENO[h.i]){const R=fenceWorld(h.i),k=(FEN.R-2.2)/Math.hypot(R.p[0],R.p[2]);px=R.p[0]*k;pz=R.p[2]*k;face=Math.atan2(R.p[0]-px,R.p[2]-pz)}
+ if(h){let px,pz,face;if(MONO[h.i]){const q=nameWorld(h.i);px=cl(q[0],-20,20);pz=MON.z+4.2;face=Math.PI}else if(FENO[h.i]){const R=fenceWorld(h.i);px=R.p[0]+R.F.n[0]*2.2;pz=R.p[2]+R.F.n[1]*2.2;face=Math.atan2(R.p[0]-px,R.p[2]-pz)}
   MARK=h;if(px!==undefined){PL1.x=px;PL1.z=pz;PL1.y=0;PL1.vy=0;PL1.side=-1;PL1.yaw=face;WCAM.yaw=face+Math.PI;WCAM.pitch=.22;collide(PL1)}document.body.classList.remove('find')}};
 
 let lastT=null,MARK=null;

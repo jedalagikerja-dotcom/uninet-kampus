@@ -1,6 +1,6 @@
 // ================= MITRA BRAND: slot warung kantin + baliho =================
 const BR={data:{},seen:new Set(),logo:{},logoSrc:{},open:false,slot:{},sampai:{}};
-const BSLOTS=['warung1','warung2','warung3','warung4','warung5','baliho1','baliho2'];
+const BSLOTS=['warung1','warung2','warung3','warung4','warung5','baliho1','baliho2','baliho3','baliho4'];
 const DEFC=['#ffd23f','#6cc3f5','#8bd17c','#ff9fb8','#f7a440'];
 function bNow(){return Date.now()+((typeof NET!=='undefined'&&NET.off)||0)}
 function brandOf(slot){const b=BR.data[slot];if(!(b&&b.aktif&&b.nama))return null;const u=BR.sampai[slot];if(slot.startsWith('warung')&&typeof u==='number'&&bNow()>u)return null;return b}
@@ -30,9 +30,9 @@ function roofBoardTex(i){const slot='warung'+(i+1),b=brandOf(slot),L=b&&BR.logo[
 function roofBoards(x,bz){const nt=ENV.night>.5;for(let i=0;i<5;i++){const bx=x-5.6+i*2.8,bzz=bz+3.0;for(const s of[-1,1])D(BOX,'#3d3a44',[bx+s*1.05,5.0,bzz],0,[.1,1.0,.1]);
  D(BOX,'#2b1a0e',[bx,5.55,bzz-.04],0,[2.62,1.56,.06]);textPlane(roofBoardTex(i),bx,5.55,bzz,2.5,1.46,0,{emis:nt?.75:.2,recv:0});
  if(brandOf('warung'+(i+1))){const q=.5+.5*Math.sin(TIME*2.5+i);D(ICO0,'#fff3a0',[bx-1.15,6.3+q*.1,bzz],[TIME,TIME*2,0],[.08,.08,.08],{emis:1,cast:0});D(ICO0,'#fff3a0',[bx+1.15,6.3+(1-q)*.1,bzz],[TIME,TIME*2,0],[.08,.08,.08],{emis:1,cast:0})}}}
-// baliho di luar pagar, menghadap kampus
-const BALIHO=[{slot:'baliho1',a:-.62},{slot:'baliho2',a:.62}];
-function balihoPos(B){const r=34.6;return {x:Math.sin(B.a)*r,z:Math.cos(B.a)*r,ry:B.a+Math.PI}}
+// baliho di tepi kampus, menghadap ke dalam
+const BALIHO=[{slot:'baliho1',x:-29.4,z:23.4,y:6.6},{slot:'baliho2',x:29.4,z:23.4,y:6.6},{slot:'baliho3',x:-29.4,z:-24.6,y:9},{slot:'baliho4',x:29.4,z:-24.6,y:9}];
+function balihoPos(B){return {x:B.x,z:B.z,y:B.y,ry:B.x<0?Math.PI/2:-Math.PI/2}}
 function balihoTex(slot){const b=brandOf(slot),L=b&&BR.logo[slot];if(L)return ctex('bhL'+slot+BR.logoSrc[slot].length+b.warna,1024,448,(x,w,h)=>drawCover(x,L,w,h,safeColor(b.warna,'#3a6ea5')));
  const key=b?('bh'+slot+b.nama+(b.tagline||'')+b.warna):'bh_kosong';
  return ctex(key,1024,448,(x,w,h)=>{if(!b){x.fillStyle='#fff8e6';x.fillRect(0,0,w,h);x.fillStyle='#2b1a0e';x.fillRect(0,0,w,92);x.fillStyle='#ffd23f';x.font=FD(52);x.textAlign='center';x.textBaseline='middle';x.fillText('SLOT IKLAN TERSEDIA',w/2,48);
@@ -41,8 +41,9 @@ function balihoTex(slot){const b=brandOf(slot),L=b&&BR.logo[slot];if(L)return ct
   const n=String(b.nama).slice(0,28);let fs=150;x.font=FD(fs);while(x.measureText(n).width>w-80&&fs>40){fs-=6;x.font=FD(fs)}x.lineWidth=14;x.strokeStyle='#2b1a0e';x.strokeText(n,w/2,170);x.fillStyle='#fff8e6';x.fillText(n,w/2,170);
   const t=String(b.tagline||'').slice(0,60);fs=54;x.font='800 '+fs+'px Nunito, sans-serif';while(x.measureText(t).width>w-80&&fs>24){fs-=3;x.font='800 '+fs+'px Nunito, sans-serif'}x.fillStyle='#fff';x.fillText(t,w/2,300);
   x.font=FD(40);x.fillStyle='#ffd23f';x.fillText(b.promo?'KODE PROMO: '+String(b.promo).slice(0,20):'MITRA RESMI KAMPUS UNINET',w/2,h-55)})}
-function balihos(){for(const B of BALIHO){const p=balihoPos(B),nt=ENV.night>.5;for(const s of[-1,1]){const ox=Math.cos(p.ry)*s*3,oz=-Math.sin(p.ry)*s*3;D(BOX,'#3d3a44',[p.x+ox,2.6,p.z+oz],[0,p.ry,0],[.3,5.2,.3])}
- D(BOX,'#2b1a0e',[p.x,6.6,p.z],[0,p.ry,0],[7.4,3.4,.3]);textPlane(balihoTex(B.slot),p.x+Math.sin(p.ry)*.17,6.6,p.z+Math.cos(p.ry)*.17,7,3.06,p.ry,{emis:nt?.7:.08})}}
+function balihos(){for(const B of BALIHO){const p=balihoPos(B),nt=ENV.night>.5,ph=p.y-1.6;for(const s of[-1,1]){const ox=Math.cos(p.ry)*s*3,oz=-Math.sin(p.ry)*s*3;D(BOX,'#3d3a44',[p.x+ox,ph/2,p.z+oz],[0,p.ry,0],[.3,ph,.3])}
+ D(BOX,'#2b1a0e',[p.x,p.y,p.z],[0,p.ry,0],[7.4,3.4,.3]);textPlane(balihoTex(B.slot),p.x+Math.sin(p.ry)*.17,p.y,p.z+Math.cos(p.ry)*.17,7,3.06,p.ry,{emis:nt?.7:.08})}}
+{const _bs=buildSolids;buildSolids=function(){_bs();for(const B of BALIHO){const p=balihoPos(B);for(const s of[-1,1]){const x=p.x+Math.cos(p.ry)*s*3,z=p.z-Math.sin(p.ry)*s*3;addBox(x-.2,x+.2,z-.2,z+.2,p.y-1.6)}}}}
 const _proyek=proyek;proyek=function(){_proyek();balihos()};
 // statistik (hitungan harian: v = kartu dibuka, c = link diklik)
 function bday(){const d=new Date(Date.now()+7*3600e3);return d.toISOString().slice(0,10).replace(/-/g,'')}
@@ -70,7 +71,7 @@ document.getElementById('wNear').onclick=()=>{if(!NEAR)return;if(NEAR.startsWith
 // ketuk baliho dari jauh
 const _tap=tap;tap=function(x,y){if(VPm){const r=cv.getBoundingClientRect(),nx=((x-r.left)/r.width)*2-1,ny=1-((y-r.top)/r.height)*2,eye=VPm.eye,fwd=norm(sub(cam.tgt,eye)),right=norm(cross(fwd,[0,1,0])),upv=cross(right,fwd),th=Math.tan(cam.fov*Math.PI/360),asp=r.width/r.height;
   const dir=norm([fwd[0]+right[0]*nx*th*asp+upv[0]*ny*th,fwd[1]+right[1]*nx*th*asp+upv[1]*ny*th,fwd[2]+right[2]*nx*th*asp+upv[2]*ny*th]);
-  for(const B of BALIHO){const p=balihoPos(B),oc=sub([p.x,6.6,p.z],eye),t=dot(oc,dir);if(t>0&&dot(oc,oc)-t*t<3.6*3.6){openBrand(B.slot);return}}}_tap(x,y)};
+  for(const B of BALIHO){const p=balihoPos(B),oc=sub([p.x,p.y,p.z],eye),t=dot(oc,dir);if(t>0&&dot(oc,oc)-t*t<3.6*3.6){openBrand(B.slot);return}}}_tap(x,y)};
 function clearBrandTex(){for(const k of Object.keys(TX))if(/^(bst|bh)/.test(k)){gl.deleteTexture(TX[k]);delete TX[k]}}
 function brandStart(){const F=NET.F;F.onValue(F.ref(NET.db,'umkmOpen'),s=>{BR.open=s.val()===true;umkmHud()},()=>{});F.onValue(F.ref(NET.db,'umkmSlot'),s=>{BR.slot=s.val()||{};umkmHud()},()=>{});F.onValue(F.ref(NET.db,'umkmSampai'),s=>{BR.sampai=s.val()||{};clearBrandTex()},()=>{});setInterval(()=>{if(Object.keys(BR.sampai).length)clearBrandTex()},60000);F.onValue(F.ref(NET.db,'brands'),s=>{BR.data=s.val()||{};NEAR=null;clearBrandTex()},e=>console.warn('brands',e&&e.code));
  F.onValue(F.ref(NET.db,'blogo'),s=>{const v=s.val()||{};for(const slot of BSLOTS){const u=v[slot];if(typeof u==='string'&&u.startsWith('data:image/')){if(BR.logoSrc[slot]===u)continue;const im=new Image();im.onload=()=>{BR.logo[slot]=im;BR.logoSrc[slot]=u;clearBrandTex()};im.src=u}else if(BR.logo[slot]){delete BR.logo[slot];delete BR.logoSrc[slot];clearBrandTex()}}},e=>console.warn('blogo',e&&e.code))}
