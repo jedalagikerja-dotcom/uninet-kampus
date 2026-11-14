@@ -582,10 +582,10 @@ let WALK=true;const KEYS={};const JOY={x:0,y:0};
 const WCAM={yaw:0,pitch:.32,dist:7.5};
 // ---- karakter spesial: Rektor UNINET (akun @uninet.id) ----
 const SPECIAL={'uninet.id':{title:'REKTOR UNINET'}};
-function rektor(x,z,yaw,h,sw,g,sit){if(sit)h-=.28;const P=M4.trs([x,h,z],[0,yaw,0],[1,1,1]),NV='#1d2742',GD='#f2b630';
- DM(PCYL,NV,P,[0,0,0],0,[.36,.8,.36]);if(sit){DM(BOX,NV,P,[0,.34,.26],0,[.62,.17,.55]);for(const s of[-1,1])DM(ICO2,'#151515',P,[s*.17,.3,.56],0,[.1,.08,.12],{cast:0})}DM(ICO2,NV,P,[0,.8,0],0,[.31,.12,.31]);
+function rektor(x,z,yaw,h,sw,g,sit){if(sit)h-=.3;const P=M4.trs([x,h,z],[0,yaw,0],[1,1,1]),NV='#1d2742',GD='#f2b630';
+ if(sit){DM(PCYL,NV,P,[0,.3,0],0,[.36,.5,.36]);DM(BOX,NV,P,[0,.37,.26],0,[.62,.16,.55]);for(const s of[-1,1])DM(ICO2,'#ffd9b8',P,[s*.2,.5,.5],0,[.09,.09,.09],{cast:0})}else DM(PCYL,NV,P,[0,0,0],0,[.36,.8,.36]);DM(ICO2,NV,P,[0,.8,0],0,[.31,.12,.31]);
  DM(BOX,GD,P,[0,.48,.27],[0,0,.62],[.11,.98,.04],{emis:.15});DM(RCYL,'#b8261f',P,[0,.3,0],0,[.345,.07,.345],{cast:0});
- for(const s of[-1,1]){DM(RCYL,NV,P,[s*.38,.22-sw*0,s*0+sw*s*.06],0,[.1,.52,.1]);DM(RCYL,GD,P,[s*.38,.2,sw*s*.06],0,[.105,.06,.105],{cast:0});DM(ICO2,'#ffd9b8',P,[s*.38,.18,sw*s*.1],0,[.09,.09,.09],{cast:0})}
+ if(!sit)for(const s of[-1,1]){DM(RCYL,NV,P,[s*.38,.22-sw*0,s*0+sw*s*.06],0,[.1,.52,.1]);DM(RCYL,GD,P,[s*.38,.2,sw*s*.06],0,[.105,.06,.105],{cast:0});DM(ICO2,'#ffd9b8',P,[s*.38,.18,sw*s*.1],0,[.09,.09,.09],{cast:0})}
  DM(ICO2,'#ffd9b8',P,[0,1.14,0],0,[.32,.32,.32]);DM(ICO2,'#2b1a0e',P,[0,1.25,-.1],0,[.335,.22,.335]);
  for(const s of[-1,1])DM(ICO0,'#2b1a0e',P,[s*.11,1.15,.3],0,[.04,.055,.04],{cast:0});
  DM(CYL,'#151515',P,[0,1.34,0],0,[.29,.14,.29]);DM(BOX,'#151515',P,[0,1.5,0],[0,Math.PI/4,0],[.66,.05,.66]);
@@ -1101,12 +1101,16 @@ function seatList(){if(SEAT.list)return SEAT.list;const L=[];
  return SEAT.list=L}
 function seatInput(){let ix=JOY.x,iy=JOY.y;if(KEYS.KeyW||KEYS.ArrowUp)iy-=1;if(KEYS.KeyS||KEYS.ArrowDown)iy+=1;if(KEYS.KeyA||KEYS.ArrowLeft)ix-=1;if(KEYS.KeyD||KEYS.ArrowRight)ix+=1;return Math.hypot(ix,iy)>.08}
 function seatStand(){const s=SEAT.cur;if(!s)return;SEAT.cur=null;PL1.sit=0;SEAT.skip=s;PL1.x=s.x+s.ox*.95;PL1.z=s.z+s.oz*.95;PL1.y=s.gy;PL1.vy=0;collide(PL1);if(typeof sendPos==='function')sendPos(true)}
+function seatSit(s){SEAT.cur=s;SEAT.near=null;PL1.sit=1;PL1.x=s.x;PL1.z=s.z;PL1.y=s.y;PL1.vy=0;PL1.yaw=s.yaw;PL1.moving=false;if(typeof sendPos==='function')sendPos(true)}
 {const _sp=stepPlayer;stepPlayer=function(dt){
- if(SEAT.cur){if(!seatInput()){const s=SEAT.cur;PL1.x=s.x;PL1.z=s.z;PL1.y=s.y;PL1.vy=0;PL1.yaw=s.yaw;PL1.moving=false;return}seatStand()}
+ if(SEAT.cur){if(!seatInput()){const s=SEAT.cur;PL1.x=s.x;PL1.z=s.z;PL1.y=s.y;PL1.vy=0;PL1.yaw=s.yaw;PL1.moving=false;seatBtn();return}seatStand()}
  _sp(dt);
  if(SEAT.skip&&Math.hypot(PL1.x-SEAT.skip.x,PL1.z-SEAT.skip.z)>1.15)SEAT.skip=null;
- if(PL1.vy===0)for(const s of seatList()){if(s===SEAT.skip||Math.abs(PL1.y-s.gy)>.6)continue;if(Math.hypot(PL1.x-s.x,PL1.z-s.z)<.72){SEAT.cur=s;PL1.sit=1;PL1.x=s.x;PL1.z=s.z;PL1.y=s.y;PL1.yaw=s.yaw;PL1.moving=false;if(typeof sendPos==='function')sendPos(true);break}}}}
-{const _j=jump;jump=function(){if(SEAT.cur){seatStand();return}_j()}}
+ // dekat kursi kosong: tombol LOMPAT berganti DUDUK
+ SEAT.near=null;if(PL1.vy===0){let bd=.95;for(const s of seatList()){if(s===SEAT.skip||Math.abs(PL1.y-s.gy)>.6)continue;const d=Math.hypot(PL1.x-s.x,PL1.z-s.z);if(d<bd){bd=d;SEAT.near=s}}}
+ seatBtn()}}
+function seatBtn(){const b=document.getElementById('bJump');if(!b)return;const t=SEAT.near&&!SEAT.cur?'DUDUK':'LOMPAT';if(b.textContent!==t)b.textContent=t}
+{const _j=jump;jump=function(){if(SEAT.cur){seatStand();return}if(SEAT.near){seatSit(SEAT.near);return}_j()}}
 
 // ================= AJAKAN MIRINGKAN HP (hanya di layar sentuh, posisi tegak) =================
 (function(){const st=document.createElement('style');st.textContent=`#rotAsk{position:fixed;inset:0;z-index:50;background:rgba(43,26,14,.97);color:#fff8e6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center}
