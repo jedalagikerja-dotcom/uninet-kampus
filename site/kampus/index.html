@@ -203,11 +203,11 @@ function fenceTex(p){return ctex('fn'+p,512,320,(x,w,h)=>{x.fillStyle='#e7e2d6';
 function fenceWorld(i){const m=FENO[i],F=fFrame(m.p),u=(m.x+m.w/2)/PWF-.5,v=(m.y+FONT_F/2)/PHF;return {p:[F.c[0]+F.t[0]*u*FEN.w+F.n[0]*.22,FEN.y0+FEN.h-v*FEN.h,F.c[1]+F.t[1]*u*FEN.w+F.n[1]*.22],F,wd:m.w/PWF*FEN.w}}
 function fence(){const night=ENV.night>.5;
  for(let j=0;j<FEN.NP;j++){const F=fFrame(j),[cx,cz]=F.c;
-  if(j<FPANELS){D(BOX,'#d8d1c1',[cx,FEN.y0+FEN.h/2,cz],[0,F.th,0],[FEN.w+.1,FEN.h+.25,.36]);D(BOX,'#c9c1ae',[cx,.22,cz],[0,F.th,0],[FEN.w+.3,.45,.6]);
-   textPlane(fenceTex(j),cx+F.n[0]*.19,FEN.y0+FEN.h/2,cz+F.n[1]*.19,FEN.w,FEN.h,F.th+Math.PI,{recv:1})}
-  else{D(BOX,night?'#5b5470':'#dcc79c',[cx,.07,cz],[0,F.th,0],[FEN.w,.14,.5],{cast:0})}
-  const G=fAt(FEN.gx+j*FSTEP);const built=j<=FPANELS;D(BOX,built?'#bfb6a2':'#b9874f',[G.c[0],built?1.1:.55,G.c[1]],[0,G.th,0],built?[.45,2.2,.45]:[.12,1.1,.12])}
- {const G=fAt(FEN.gx+FEN.NP*FSTEP);D(BOX,'#b9874f',[G.c[0],.55,G.c[1]],[0,G.th,0],[.12,1.1,.12])}
+  D(BOX,'#d8d1c1',[cx,FEN.y0+FEN.h/2,cz],[0,F.th,0],[FEN.w+.1,FEN.h+.25,.36]);D(BOX,'#c9c1ae',[cx,.22,cz],[0,F.th,0],[FEN.w+.3,.45,.6]);
+  if(j<FPANELS)textPlane(fenceTex(j),cx+F.n[0]*.19,FEN.y0+FEN.h/2,cz+F.n[1]*.19,FEN.w,FEN.h,F.th+Math.PI,{recv:1});
+  else D(BOX,'#e7e2d6',[cx+F.n[0]*.185,FEN.y0+FEN.h/2,cz+F.n[1]*.185],[0,F.th,0],[FEN.w,FEN.h,.01],{cast:0});
+  const G=fAt(FEN.gx+j*FSTEP);const built=true;D(BOX,built?'#bfb6a2':'#b9874f',[G.c[0],built?1.1:.55,G.c[1]],[0,G.th,0],built?[.45,2.2,.45]:[.12,1.1,.12])}
+ {const G=fAt(FEN.gx+FEN.NP*FSTEP);D(BOX,'#bfb6a2',[G.c[0],1.1,G.c[1]],[0,G.th,0],[.45,2.2,.45])}
  // gate
  const gx=FEN.gx,gz=FEN.H;for(const sg of [-1,1]){D(BOX,'#3a6ea5',[sg*gx,2.4,gz],0,[1.1,4.8,1.1]);D(BOX,'#ffd23f',[sg*gx,4.95,gz],0,[1.3,.3,1.3])}
  D(BOX,'#2b1a0e',[0,5.4,gz],0,[2*gx+1.4,.9,.7]);textPlane(ctex('gate',2048,160,(x,w,h)=>{x.fillStyle='#2b1a0e';x.fillRect(0,0,w,h);x.fillStyle='#ffd23f';x.textAlign='center';x.textBaseline='middle';let fs=120;x.font=FD(fs);while(x.measureText('UNIVERSITAS NETIZEN INDONESIA').width>w-80){fs-=4;x.font=FD(fs)}x.fillText('UNIVERSITAS NETIZEN INDONESIA',w/2,h/2+6)}),0,5.4,gz+.37,2*gx+1.1,.82,0,{emis:.35});
