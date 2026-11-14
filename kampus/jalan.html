@@ -171,7 +171,7 @@ function cityWin(){return ctex('cwin',256,256,(x,w,h)=>{x.clearRect(0,0,w,h);for
 let GLOW=0;
 function boardTex(){return ctex('board',1024,640,(x,w,h)=>{x.fillStyle='#2f5d4a';x.fillRect(0,0,w,h);x.strokeStyle='#c99b63';x.lineWidth=36;x.strokeRect(0,0,w,h);x.textAlign='center';x.textBaseline='middle';
  x.fillStyle='#ffd23f';x.font=FD(84);x.fillText('PAPAN PENGUMUMAN',w/2,110);x.fillStyle='#f6f2e4';x.font=FD(64);x.fillText(CONFIG.pengumuman.judul.toUpperCase()+':',w/2,230);
- const words=CONFIG.pengumuman.isi.split(' ');let line='',y=330;x.font=FD(56);for(const wd of words){const t=line?line+' '+wd:wd;if(x.measureText(t).width>880){x.fillText(line,w/2,y);y+=74;line=wd}else line=t}x.fillText(line,w/2,y)})}
+ let y=330;x.font=FD(56);for(const para of CONFIG.pengumuman.isi.split('\n')){const words=para.split(' ');let line='';for(const wd of words){const t=line?line+' '+wd:wd;if(x.measureText(t).width>880&&line){x.fillText(line,w/2,y);y+=74;line=wd}else line=t}x.fillText(line,w/2,y);y+=74}})}
 
 // monument layout (virtual 1536x3072 per panel, 16px names, 24px rows)
 const PW=1536,PH=3072,FONT_V=16,ROW=24, MONO=[]; let PANELS=0;
@@ -602,7 +602,7 @@ document.getElementById('wNear').onclick=()=>{if(NEAR)openPlace(NEAR)};
 (function(){const bj=document.getElementById('bJump'),br=document.getElementById('bRun');
  const hold=(el,f)=>{el.addEventListener('touchstart',e=>{e.preventDefault();f()},{passive:false});el.addEventListener('mousedown',e=>{e.preventDefault();f()})};
  hold(bj,jump);hold(br,()=>{PL1.run=!PL1.run;br.classList.toggle('on',!!PL1.run)})})();
-addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;KEYS[e.code]=true;if(e.code==='Space'&&WALK){e.preventDefault();jump()}if(WALK)hideHint()});
+addEventListener('keydown',e=>{const tg=e.target&&e.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA'||tg==='SELECT'||(e.target&&e.target.isContentEditable))return;KEYS[e.code]=true;if(e.code==='Space'&&WALK){e.preventDefault();jump()}if(WALK)hideHint()});
 addEventListener('keyup',e=>{KEYS[e.code]=false});addEventListener('blur',()=>{for(const k in KEYS)KEYS[k]=false});
 (function(){const pad=document.getElementById('walkpad'),joy=document.getElementById('joy'),knob=joy.firstElementChild;const T=new Map();let pinch=null;
  const half=()=>innerWidth*.45;
@@ -840,13 +840,13 @@ function drawWard(fresh){const A=NET.avEdit,el=document.getElementById('ward');
 function closeWard(){NET.avEdit=null;WARD.on=false;document.getElementById('ward').hidden=true;document.body.classList.remove('ward');if(WARD.prev)Object.assign(WCAM,WARD.prev)}
 
 // ================= MADING (hanya @uninet.id) =================
-INFO.papan=()=>`<h2>${esc(CONFIG.pengumuman.judul)}</h2><p>${esc(CONFIG.pengumuman.isi)}</p><div class="row"><a class="btn" href="${CONFIG.igUrl}" target="_blank" rel="noopener">Buka @uninet.id</a>${NET.ig==='uninet.id'?'<button class="btn dark" type="button" id="madEdit">Ubah mading</button>':''}</div>`;
+INFO.papan=()=>`<h2>${esc(CONFIG.pengumuman.judul)}</h2><p style="white-space:pre-line">${esc(CONFIG.pengumuman.isi)}</p><div class="row"><a class="btn" href="${CONFIG.igUrl}" target="_blank" rel="noopener">Buka @uninet.id</a>${NET.ig==='uninet.id'?'<button class="btn dark" type="button" id="madEdit">Ubah mading</button>':''}</div>`;
 document.addEventListener('click',e=>{if(e.target&&e.target.id==='madEdit')openMading()});
 function openMading(){if(NET.ig!=='uninet.id')return;const P=CONFIG.pengumuman,IS='width:100%;box-sizing:border-box;border:3px solid var(--ink);border-radius:12px;padding:9px 10px;font:800 16px var(--body);background:#fff;margin-top:6px';
  showCard(`<h2>Ubah mading</h2><p>Tulisan ini tampil di Papan Pengumuman untuk semua mahasiswa.</p><label style="font-weight:800;font-size:14px">Judul<input id="mdJ" maxlength="40" style="${IS}"></label><label style="display:block;margin-top:8px;font-weight:800;font-size:14px">Isi<textarea id="mdI" maxlength="200" rows="3" style="${IS};resize:vertical"></textarea></label><p id="mdE" role="status" style="margin:6px 0;min-height:1em;color:#b0302b"></p><div class="row"><button class="btn dark" type="button" id="mdS">Simpan</button><button class="btn" type="button" id="mdB" style="background:#fff">Batal</button></div>`);
  const J=document.getElementById('mdJ'),I=document.getElementById('mdI'),E=document.getElementById('mdE');J.value=P.judul;I.value=P.isi;
  document.getElementById('mdB').onclick=closeCard;
- document.getElementById('mdS').onclick=async()=>{const j=J.value.replace(/[<>]/g,'').trim(),i=I.value.replace(/[<>]/g,'').replace(/\s+/g,' ').trim();if(!j||!i){E.textContent='Judul dan isi wajib diisi.';return}
+ document.getElementById('mdS').onclick=async()=>{const j=J.value.replace(/[<>]/g,'').trim(),i=I.value.replace(/[<>]/g,'').replace(/\r/g,'').replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n').trim();if(!j||!i){E.textContent='Judul dan isi wajib diisi.';return}
   try{await NET.F.set(NET.F.ref(NET.db,'mading'),{judul:j,isi:i,t:NET.F.serverTimestamp()});closeCard();toast('Mading diperbarui!')}catch(err){E.textContent='Gagal menyimpan. Sudah tempel aturan database terbaru?'}}}
 
 // ================= MITRA BRAND: slot warung kantin + baliho =================
