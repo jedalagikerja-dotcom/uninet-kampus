@@ -432,12 +432,13 @@ function DM(mesh,col,P,p,r,sc,o){const d=D(mesh,col,[0,0,0],0,0,o);d.M=M4.mul(P,
 // mahasiswa versi rapi
 function person(x,z,c,yaw,h,o){const C=['#ff8a5c','#6cc3f5','#ffd166','#8bd17c','#c79bf2','#ff9fb8','#5fd0c5','#f7a440'],HC=['#4a2e1c','#2b1a0e','#6b3f22'];o=o||{};
  const fx=Math.sin(yaw),fz=Math.cos(yaw),rx=Math.cos(yaw),rz=-Math.sin(yaw),col=o.col||C[c%8],sw=o.swing||0;
- const far=(x-EYE[0])**2+(z-EYE[2])**2>400;if(far){D(PCYL,col,[x,h,z],[0,yaw,0],[.3,.74,.3]);D(ICO,'#ffd9b8',[x,h+1.1,z],0,[.32,.32,.32]);D(ICO,o.hair||HC[c%3],[x-fx*.1,h+1.24,z-fz*.1],0,[.335,.24,.335]);return}
- D(PCYL,col,[x,h,z],[0,yaw,0],[.3,.74,.3]);D(ICO2,col,[x,h+.74,z],0,[.25,.1,.25]);
- for(const s of[-1,1]){const a=sw*s;D(RCYL,col,[x+rx*s*.33+fx*a*.12,h+.24,z+rz*s*.33+fz*a*.12],0,[.085,.46,.085]);D(ICO2,'#ffd9b8',[x+rx*s*.33+fx*a*.2,h+.22,z+rz*s*.33+fz*a*.2],0,[.09,.09,.09],{cast:0})}
- D(ICO2,'#ffd9b8',[x,h+1.1,z],0,[.32,.32,.32]);
- D(ICO2,o.hair||HC[c%3],[x-fx*.1,h+1.24,z-fz*.1],0,[.335,.24,.335]);
- for(const s of[-1,1])D(ICO0,'#2b1a0e',[x+fx*.3+rx*s*.11,h+1.11,z+fz*.3+rz*s*.11],0,[.04,.055,.04],{cast:0})}
+ const SIT=!!o.sit,BH=SIT?.5:.74,HY=SIT?.86:1.1;const far=(x-EYE[0])**2+(z-EYE[2])**2>400;if(far){D(PCYL,col,[x,h,z],[0,yaw,0],[.3,BH,.3]);D(ICO,'#ffd9b8',[x,h+HY,z],0,[.32,.32,.32]);D(ICO,o.hair||HC[c%3],[x-fx*.1,h+HY+.14,z-fz*.1],0,[.335,.24,.335]);return}
+ D(PCYL,col,[x,h,z],[0,yaw,0],[.3,BH,.3]);D(ICO2,col,[x,h+BH,z],0,[.25,.1,.25]);
+ if(SIT){D(BOX,'#3d4a66',[x+fx*.24,h+.06,z+fz*.24],[0,yaw,0],[.46,.16,.52]);for(const s of[-1,1])D(ICO2,'#ffd9b8',[x+fx*.5+rx*s*.2,h+.42,z+fz*.5+rz*s*.2],0,[.09,.07,.09],{cast:0})}
+ if(!SIT)for(const s of[-1,1]){const a=sw*s;D(RCYL,col,[x+rx*s*.33+fx*a*.12,h+.24,z+rz*s*.33+fz*a*.12],0,[.085,.46,.085]);D(ICO2,'#ffd9b8',[x+rx*s*.33+fx*a*.2,h+.22,z+rz*s*.33+fz*a*.2],0,[.09,.09,.09],{cast:0})}
+ D(ICO2,'#ffd9b8',[x,h+HY,z],0,[.32,.32,.32]);
+ D(ICO2,o.hair||HC[c%3],[x-fx*.1,h+HY+.14,z-fz*.1],0,[.335,.24,.335]);
+ for(const s of[-1,1])D(ICO0,'#2b1a0e',[x+fx*.3+rx*s*.11,h+HY+.01,z+fz*.3+rz*s*.11],0,[.04,.055,.04],{cast:0})}
 // ---- kantin 2 lantai (menggantikan Proyek Berikutnya) ----
 const KX=-11,KZ=16,SX=KX+5.5,SZ=KZ+7.6,KBZ=KZ-3.5;
 const KR=M4.mul(M4.trs([KX,0,KZ],[0,Math.PI/2,0],[1,1,1]),M4.trs([-KX,0,-KZ],0,[1,1,1]));
@@ -462,7 +463,7 @@ function proyek(){const i0=DL.length,x=KX,z=KZ,bz=KBZ,nt=ENV.night>.5;
  for(let i=0;i<4;i++){const tx=x-5.4+i*3.6,tz=KZ+3.4;
   D(BOX,'#a7764d',[tx,.95,tz],0,[1.2,.12,3.6]);D(BOX,'#7a5a3c',[tx,.5,tz],0,[.2,.9,2.9]);for(const b of [-1,1])D(BOX,'#8a5a36',[tx+b*.95,.55,tz],0,[.35,.1,3.6]);
   for(let k=0;k<3;k++)socket(tx,1.01,tz+(k-1)*1.1);
-  for(let k=0;k<3;k++)for(const b of [-1,1]){if(rnd(i*13+k*7+b)<.45)continue;person(tx+b*1.05,tz+(k-1)*1.1,i*13+k*3+b+5,b>0?-Math.PI/2:Math.PI/2,-.25)}
+  for(let k=0;k<3;k++)for(const b of [-1,1]){if(rnd(i*13+k*7+b)<.45)continue;person(tx+b*1.05,tz+(k-1)*1.1,i*13+k*3+b+5,b>0?-Math.PI/2:Math.PI/2,.58,{sit:1})}
   D(CYL,'#f4f1ea',[tx,3.82,bz],0,[.7,.1,.7]);D(CYL6,'#f4f1ea',[tx,3.82,bz],0,[.06,2.4,.06]);D(CONE,U[i],[tx,5.92,bz],0,[1.6,.6,1.6]);
   for(let k=0;k<3;k++){if(rnd(i*5+k)<.4)continue;const a=k*2.1+i;person(tx+Math.cos(a)*1.15,bz+Math.sin(a)*1.15,i*3+k+40,Math.atan2(-Math.cos(a),-Math.sin(a)),3.82)}}
  for(let k=0;k<14;k++){const q=k/13;D(ICO,['#ffd23f','#ff9fb8','#6cc3f5'][k%3],[x-7.2+14.4*q,3.35-Math.abs(Math.sin(q*Math.PI*4))*.18,bz+2.9],0,[.12,.12,.12],{emis:.9,cast:0})}
