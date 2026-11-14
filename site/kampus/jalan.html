@@ -978,7 +978,7 @@ function qrbDraw(){const P=QRB.pos;if(!P)return;const t=performance.now()/1000,y
 {const _np=nearPlace;nearPlace=function(){const P=QRB.pos;if(P&&Math.hypot(P.x-PL1.x,P.z-PL1.z)<2.6&&Math.abs((P.y||0)-PL1.y)<2){const b=document.getElementById('wNear');if(NEAR!=='qrb'){NEAR='qrb';b.textContent='Lihat: Traktir Pak Raka Kopi';b.hidden=false}return}_np()}}
 {const wb=document.getElementById('wNear'),prev=wb.onclick;wb.onclick=e=>{if(NEAR==='qrb')openQRB();else if(prev)prev.call(wb,e)}}
 function openQRB(){const img=qrCanvas(600,3).toDataURL('image/png');
- showCard(`<h2>Traktir Pak Raka Kopi</h2><p>Suka sama UNINET? Boleh traktir kopi. Kampus tetap gratis untuk semua.</p>
+ showCard(`<h2>Traktir Pak Raka Kopi</h2>
  <img src="${img}" alt="Kode QR Saweria UNINET" style="display:block;width:min(240px,60vw);margin:6px auto;border:4px solid var(--ink);border-radius:14px;background:#fff">
  <p style="font-size:13px;margin:4px 0 8px;text-align:center">Dari HP ini: simpan gambar QR lalu pindai lewat galeri, atau langsung buka Saweria.</p>
  <div class="row"><a class="btn dark" href="${QRB.url}" target="_blank" rel="noopener">Buka Saweria</a><a class="btn" href="${img}" download="QR-Traktir-UNINET.png" style="background:#fff">Simpan gambar QR</a></div>`)}
