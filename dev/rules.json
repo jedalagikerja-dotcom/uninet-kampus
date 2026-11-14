@@ -114,6 +114,16 @@
       ".read": true,
       ".write": "auth != null && (auth.token.email === 'ig_uninet-id@kampus.uninet.id' || (auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true))",
       ".validate": "newData.child('x').isNumber() && newData.child('z').isNumber()"
+    },
+    "kunjungan": {
+      ".read": "auth != null && auth.token.email === 'jedalagikerja@gmail.com' && auth.token.email_verified === true",
+      "$day": {
+        ".validate": "$day.matches(/^[0-9]{8}$/)",
+        "$k": {
+          ".write": "auth != null && ($k === 'v' || $k === 'u')",
+          ".validate": "newData.isNumber() && newData.val() === (data.exists() ? data.val() : 0) + 1"
+        }
+      }
     }
   }
 }
