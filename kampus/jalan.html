@@ -546,7 +546,7 @@ function player(){const h=PL1.y+(PL1.moving&&PL1.y<=groundAt(PL1.x,PL1.z)+.01?Ma
  if(sp){rektor(PL1.x,PL1.z,PL1.yaw,h,PL1.moving?Math.sin(PL1.phase)*.9:0,groundAt(PL1.x,PL1.z));textPlane(specialTag(NET.ig),PL1.x,h+2.35,PL1.z,1.35,.42,WCAM.yaw,{emis:1,recv:0})}
  else{const myav=(typeof NET!=='undefined'&&(NET.avEdit||NET.av))||null;person(PL1.x,PL1.z,0,PL1.yaw,h,{me:1,av:myav,col:'#3a6ea5',hair:'#2b1a0e',swing:PL1.moving?Math.sin(PL1.phase)*.9:0});
  if(!myav){DM(ICO2,'#ffd23f',M4.trs([PL1.x,h+1.27,PL1.z],[0,PL1.yaw,0],[1,1,1]),[0,0,0],0,[.35,.15,.35]);DM(BOX,'#ffd23f',M4.trs([PL1.x,h+1.27,PL1.z],[0,PL1.yaw,0],[1,1,1]),[0,0,.34],0,[.42,.05,.3])}
- textPlane(nameTex(),PL1.x,h+2,PL1.z,1.15,.29,WCAM.yaw,{emis:1,recv:0})}
+ textPlane(nameTex(),PL1.x,h+2,PL1.z,1.15,.29,WCAM.yaw,{emis:1,recv:0});if(typeof LABELS!=='undefined'&&NET.ig&&LABELS[NET.ig])textPlane(lblTex(NET.ig),PL1.x,h+1.72,PL1.z,1.15,.25,WCAM.yaw,{emis:1,recv:0})}
  D(DISC,'#000000',[PL1.x,groundAt(PL1.x,PL1.z)+.02,PL1.z],0,[.4,.01,.4],{alpha:.18,cast:0,recv:0})}
 function stepPlayer(dt){let ix=JOY.x,iy=JOY.y;if(KEYS.KeyW||KEYS.ArrowUp)iy-=1;if(KEYS.KeyS||KEYS.ArrowDown)iy+=1;if(KEYS.KeyA||KEYS.ArrowLeft)ix-=1;if(KEYS.KeyD||KEYS.ArrowRight)ix+=1;
  const m=Math.hypot(ix,iy);if(m>1){ix/=m;iy/=m}
@@ -694,7 +694,7 @@ function esc(t){return t.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;
 function fmtMsg(m){return esc(m).replace(/@([a-z0-9._]{1,30})/gi,(a,u)=>`<span class="at${NET.ig&&u.toLowerCase()===NET.ig?' mine':''}">@${u}</span>`)}
 function msgLine(key,v){const p=document.createElement('p');p.className='msg'+(v.u===NET.uid?' me':'')+(v.ment?' ment':'');p.dataset.k=key;
  let q='';if(v.r){const o=MSG.get(v.r);q=`<span class="q">↪ ${o?esc(shown(o.n))+': '+esc(o.m.slice(0,60)):'membalas pesan sebelumnya'}</span>`}
- p.innerHTML=q+(SPECIAL[v.n]?`<b class="rk">${esc(shown(v.n))} <i>REKTOR</i>:</b> `:`<b>${esc(shown(v.n))}:</b> `)+fmtMsg(v.m);p.onclick=()=>setReply(key);chatLog.appendChild(p);while(chatLog.children.length>60)chatLog.firstChild.remove();
+ p.innerHTML=q+(SPECIAL[v.n]?`<b class="rk">${esc(shown(v.n))} <i>REKTOR</i>:</b> `:(LABELS[v.n]?`<b>${esc(shown(v.n))} <i style="font-style:normal;font-size:11px;background:${LABELS[v.n].c};color:#fff;border:2px solid #2b1a0e;border-radius:999px;padding:0 6px">${esc(LABELS[v.n].t)}</i>:</b> `:`<b>${esc(shown(v.n))}:</b> `))+fmtMsg(v.m);p.onclick=()=>setReply(key);chatLog.appendChild(p);while(chatLog.children.length>60)chatLog.firstChild.remove();
  if(chatEl.classList.contains('open'))chatLog.scrollTop=chatLog.scrollHeight}
 function setReply(key){const o=key&&MSG.get(key);REPLY=o?key:null;const bar=document.getElementById('replyBar');bar.classList.toggle('on',!!o);
  if(o){bar.firstChild.textContent='Membalas '+shown(o.n)+': '+o.m.slice(0,50);if(!/^Tamu /.test(o.n)&&o.u!==NET.uid&&!chatIn.value.includes('@'+o.n))chatIn.value='@'+o.n+' '+chatIn.value;chatIn.focus()}}
@@ -739,6 +739,8 @@ function openIdentity(reason,tab){const INP='display:flex;align-items:center;bor
   E.style.color='#b0302b';E.textContent={exists:'@'+v+' sudah terdaftar. Ketuk "Sudah punya akun? Masuk".',wrong:'Username atau password salah.',slow:'Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.',off:'Pendaftaran belum diaktifkan admin.',net:'Koneksi bermasalah. Coba lagi.'}[r]||'Gagal. Coba lagi sebentar.'}}
 async function useUser(u){const F=NET.F;NET.uid=u.uid;NET.sid=u.uid+'_'+Math.random().toString(36).slice(2,8);NET.me=F.ref(NET.db,'online/'+NET.sid);F.onDisconnect(NET.me).remove();NET.ig=igFromUser(u);NET.av=null;NET.avEdit=null;updName();if(NET.ig){try{const a=await F.get(F.ref(NET.db,'avatar/'+u.uid));NET.av=parseAv(a.val())}catch(e){}}sendPos(true)}
 // ---- tekstur nama & gelembung ----
+const LABELS={'ayaa':{t:'Kang Pukul',c:'#e3342f'}};
+function lblTex(n){const L=LABELS[n];return ctex('lb_'+n,300,64,(x,w,h)=>{x.font=FD(34);const tw=Math.min(w-8,x.measureText(L.t).width+34);x.fillStyle=L.c;x.strokeStyle='#2b1a0e';x.lineWidth=5;x.beginPath();x.roundRect((w-tw)/2,5,tw,h-10,24);x.fill();x.stroke();x.fillStyle='#fff';x.textAlign='center';x.textBaseline='middle';x.fillText(L.t,w/2,h/2+2)})}
 function nameTagTex(n){return ctex('nt_'+n,320,72,(x,w,h)=>{x.font=FD(38);const tw=Math.min(w-12,x.measureText(n).width+36);x.fillStyle='rgba(255,248,230,.95)';x.strokeStyle='#2b1a0e';x.lineWidth=5;x.beginPath();x.roundRect((w-tw)/2,6,tw,h-12,28);x.fill();x.stroke();x.fillStyle='#2b1a0e';x.textAlign='center';x.textBaseline='middle';let s=n;while(x.measureText(s).width>w-50&&s.length>3)s=s.slice(0,-1);x.fillText(s===n?n:s+'…',w/2,h/2+2)})}
 function bubbleTex(key,msg){return ctex('bb_'+key,512,170,(x,w,h)=>{x.font='800 30px Nunito, sans-serif';const words=msg.split(' ');const lines=[];let cur='';for(const wd of words){const t=cur?cur+' '+wd:wd;if(x.measureText(t).width>w-60&&cur){lines.push(cur);cur=wd}else cur=t}if(cur)lines.push(cur);const L=lines.slice(0,3);if(lines.length>3)L[2]=L[2].slice(0,-1)+'…';
  const bh=24+L.length*36,bw=Math.min(w-8,Math.max(...L.map(l=>x.measureText(l).width))+44),y0=h-bh-22;x.fillStyle='#fff';x.strokeStyle='#2b1a0e';x.lineWidth=5;x.beginPath();x.roundRect((w-bw)/2,y0,bw,bh,22);x.fill();x.stroke();
@@ -751,7 +753,7 @@ function drawOthers(dt){const now=srvNow();let k=Math.min(1,dt*6);for(const [id,
   const dx=o.tx-o.x,dz=o.tz-o.z,d=Math.hypot(dx,dz);o.x+=dx*k;o.z+=dz*k;let dy=o.tyaw-o.yaw;while(dy>Math.PI)dy-=2*Math.PI;while(dy<-Math.PI)dy+=2*Math.PI;o.yaw+=dy*k;o.mv=d>.05;if(o.mv)o.ph=(o.ph||0)+dt*10;
   const h=o.mv?Math.abs(Math.sin(o.ph))*.1:0,far=(o.x-EYE[0])**2+(o.z-EYE[2])**2;
   if(SPECIAL[o.n]){rektor(o.x,o.z,o.yaw,(o.y||0)+h,o.mv?Math.sin(o.ph)*.9:0,o.y||0);if(far<3600)textPlane(specialTag(o.n),o.x,(o.y||0)+2.35,o.z,1.35,.42,cam.yaw,{emis:1,recv:0})}
-  else{person(o.x,o.z,o.c,o.yaw,(o.y||0)+h,{av:o.av,col:SHIRT[o.c%SHIRT.length],swing:o.mv?Math.sin(o.ph)*.9:0});if(far<1600)textPlane(nameTagTex(shown(o.n)),o.x,(o.y||0)+2.1,o.z,1.7,.38,cam.yaw,{emis:1,recv:0})}
+  else{person(o.x,o.z,o.c,o.yaw,(o.y||0)+h,{av:o.av,col:SHIRT[o.c%SHIRT.length],swing:o.mv?Math.sin(o.ph)*.9:0});if(far<1600){textPlane(nameTagTex(shown(o.n)),o.x,(o.y||0)+2.1,o.z,1.7,.38,cam.yaw,{emis:1,recv:0});if(LABELS[o.n])textPlane(lblTex(o.n),o.x,(o.y||0)+1.76,o.z,1.3,.28,cam.yaw,{emis:1,recv:0})}}
   const b=NET.bubbles.get(o.u);if(b&&now<b.until&&far<2500)textPlane(bubbleTex(b.key,b.m),o.x,(o.y||0)+2.95,o.z,2.5,.83,cam.yaw,{emis:1,recv:0})}
  const mb=NET.bubbles.get(NET.uid);if(WALK&&mb&&now<mb.until)textPlane(bubbleTex(mb.key,mb.m),PL1.x,PL1.y+2.95,PL1.z,2.5,.83,cam.yaw,{emis:1,recv:0});
  for(const [id,b] of NET.bubbles)if(now>b.until+500){dropTex('bb_'+b.key);NET.bubbles.delete(id)}}
