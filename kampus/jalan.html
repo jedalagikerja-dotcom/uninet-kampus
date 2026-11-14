@@ -834,7 +834,7 @@ async function netStart(){try{
    MSG.set(s.key,{n,m,u:v.u});if(MSG.size>80)MSG.delete(MSG.keys().next().value);msgLine(s.key,{n,m,u:v.u,r,ment});
    if(ment&&!first&&Date.now()-(v.t||0)<20000){toast(shown(n)+(ro&&ro.u===NET.uid?' membalas pesanmu':' menyebut namamu')+': '+m.slice(0,40));try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}}
    if(Date.now()-(v.t||0)<15000)NET.bubbles.set(v.u,{key:s.key,m,until:Date.now()+6000});if(!first&&!chatEl.classList.contains('open'))setUnread(unread+1)});
-  logLine('',NET.ig?'Kamu masuk sebagai @'+NET.ig+'.':'Kamu masih Tamu. Ketuk "Daftar / Masuk" untuk memakai username IG.','sys');logLine('','Ketuk pesan untuk membalas. Ketik @ untuk menyebut nama.','sys');D.onValue(D.ref(db,'mading'),x=>{const v=x.val();if(v&&typeof v.judul==='string'&&typeof v.isi==='string'){CONFIG.pengumuman={judul:v.judul.slice(0,40),isi:v.isi.slice(0,200)};dropTex('board')}},()=>{});if(typeof brandStart==='function')brandStart();if(typeof qrbStart==='function')qrbStart();if(typeof kunjungStart==='function')kunjungStart();countOnline();
+  logLine('',NET.ig?'Kamu masuk sebagai @'+NET.ig+'.':'Kamu masih Tamu. Ketuk "Daftar / Masuk" untuk memakai username IG.','sys');logLine('','Ketuk pesan untuk membalas. Ketik @ untuk menyebut nama.','sys');D.onValue(D.ref(db,'mading'),x=>{const v=x.val();if(v&&typeof v.judul==='string'&&typeof v.isi==='string'){CONFIG.pengumuman={judul:v.judul.slice(0,40),isi:v.isi.slice(0,200)};dropTex('board')}},()=>{});if(typeof brandStart==='function')brandStart();if(typeof qrbStart==='function')qrbStart();if(typeof kunjungStart==='function')kunjungStart();if(typeof ptStart==='function')ptStart();countOnline();
   document.addEventListener('visibilitychange',()=>{if(document.hidden){D.goOffline(db)}else{D.goOnline(db);setTimeout(()=>sendPos(true),400)}});
   D.onValue(D.ref(db,'.info/serverTimeOffset'),x=>{NET.off=x.val()||0;countOnline()});
   setInterval(()=>{if(NET.on&&!NET.idleOff&&Date.now()-lastInput>600000){NET.idleOff=true;D.goOffline(db);const e=document.getElementById('onl');e.classList.remove('live');e.lastChild.textContent='ketuk layar';}else countOnline()},5000);
@@ -1074,7 +1074,7 @@ function gedung(){const tot=monTot(),bw=tot+6,hw=bw/2,z0=-30,z1=-21.5,H=11.6,cz=
  // lampu plafon
  for(let i=0;i<6;i++){const lx=-15+i*6;for(const lz of[-27.6,-23.9])D(BOX,'#fffbe8',[lx,H-.33,lz],0,[2.2,.06,.5],{emis:1,cast:0,recv:0});if(i%2===0)LAMPS.push([lx+3,FL+8.5,-25.75])}
  // papan tulis + podium
- const bx=-hw+.47;D(BOX,'#9aa3ab',[bx,FL+2.35,KELAS.board.z],0,[.08,2.6,6],R);D(BOX,'#ffffff',[bx+.05,FL+2.35,KELAS.board.z],0,[.04,2.3,5.7],{recv:0,emis:nt?.15:0});
+ const bx=-hw+.47;D(BOX,'#9aa3ab',[bx,FL+2.35,KELAS.board.z],0,[.08,2.6,6],R);textPlane(ptTex(),bx+.075,FL+2.35,KELAS.board.z,5.7,2.3,Math.PI/2,{recv:0,emis:nt?.25:.1});
  D(BOX,'#9aa3ab',[bx+.16,FL+1.0,KELAS.board.z],0,[.22,.06,5.6],R);for(const [k,c] of [[-.6,'#e3342f'],[-.3,'#3a6ea5'],[0,'#2b1a0e']])D(BOX,c,[bx+.16,FL+1.05,KELAS.board.z+k],0,[.05,.05,.22],{cast:0,recv:0});
  const P=KELAS.pod;D(BOX,'#8a5a36',[P.x,FL+.6,P.z],0,[.8,1.2,1.1],R);D(BOX,'#a7764d',[P.x-.05,FL+1.24,P.z],[0,0,.18],[.95,.08,1.25],R);D(BOX,'#d8a93c',[P.x+.41,FL+.75,P.z],0,[.02,.3,.6],{cast:0,recv:0});
  // 30 bangku kuliah: meja + kursi menghadap papan tulis
@@ -1107,10 +1107,30 @@ function seatSit(s){SEAT.cur=s;SEAT.near=null;PL1.sit=1;PL1.x=s.x;PL1.z=s.z;PL1.
  _sp(dt);
  if(SEAT.skip&&Math.hypot(PL1.x-SEAT.skip.x,PL1.z-SEAT.skip.z)>1.15)SEAT.skip=null;
  // dekat kursi kosong: tombol LOMPAT berganti DUDUK
- SEAT.near=null;if(PL1.vy===0){let bd=.95;for(const s of seatList()){if(s===SEAT.skip||Math.abs(PL1.y-s.gy)>.6)continue;const d=Math.hypot(PL1.x-s.x,PL1.z-s.z);if(d<bd){bd=d;SEAT.near=s}}}
+ SEAT.near=null;if(Math.abs(PL1.vy)<.5){let bd=1.25;for(const s of seatList()){if(s===SEAT.skip||Math.abs(PL1.y-s.gy)>.6)continue;const d=Math.hypot(PL1.x-s.x,PL1.z-s.z);if(d<bd){bd=d;SEAT.near=s}}}
  seatBtn()}}
 function seatBtn(){const b=document.getElementById('bJump');if(!b)return;const t=SEAT.near&&!SEAT.cur?'DUDUK':'LOMPAT';if(b.textContent!==t)b.textContent=t}
 {const _j=jump;jump=function(){if(SEAT.cur){seatStand();return}if(SEAT.near){seatSit(SEAT.near);return}_j()}}
+
+// ================= PAPAN TULIS: semua pengguna bisa menulis =================
+const PT={t:'',n:''};
+function ptTex(){return ctex('ptulis',1024,414,(x,w,h)=>{x.fillStyle='#ffffff';x.fillRect(0,0,w,h);x.textAlign='center';x.textBaseline='middle';
+ if(!PT.t){x.fillStyle='#b9c0c7';x.font=FD(42);x.fillText('Papan tulis masih kosong. Ayo tulis sesuatu!',w/2,h/2);return}
+ const wrap=f=>{x.font=FD(f);const L=[];for(const para of PT.t.split('\n')){let line='';for(const wd of para.split(' ')){const t=line?line+' '+wd:wd;if(x.measureText(t).width>950&&line){L.push(line);line=wd}else line=t}
+  while(x.measureText(line).width>950&&line.length>1){let k=line.length;while(k>1&&x.measureText(line.slice(0,k)).width>950)k--;L.push(line.slice(0,k));line=line.slice(k)}L.push(line)}return L};
+ let f=72,L=wrap(f);while(L.length*f*1.25>320&&f>14){f-=2;L=wrap(f)}const lh=f*1.25,y0=(h-30-L.length*lh)/2+lh/2;x.fillStyle='#1d3f8a';L.forEach((t,i)=>x.fillText(t,w/2,y0+i*lh));
+ if(PT.n){x.font=FD(26);x.fillStyle='#8a929a';x.textAlign='right';x.fillText('ditulis oleh '+PT.n,w-24,h-24)}})}
+function ptStart(){NET.F.onValue(NET.F.ref(NET.db,'papantulis'),s=>{const v=s.val()||{};const cl=t=>typeof cleanText==='function'?cleanText(t):t;PT.t=typeof v.t==='string'?cl(v.t).slice(0,200):'';PT.n=typeof v.n==='string'?cl(v.n).slice(0,40):'';if(typeof dropTex==='function')dropTex('ptulis')},()=>{})}
+function nearBoard(){const b=KELAS.board,bx=-(monTot()+6)/2+.5;return PL1.z<-21.6&&Math.abs(PL1.y-FL)<1&&Math.hypot(PL1.x-(bx+2.4),PL1.z-b.z)<3.6}
+{const _np=nearPlace;nearPlace=function(){if(nearBoard()&&!SEAT.cur){const b=document.getElementById('wNear');if(NEAR!=='ptulis'){NEAR='ptulis';b.textContent='Tulis di papan tulis';b.hidden=false}return}_np()}}
+{const wb=document.getElementById('wNear'),prev=wb.onclick;wb.onclick=e=>{if(NEAR==='ptulis')openPT();else if(prev)prev.call(wb,e)}}
+function openPT(){const esc=t=>t.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ showCard(`<h2>Papan Tulis Kelas</h2><p style="font-size:13px;margin:0 0 6px">Tulisanmu langsung terlihat oleh semua mahasiswa yang ada di kelas. Maksimal 200 huruf.</p>
+ <textarea id="ptIn" maxlength="200" rows="4" style="width:100%;box-sizing:border-box;font:inherit;font-size:16px;padding:8px;border:3px solid var(--ink);border-radius:12px">${esc(PT.t)}</textarea>
+ <div class="row"><button class="btn dark" id="ptSave">Tulis</button><button class="btn" id="ptClear" style="background:#fff">Hapus papan</button></div>`);
+ const save=async t=>{if(!NET.F||!NET.db){toast('Belum tersambung ke kampus. Coba lagi sebentar.');return}
+  try{await NET.F.set(NET.F.ref(NET.db,'papantulis'),{t:t.slice(0,200),n:(typeof myName==='function'?myName():'Tamu').slice(0,40),at:NET.F.serverTimestamp()});closeCard();toast(t?'Tulisanmu sudah ada di papan!':'Papan sudah dihapus.')}catch(e){toast('Gagal menulis. Coba lagi nanti.')}};
+ document.getElementById('ptSave').onclick=()=>save(document.getElementById('ptIn').value.trim());document.getElementById('ptClear').onclick=()=>save('')}
 
 // ================= AJAKAN MIRINGKAN HP (hanya di layar sentuh, posisi tegak) =================
 (function(){const st=document.createElement('style');st.textContent=`#rotAsk{position:fixed;inset:0;z-index:50;background:rgba(43,26,14,.97);color:#fff8e6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center}
