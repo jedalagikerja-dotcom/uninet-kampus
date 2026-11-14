@@ -141,7 +141,7 @@ function followCam(){const t=[PL1.x,PL1.y+(typeof WARD!=='undefined'&&WARD.on?WA
  cam.tgt=t;cam.yaw=WCAM.yaw;cam.pitch=WCAM.pitch;cam.dist=lerp(cam.dist,d,d<cam.dist?.6:.08);cam.fov=58}
 // tempat terdekat
 let NEAR=null;
-function nearPlace(){let best=null;for(const pl of PLACES){const d=Math.hypot(pl.c[0]-PL1.x,pl.c[2]-PL1.z)-pl.r;if(d<3.5&&(!best||d<best.d))best={pl,d}}
+function nearPlace(){let best=null;for(const pl of PLACES){if(pl.id==='bendera')continue;const d=Math.hypot(pl.c[0]-PL1.x,pl.c[2]-PL1.z)-pl.r;if(d<3.5&&(!best||d<best.d))best={pl,d}}
  const b=document.getElementById('wNear');const id=best?best.pl.id:null;if(id!==NEAR){NEAR=id;if(id){b.textContent='Lihat: '+best.pl.name;b.hidden=false}else b.hidden=true}}
 
 // ---- UI mode jalan ----
