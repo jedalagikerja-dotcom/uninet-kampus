@@ -9,7 +9,7 @@ function gedung(){const tot=monTot(),bw=tot+6,hw=bw/2,z0=-30,z1=-21.5,H=11.6,cz=
  for(const s of[-1,1]){const w=hw-1.3;D(BOX,W,[s*(1.3+w/2),H/2,z1-.2],0,[w,H,.4],win(w,H))}D(BOX,W,[0,(5.3+H)/2,z1-.2],0,[2.6,H-5.3,.4]);
  D(BOX,'#dcd6ca',[0,H+.3,cz],0,[bw+.6,.6,z1-z0+.6]);D(BOX,'#e3342f',[0,H-.45,z1+.07],0,[bw,.4,.12],{cast:0});D(BOX,'#d9d2c4',[0,.25,cz],0,[bw+1,.5,z1-z0+1]);
  // bagian dalam: lantai, dinding dalam, plafon (tidak kena bayangan atap supaya terang)
- const R={recv:0,emis:nt?.08:.18};D(BOX,nt?'#cdbb98':'#e2cfa6',[0,FL-.05,cz],0,[bw-.8,.1,z1-z0-.8],{recv:0,cast:0});
+ const R={recv:0,emis:nt?.08:.18};D(BOX,nt?'#cdbb98':'#e2cfa6',[0,FL-.02,cz],0,[bw-.8,.1,z1-z0-.8],{recv:0,cast:0});
  D(BOX,IN,[0,(FL+H)/2,z0+.43],0,[bw-.8,H-FL,.05],R);for(const s of[-1,1])D(BOX,IN,[s*(hw-.43),(FL+H)/2,cz],0,[.05,H-FL,z1-z0-.8],R);
  for(const s of[-1,1]){const w=hw-1.3-.4;D(BOX,IN,[s*(1.3+w/2),(FL+H)/2,z1-.43],0,[w,H-FL,.05],R)}D(BOX,IN,[0,(5.3+H)/2,z1-.43],0,[2.6,H-5.3,.05],R);
  D(BOX,'#fbf8f0',[0,H-.25,cz],0,[bw-.8,.1,z1-z0-.8],{recv:0,cast:0});
