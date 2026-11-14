@@ -777,7 +777,7 @@ async function netStart(){try{
    MSG.set(s.key,{n,m,u:v.u});if(MSG.size>80)MSG.delete(MSG.keys().next().value);msgLine(s.key,{n,m,u:v.u,r,ment});
    if(ment&&!first&&Date.now()-(v.t||0)<20000){toast(shown(n)+(ro&&ro.u===NET.uid?' membalas pesanmu':' menyebut namamu')+': '+m.slice(0,40));try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}}
    if(Date.now()-(v.t||0)<15000)NET.bubbles.set(v.u,{key:s.key,m,until:Date.now()+6000});if(!first&&!chatEl.classList.contains('open'))setUnread(unread+1)});
-  logLine('',NET.ig?'Kamu masuk sebagai @'+NET.ig+'.':'Kamu masih Tamu. Ketuk "Daftar / Masuk" untuk memakai username IG.','sys');logLine('','Ketuk pesan untuk membalas. Ketik @ untuk menyebut nama.','sys');if(typeof brandStart==='function')brandStart();countOnline();
+  logLine('',NET.ig?'Kamu masuk sebagai @'+NET.ig+'.':'Kamu masih Tamu. Ketuk "Daftar / Masuk" untuk memakai username IG.','sys');logLine('','Ketuk pesan untuk membalas. Ketik @ untuk menyebut nama.','sys');D.onValue(D.ref(db,'mading'),x=>{const v=x.val();if(v&&typeof v.judul==='string'&&typeof v.isi==='string'){CONFIG.pengumuman={judul:v.judul.slice(0,40),isi:v.isi.slice(0,200)};dropTex('board')}},()=>{});if(typeof brandStart==='function')brandStart();countOnline();
   document.addEventListener('visibilitychange',()=>{if(document.hidden){D.goOffline(db)}else{D.goOnline(db);setTimeout(()=>sendPos(true),400)}});
   D.onValue(D.ref(db,'.info/serverTimeOffset'),x=>{NET.off=x.val()||0;countOnline()});
   setInterval(()=>{if(NET.on&&!NET.idleOff&&Date.now()-lastInput>600000){NET.idleOff=true;D.goOffline(db);const e=document.getElementById('onl');e.classList.remove('live');e.lastChild.textContent='ketuk layar';}else countOnline()},5000);
@@ -836,6 +836,16 @@ function drawWard(fresh){const A=NET.avEdit,el=document.getElementById('ward');
   try{await NET.F.set(NET.F.ref(NET.db,'avatar/'+NET.uid),avStr(A));NET.av=Object.assign({},A);closeWard();sendPos(true);toast('Karaktermu tersimpan!')}
   catch(e){b.disabled=false;b.textContent='Simpan';toast('Gagal menyimpan. Coba lagi.')}}}
 function closeWard(){NET.avEdit=null;WARD.on=false;document.getElementById('ward').hidden=true;document.body.classList.remove('ward');if(WARD.prev)Object.assign(WCAM,WARD.prev)}
+
+// ================= MADING (hanya @uninet.id) =================
+INFO.papan=()=>`<h2>${esc(CONFIG.pengumuman.judul)}</h2><p>${esc(CONFIG.pengumuman.isi)}</p><div class="row"><a class="btn" href="${CONFIG.igUrl}" target="_blank" rel="noopener">Buka @uninet.id</a>${NET.ig==='uninet.id'?'<button class="btn dark" type="button" id="madEdit">Ubah mading</button>':''}</div>`;
+document.addEventListener('click',e=>{if(e.target&&e.target.id==='madEdit')openMading()});
+function openMading(){if(NET.ig!=='uninet.id')return;const P=CONFIG.pengumuman,IS='width:100%;box-sizing:border-box;border:3px solid var(--ink);border-radius:12px;padding:9px 10px;font:800 16px var(--body);background:#fff;margin-top:6px';
+ showCard(`<h2>Ubah mading</h2><p>Tulisan ini tampil di Papan Pengumuman untuk semua mahasiswa.</p><label style="font-weight:800;font-size:14px">Judul<input id="mdJ" maxlength="40" style="${IS}"></label><label style="display:block;margin-top:8px;font-weight:800;font-size:14px">Isi<textarea id="mdI" maxlength="200" rows="3" style="${IS};resize:vertical"></textarea></label><p id="mdE" role="status" style="margin:6px 0;min-height:1em;color:#b0302b"></p><div class="row"><button class="btn dark" type="button" id="mdS">Simpan</button><button class="btn" type="button" id="mdB" style="background:#fff">Batal</button></div>`);
+ const J=document.getElementById('mdJ'),I=document.getElementById('mdI'),E=document.getElementById('mdE');J.value=P.judul;I.value=P.isi;
+ document.getElementById('mdB').onclick=closeCard;
+ document.getElementById('mdS').onclick=async()=>{const j=J.value.replace(/[<>]/g,'').trim(),i=I.value.replace(/[<>]/g,'').replace(/\s+/g,' ').trim();if(!j||!i){E.textContent='Judul dan isi wajib diisi.';return}
+  try{await NET.F.set(NET.F.ref(NET.db,'mading'),{judul:j,isi:i,t:NET.F.serverTimestamp()});closeCard();toast('Mading diperbarui!')}catch(err){E.textContent='Gagal menyimpan. Sudah tempel aturan database terbaru?'}}}
 
 // ================= MITRA BRAND: slot warung kantin + baliho =================
 const BR={data:{},seen:new Set(),logo:{},logoSrc:{},open:false,slot:{},sampai:{}};
